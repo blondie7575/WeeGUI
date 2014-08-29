@@ -1,0 +1,1570 @@
+ca65 V2.13.3 - (C) Copyright 1998-2012 Ullrich von Bassewitz
+Main file   : gui.s
+Current file: gui.s
+
+000000r 1               ;
+000000r 1               ;  gui.s
+000000r 1               ;  AssemblyTest
+000000r 1               ;
+000000r 1               ;  Created by Quinn Dunki on 8/15/14.
+000000r 1               ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
+000000r 1               ;
+000000r 1               
+000000r 1               
+000000r 1               .org $4000
+004000  1               
+004000  1               
+004000  1               ; Common definitions
+004000  1               
+004000  1               .include "switches.s"
+004000  2               ;
+004000  2               ;  switches.s
+004000  2               ;  Softswitches for Apple ][
+004000  2               ;
+004000  2               ;  Created by Quinn Dunki on 8/15/14.
+004000  2               ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
+004000  2               ;
+004000  2               
+004000  2               
+004000  2               PAGE2			= $c01c ; Read bit 7
+004000  2               PAGE2OFF		= $c054 ; Read/Write
+004000  2               PAGE2ON			= $c055 ; Read/Write
+004000  2               
+004000  2               COL80			= $c01f	; Read bit 7
+004000  2               COL80OFF		= $c00c	; Write
+004000  2               COL80ON			= $c00d ; Write
+004000  2               
+004000  2               STORE80			= $c018	; Read bit 7
+004000  2               STORE80OFF		= $c000 ; Write
+004000  2               STORE80ON		= $c001 ; Write
+004000  2               
+004000  2               TEXT			= $c01a ; Read bit 7
+004000  2               TEXTOFF			= $c050 ; Read/Write
+004000  2               TEXTON			= $C051 ; Read/Write
+004000  2               
+004000  2               KBD				= $c000 ; Read
+004000  2               KBDSTRB			= $c010	; Read/Write
+004000  2               
+004000  2               RDVBLBAR		= $C019	; Read bit 7 (active low)
+004000  2               
+004000  1               .include "macros.s"
+004000  2               ;
+004000  2               ;  macros.s
+004000  2               ;  Generally useful macros for 6502 code
+004000  2               ;
+004000  2               ;  Created by Quinn Dunki on 8/15/14.
+004000  2               ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
+004000  2               ;
+004000  2               
+004000  2               
+004000  2               ; Macros
+004000  2               
+004000  2               .macro SETSWITCH name		; Sets the named softswitch (assumes write method)
+004000  2               	sta name
+004000  2               .endmacro
+004000  2               
+004000  2               
+004000  2               .macro SAVE_AXY				; Saves all registers
+004000  2               	pha
+004000  2               	txa
+004000  2               	pha
+004000  2               	tya
+004000  2               	pha
+004000  2               .endmacro
+004000  2               
+004000  2               
+004000  2               .macro RESTORE_AXY			; Restores all registers
+004000  2               	pla
+004000  2               	tay
+004000  2               	pla
+004000  2               	tax
+004000  2               	pla
+004000  2               .endmacro
+004000  2               
+004000  2               
+004000  2               .macro SAVE_AY				; Saves accumulator and Y index
+004000  2               	pha
+004000  2               	tya
+004000  2               	pha
+004000  2               .endmacro
+004000  2               
+004000  2               
+004000  2               .macro RESTORE_AY			; Restores accumulator and Y index
+004000  2               	pla
+004000  2               	tay
+004000  2               	pla
+004000  2               .endmacro
+004000  2               
+004000  2               
+004000  2               .macro SAVE_AX				; Saves accumulator and X index
+004000  2               	pha
+004000  2               	txa
+004000  2               	pha
+004000  2               .endmacro
+004000  2               
+004000  2               
+004000  2               .macro RESTORE_AX			; Restores accumulator and X index
+004000  2               	pla
+004000  2               	tax
+004000  2               	pla
+004000  2               .endmacro
+004000  2               
+004000  2               
+004000  2               .macro SAVE_ZPP				; Saves Zero Page locations we use for parameters
+004000  2               	lda	PARAM0
+004000  2               	pha
+004000  2               	lda PARAM1
+004000  2               	pha
+004000  2               	lda PARAM2
+004000  2               	pha
+004000  2               	lda PARAM3
+004000  2               	pha
+004000  2               .endmacro
+004000  2               
+004000  2               
+004000  2               .macro RESTORE_ZPP			; Restores Zero Page locations we use for parameters
+004000  2               	pla
+004000  2               	sta PARAM3
+004000  2               	pla
+004000  2               	sta PARAM2
+004000  2               	pla
+004000  2               	sta PARAM1
+004000  2               	pla
+004000  2               	sta PARAM0
+004000  2               .endmacro
+004000  2               
+004000  2               
+004000  2               .macro SAVE_ZPS				; Saves Zero Page locations we use for scratch
+004000  2               	lda	SCRATCH0
+004000  2               	pha
+004000  2               	lda SCRATCH1
+004000  2               	pha
+004000  2               .endmacro
+004000  2               
+004000  2               
+004000  2               .macro RESTORE_ZPS			; Restores Zero Page locations we use for scratch
+004000  2               	pla
+004000  2               	sta	SCRATCH1
+004000  2               	pla
+004000  2               	sta	SCRATCH0
+004000  2               .endmacro
+004000  2               
+004000  2               
+004000  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+004000  2               ; Rendering macros
+004000  2               ;
+004000  2               
+004000  2               .macro LDY_ACTIVEVIEW
+004000  2               	lda WG_ACTIVEVIEW	; Find our new view record
+004000  2               	and #%00001111
+004000  2               	asl
+004000  2               	asl
+004000  2               	asl
+004000  2               	asl				; Records are 8 bytes wide
+004000  2               	tay
+004000  2               .endmacro
+004000  2               
+004000  2               
+004000  2               .macro LDX_ACTIVEVIEW
+004000  2               	lda WG_ACTIVEVIEW	; Find our new view record
+004000  2               	and #%00001111
+004000  2               	asl
+004000  2               	asl
+004000  2               	asl
+004000  2               	asl				; Records are 8 bytes wide
+004000  2               	tax
+004000  2               .endmacro
+004000  2               
+004000  2               
+004000  2               .macro VBL_SYNC				; Synchronize with vertical blanking
+004000  2               	lda #$80
+004000  2               macroWaitVBLToFinish:
+004000  2               	bit	RDVBLBAR
+004000  2               	bmi	tortureTestRectsWaitVBLToFinish
+004000  2               macroWaitVBLToStart:
+004000  2               	bit	RDVBLBAR
+004000  2               	bpl	tortureTestRectsWaitVBLToStart
+004000  2               .endmacro
+004000  2               
+004000  1               
+004000  1               
+004000  1               ; Main
+004000  1               
+004000  1               main:
+004000  1  20 33 40     	jsr begin80cols
+004003  1  20 C0 40     	jsr WGClearScreen
+004006  1               
+004006  1  A9 A4        	lda	#<testView
+004008  1  8D 06 00     	sta	PARAM0
+00400B  1  A9 46        	lda	#>testView
+00400D  1  8D 07 00     	sta	PARAM1
+004010  1  20 46 44     	jsr	WGCreateView
+004013  1               
+004013  1  A9 00        	lda #0
+004015  1  20 FB 44     	jsr	WGSelectView
+004018  1               
+004018  1  20 AC 44     	jsr	WGPaintView
+00401B  1               
+00401B  1  A2 04        	ldx	#4
+00401D  1  A0 03        	ldy	#3
+00401F  1  20 17 45     	jsr	WGSetCursor
+004022  1               
+004022  1               ;	lda	#-4
+004022  1               ;	jsr	WGScrollX
+004022  1               ;	lda	#-3
+004022  1               ;	jsr	WGScrollY
+004022  1               
+004022  1  A9 B2        	lda	#<testStr
+004024  1  8D 06 00     	sta	PARAM0
+004027  1  A9 46        	lda #>testStr
+004029  1  8D 07 00     	sta PARAM1
+00402C  1  20 95 43     	jsr WGPrintASCII
+00402F  1               
+00402F  1               ;	lda	#1
+00402F  1               ;	sta PARAM0
+00402F  1               ;	lda	#1
+00402F  1               ;	sta	PARAM1
+00402F  1               ;	lda #2
+00402F  1               ;	sta	PARAM2
+00402F  1               ;	lda	#2
+00402F  1               ;	sta	PARAM3
+00402F  1               ;	ldx	#'Q'+$80
+00402F  1               ;	jsr	WGFillRect
+00402F  1               ;	jsr	WGStrokeRect
+00402F  1               ;	jmp loop
+00402F  1               ;	jsr	waitForKey
+00402F  1               
+00402F  1               ;	jmp tortureTestRects
+00402F  1               
+00402F  1               loop:
+00402F  1               ;	lda	#'Q' + $80
+00402F  1               ;	jsr	COUT
+00402F  1  4C 2F 40     	jmp loop
+004032  1  60           	rts			; This seems to work for returning to BASIC.SYSTEM, but I don't think it's right
+004033  1               
+004033  1               
+004033  1               
+004033  1               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+004033  1               ; begin80cols
+004033  1               ; Enables 80 column mode (and enhanced video firmware)
+004033  1               begin80cols:
+004033  1  A9 A0        	lda	#$a0
+004035  1  20 00 C3     	jsr	$c300
+004038  1  8D 51 C0     	SETSWITCH	TEXTON
+00403B  1  8D 54 C0     	SETSWITCH	PAGE2OFF
+00403E  1  8D 0D C0     	SETSWITCH	COL80ON
+004041  1  8D 01 C0     	SETSWITCH	STORE80ON
+004044  1  60           	rts
+004045  1               
+004045  1               
+004045  1               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+004045  1               ; waitForKey
+004045  1               ; Spinlocks until a key is pressed
+004045  1               waitForKey:
+004045  1  AD 10 C0     	lda	KBDSTRB
+004048  1  10 FB        	bpl waitForKey
+00404A  1  60           	rts
+00404B  1               
+00404B  1               
+00404B  1               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+00404B  1               ; read80ColSwitch
+00404B  1               ; Returns value of the 80 col switch on //c and //c+ machines
+00404B  1               ; OUT A: Switch state (non-zero=80 cols)
+00404B  1               ; NOTE: Untested
+00404B  1               read80ColSwitch:
+00404B  1  AD 60 C0     	lda $c060
+00404E  1  10 03        	bpl read80ColSwitch_40
+004050  1  A9 01        	lda #$1
+004052  1  60           	rts
+004053  1               
+004053  1               read80ColSwitch_40:
+004053  1  A9 00        	lda #$0
+004055  1  60           	rts
+004056  1               
+004056  1               
+004056  1               ; Code modules
+004056  1               .include "utility.s"
+004056  2               ;
+004056  2               ;  utility.s
+004056  2               ;  General utilities for 6502
+004056  2               ;
+004056  2               ;  Created by Quinn Dunki on 8/15/14.
+004056  2               ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
+004056  2               ;
+004056  2               
+004056  2               
+004056  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+004056  2               ; delay
+004056  2               ; Sleeps for ~1 second
+004056  2               ;
+004056  2               delay:
+004056  2  48 8A 48 98  	SAVE_AXY
+00405A  2  48           
+00405B  2               
+00405B  2  A0 CE        	ldy		#$ce	; Loop a bunch
+00405D  2               delayOuter:
+00405D  2  A2 FF        	ldx		#$ff
+00405F  2               delayInner:
+00405F  2  EA           	nop
+004060  2  EA           	nop
+004061  2  EA           	nop
+004062  2  EA           	nop
+004063  2  EA           	nop
+004064  2  EA           	nop
+004065  2  EA           	nop
+004066  2  CA           	dex
+004067  2  D0 F6        	bne		delayInner
+004069  2  88           	dey
+00406A  2  D0 F1        	bne		delayOuter
+00406C  2               
+00406C  2  68 A8 68 AA  	RESTORE_AXY
+004070  2  68           
+004071  2  60           	rts
+004072  2               
+004072  2               
+004072  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+004072  2               ; delayShort
+004072  2               ; Sleeps for ~1/30th second
+004072  2               ;
+004072  2               delayShort:
+004072  2  48 8A 48 98  	SAVE_AXY
+004076  2  48           
+004077  2               
+004077  2  A0 06        	ldy		#$06	; Loop a bit
+004079  2               delayShortOuter:
+004079  2  A2 FF        	ldx		#$ff
+00407B  2               delayShortInner:
+00407B  2  EA           	nop
+00407C  2  EA           	nop
+00407D  2  EA           	nop
+00407E  2  EA           	nop
+00407F  2  EA           	nop
+004080  2  EA           	nop
+004081  2  EA           	nop
+004082  2  CA           	dex
+004083  2  D0 F6        	bne		delayShortInner
+004085  2  88           	dey
+004086  2  D0 F1        	bne		delayShortOuter
+004088  2               
+004088  2  68 A8 68 AA  	RESTORE_AXY
+00408C  2  68           
+00408D  2  60           	rts
+00408E  2               
+00408E  2               
+00408E  2               ;;;;;;;;;;;;;;;;;;;;;;;
+00408E  2               ; scanHexDigit
+00408E  2               ; Scans a 4 bit hex value from an ASCII character
+00408E  2               ; A: ASCII character
+00408E  2               ; Out A: Hex value
+00408E  2               ;
+00408E  2               scanHexDigit:
+00408E  2  C9 41        	cmp		#'A'
+004090  2  B0 06        	bcs		scanHexDigitLetter
+004092  2  38           	sec
+004093  2  E9 30        	sbc		#'0'
+004095  2  4C 9B 40     	jmp		scanHexDigitDone
+004098  2               
+004098  2               scanHexDigitLetter:
+004098  2  38           	sec
+004099  2  E9 37        	sbc		#55
+00409B  2               
+00409B  2               scanHexDigitDone:
+00409B  2  60           	rts
+00409C  2               
+00409C  2               
+00409C  2               ;;;;;;;;;;;;;;;;;;;;;;;
+00409C  2               ; scanHex8
+00409C  2               ; Scans an 8 bit hex value from a string
+00409C  2               ; PARAM0: Pointer to string (LSB)
+00409C  2               ; PARAM1: Pointer to string (MSB)
+00409C  2               ; Y: Offset into string
+00409C  2               ; Out A: 8-bit hex value
+00409C  2               ; Side effects: Clobbers Y and S0
+00409C  2               ;
+00409C  2               scanHex8:
+00409C  2  B1 06        	lda		(PARAM0),y
+00409E  2  20 8E 40     	jsr		scanHexDigit
+0040A1  2  0A           	asl
+0040A2  2  0A           	asl
+0040A3  2  0A           	asl
+0040A4  2  0A           	asl
+0040A5  2  8D 19 00     	sta		SCRATCH0		; Stash first digit for later
+0040A8  2               
+0040A8  2  C8           	iny
+0040A9  2  B1 06        	lda		(PARAM0),y
+0040AB  2  20 8E 40     	jsr		scanHexDigit
+0040AE  2  0D 19 00     	ora		SCRATCH0
+0040B1  2  C8           	iny						; Be nice and advance Y to end
+0040B2  2  60           	rts
+0040B3  2               
+0040B3  2               
+0040B3  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+0040B3  2               ; WGStrLen
+0040B3  2               ; Finds the length of a null-terminated string
+0040B3  2               ; PARAM0: String pointer, LSB
+0040B3  2               ; PARAM1: String pointer, MSB
+0040B3  2               ; Return: A: String length, not including null
+0040B3  2               ;
+0040B3  2               WGStrLen:
+0040B3  2  5A           	phy
+0040B4  2               
+0040B4  2  A0 00        	ldy #$0
+0040B6  2               WGStrLen_loop:
+0040B6  2  B1 06        	lda	(PARAM0),y
+0040B8  2  F0 03        	beq	WGStrLen_done
+0040BA  2  C8           	iny
+0040BB  2  80 F9        	bra	WGStrLen_loop
+0040BD  2               
+0040BD  2               WGStrLen_done:
+0040BD  2  98           	tya
+0040BE  2  7A           	ply
+0040BF  2  60           	rts
+0040C0  2               
+0040C0  2               
+0040C0  2               
+0040C0  1               .include "painting.s"
+0040C0  2               ;
+0040C0  2               ;  painting.s
+0040C0  2               ;  Rendering routines for 80 column text elements
+0040C0  2               ;
+0040C0  2               ;  Created by Quinn Dunki on 8/15/14.
+0040C0  2               ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
+0040C0  2               ;
+0040C0  2               
+0040C0  2               
+0040C0  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+0040C0  2               ; WGClearScreen
+0040C0  2               ; Clears the text screen (assumes 80 cols)
+0040C0  2               ; Side effects: Clobbers BASL,BASH
+0040C0  2               ;
+0040C0  2               WGClearScreen:
+0040C0  2               
+0040C0  2  48 8A 48 98  	SAVE_AXY
+0040C4  2  48           
+0040C5  2  8D 54 C0     	SETSWITCH	PAGE2OFF
+0040C8  2  A2 17        	ldx	#23
+0040CA  2               
+0040CA  2               WGClearScreen_lineLoop:
+0040CA  2               
+0040CA  2  BD 8C 46     	lda TEXTLINES_L,x	; Compute video memory address of line
+0040CD  2  8D 28 00     	sta BASL
+0040D0  2  BD 74 46     	lda TEXTLINES_H,x
+0040D3  2  8D 29 00     	sta BASH
+0040D6  2               
+0040D6  2  A0 27        	ldy	#39
+0040D8  2  A9 A0        	lda	#' ' + $80
+0040DA  2               
+0040DA  2               WGClearScreen_charLoop:
+0040DA  2  91 28        	sta	(BASL),y
+0040DC  2  8D 55 C0     	SETSWITCH	PAGE2ON
+0040DF  2  91 28        	sta	(BASL),y
+0040E1  2  8D 54 C0     	SETSWITCH	PAGE2OFF
+0040E4  2  88           	dey
+0040E5  2  10 F3        	bpl	WGClearScreen_charLoop
+0040E7  2               
+0040E7  2  CA           	dex
+0040E8  2  10 E0        	bpl WGClearScreen_lineLoop
+0040EA  2               
+0040EA  2  68 A8 68 AA  	RESTORE_AXY
+0040EE  2  68           
+0040EF  2  60           	rts
+0040F0  2               
+0040F0  2               
+0040F0  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+0040F0  2               ; WGFillRect
+0040F0  2               ; Fills a rectangle (assumes 80 cols)
+0040F0  2               ; PARAM0: Left edge
+0040F0  2               ; PARAM1: Top edge
+0040F0  2               ; PARAM2: Width
+0040F0  2               ; PARAM3: Height
+0040F0  2               ; X: Character to fill
+0040F0  2               ; Side effects: Clobbers BASL,BASH
+0040F0  2               ;
+0040F0  2               WGFillRect:
+0040F0  2               
+0040F0  2  48 8A 48 98  	SAVE_AXY
+0040F4  2  48           
+0040F5  2  AD 19 00 48  	SAVE_ZPS
+0040F9  2  AD 1A 00 48  
+0040FD  2  8E 19 00     	stx	SCRATCH0
+004100  2               
+004100  2  18           	clc					; Compute bottom edge
+004101  2  AD 07 00     	lda	PARAM1
+004104  2  6D 09 00     	adc PARAM3
+004107  2  AA           	tax
+004108  2               
+004108  2               WGFillRect_vertLoop:
+004108  2  DA           	phx					; We'll need X back for now, but save the line number
+004109  2               
+004109  2  BD 8C 46     	lda TEXTLINES_L,x	; Compute video memory address of left edge of rect
+00410C  2  8D 28 00     	sta BASL
+00410F  2  BD 74 46     	lda TEXTLINES_H,x
+004112  2  8D 29 00     	sta BASH
+004115  2               
+004115  2  AD 06 00     	lda	PARAM0
+004118  2  4A           	lsr
+004119  2  18           	clc
+00411A  2  6D 28 00     	adc	BASL
+00411D  2  8D 28 00     	sta BASL
+004120  2  A9 00        	lda	#$0
+004122  2  6D 29 00     	adc BASH
+004125  2  8D 29 00     	sta BASH
+004128  2               
+004128  2  AD 06 00     	lda	PARAM0			; Left edge even?
+00412B  2  29 01        	and	#$01
+00412D  2  D0 39        	bne	WGFillRect_horzLoopOdd
+00412F  2               
+00412F  2               	; CASE 1: Left edge even-aligned, even width
+00412F  2  8D 54 C0     	SETSWITCH	PAGE2OFF
+004132  2  AD 08 00     	lda	PARAM2
+004135  2  4A           	lsr
+004136  2  A8           	tay					; Iterate w/2
+004137  2  88           	dey
+004138  2  5A           	phy					; We'll reuse this calculation for the odd columns
+004139  2               
+004139  2               WGFillRect_horzLoopEvenAligned0:	; Draw even columns
+004139  2  AD 19 00     	lda	SCRATCH0					; Plot the character
+00413C  2  91 28        	sta	(BASL),y
+00413E  2  88           	dey
+00413F  2  10 F8        	bpl	WGFillRect_horzLoopEvenAligned0	; Loop for w/2
+004141  2               
+004141  2  8D 55 C0     	SETSWITCH	PAGE2ON				; Prepare for odd columns
+004144  2  7A           	ply								; Iterate w/2 again
+004145  2               
+004145  2               WGFillRect_horzLoopEvenAligned1:	; Draw odd columns
+004145  2  AD 19 00     	lda	SCRATCH0					; Plot the character
+004148  2  91 28        	sta	(BASL),y
+00414A  2  88           	dey
+00414B  2  10 F8        	bpl	WGFillRect_horzLoopEvenAligned1	; Loop for w/2
+00414D  2               
+00414D  2  AD 08 00     	lda	PARAM2						; Is width even?
+004150  2  29 01        	and	#$01
+004152  2  F0 0A        	beq	WGFillRect_horzLoopEvenAlignedEvenWidth
+004154  2               
+004154  2               	; CASE 1a: Left edge even aligned, odd width
+004154  2  AD 08 00     	lda	PARAM2						; Fill in extra last column
+004157  2  4A           	lsr
+004158  2  A8           	tay
+004159  2  AD 19 00     	lda	SCRATCH0					; Plot the character
+00415C  2  91 28        	sta	(BASL),y
+00415E  2               
+00415E  2               WGFillRect_horzLoopEvenAlignedEvenWidth:
+00415E  2  FA           	plx								; Prepare for next row
+00415F  2  CA           	dex
+004160  2  EC 07 00     	cpx	PARAM1
+004163  2  B0 A3        	bcs	WGFillRect_vertLoop
+004165  2  4C A4 41     	jmp	WGFillRect_done
+004168  2               
+004168  2               WGFillRect_horzLoopOdd:
+004168  2               	; CASE 2: Left edge odd-aligned, even width
+004168  2  8D 55 C0     	SETSWITCH	PAGE2ON
+00416B  2  AD 08 00     	lda	PARAM2
+00416E  2  4A           	lsr
+00416F  2  A8           	tay					; Iterate w/2
+004170  2  5A           	phy					; We'll reuse this calculation for the even columns
+004171  2               
+004171  2               WGFillRect_horzLoopOddAligned0:		; Draw even columns
+004171  2  AD 19 00     	lda	SCRATCH0					; Plot the character
+004174  2  91 28        	sta	(BASL),y
+004176  2  88           	dey
+004177  2  D0 F8        	bne	WGFillRect_horzLoopOddAligned0	; Loop for w/2
+004179  2               
+004179  2  8D 54 C0     	SETSWITCH	PAGE2OFF				; Prepare for odd columns
+00417C  2  7A           	ply									; Iterate w/2 again, shift left 1
+00417D  2  88           	dey
+00417E  2               
+00417E  2               WGFillRect_horzLoopOddAligned1:		; Draw even columns
+00417E  2  AD 19 00     	lda	SCRATCH0					; Plot the character
+004181  2  91 28        	sta	(BASL),y
+004183  2  88           	dey
+004184  2  10 F8        	bpl	WGFillRect_horzLoopOddAligned1	; Loop for w/2
+004186  2               
+004186  2  AD 08 00     	lda	PARAM2						; Is width even?
+004189  2  29 01        	and	#$01
+00418B  2  F0 0A        	beq	WGFillRect_horzLoopOddAlignedEvenWidth
+00418D  2               
+00418D  2               	; CASE 2a: Left edge odd aligned, odd width
+00418D  2  AD 08 00     	lda	PARAM2						; Fill in extra last column
+004190  2  4A           	lsr
+004191  2  A8           	tay
+004192  2  AD 19 00     	lda	SCRATCH0					; Plot the character
+004195  2  91 28        	sta	(BASL),y
+004197  2               
+004197  2               WGFillRect_horzLoopOddAlignedEvenWidth:
+004197  2  FA           	plx								; Prepare for next row
+004198  2  CA           	dex
+004199  2  EC 07 00     	cpx	PARAM1
+00419C  2  B0 03        	bcs	WGFillRect_vertLoopJmp
+00419E  2  4C A4 41     	jmp WGFillRect_done
+0041A1  2               WGFillRect_vertLoopJmp:
+0041A1  2  4C 08 41     	jmp	WGFillRect_vertLoop
+0041A4  2               
+0041A4  2               WGFillRect_done:
+0041A4  2  68 8D 1A 00  	RESTORE_ZPS
+0041A8  2  68 8D 19 00  
+0041AC  2  68 A8 68 AA  	RESTORE_AXY
+0041B0  2  68           
+0041B1  2  60           	rts
+0041B2  2               
+0041B2  2               
+0041B2  2               
+0041B2  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+0041B2  2               ; WGStrokeRect
+0041B2  2               ; Strokes a rectangle (assumes 80 cols)
+0041B2  2               ; PARAM0: Left edge
+0041B2  2               ; PARAM1: Top edge
+0041B2  2               ; PARAM2: Width
+0041B2  2               ; PARAM3: Height
+0041B2  2               ; Side effects: Clobbers BASL,BASH
+0041B2  2               ;
+0041B2  2               CH_TOP = '_'+$80
+0041B2  2               CH_BOTTOM = 'L';'_'+$80
+0041B2  2               CH_LEFT = 'Z';'_'+$80
+0041B2  2               CH_RIGHT = '_'
+0041B2  2               CH_BOTTOMLEFT = 'L'
+0041B2  2               CH_BOTTOMRIGHT = '_'+$80
+0041B2  2               
+0041B2  2               WGStrokeRect:
+0041B2  2               
+0041B2  2  48 8A 48 98  	SAVE_AXY
+0041B6  2  48           
+0041B7  2  AD 19 00 48  	SAVE_ZPS
+0041BB  2  AD 1A 00 48  
+0041BF  2               
+0041BF  2               	; Top and bottom edges
+0041BF  2               	;
+0041BF  2  AE 07 00     	ldx	PARAM1			; Start with top edge
+0041C2  2  CA           	dex
+0041C3  2  A9 DF        	lda	#CH_TOP
+0041C5  2  8D 19 00     	sta	SCRATCH0
+0041C8  2               
+0041C8  2               WGStrokeRect_horzEdge:
+0041C8  2  BD 8C 46     	lda TEXTLINES_L,x	; Compute video memory address of left edge of rect
+0041CB  2  8D 28 00     	sta BASL
+0041CE  2  BD 74 46     	lda TEXTLINES_H,x
+0041D1  2  8D 29 00     	sta BASH
+0041D4  2               
+0041D4  2  AD 06 00     	lda	PARAM0
+0041D7  2  4A           	lsr
+0041D8  2  18           	clc
+0041D9  2  6D 28 00     	adc	BASL
+0041DC  2  8D 28 00     	sta BASL
+0041DF  2  A9 00        	lda	#$0
+0041E1  2  6D 29 00     	adc BASH
+0041E4  2  8D 29 00     	sta BASH
+0041E7  2               
+0041E7  2  AD 06 00     	lda	PARAM0			; Left edge even?
+0041EA  2  29 01        	and	#$01
+0041EC  2  D0 45        	bne	WGStrokeRect_horzLoopOdd
+0041EE  2               
+0041EE  2               	; CASE 1: Left edge even-aligned, even width
+0041EE  2  8D 54 C0     	SETSWITCH	PAGE2OFF
+0041F1  2  AD 08 00     	lda	PARAM2
+0041F4  2  4A           	lsr
+0041F5  2  A8           	tay					; Start at right edge
+0041F6  2  88           	dey
+0041F7  2  5A           	phy					; We'll reuse this calculation for the odd columns
+0041F8  2               
+0041F8  2               WGStrokeRect_horzLoopEvenAligned0:	; Draw even columns
+0041F8  2  AD 19 00     	lda	SCRATCH0					; Plot the character
+0041FB  2  91 28        	sta	(BASL),y
+0041FD  2  88           	dey
+0041FE  2  10 F8        	bpl	WGStrokeRect_horzLoopEvenAligned0	; Loop for w/2
+004200  2               
+004200  2  8D 55 C0     	SETSWITCH	PAGE2ON			; Prepare for odd columns
+004203  2  7A           	ply								; Start at right edge again
+004204  2               
+004204  2               WGStrokeRect_horzLoopEvenAligned1:	; Draw odd columns
+004204  2  AD 19 00     	lda	SCRATCH0					; Plot the character
+004207  2  91 28        	sta	(BASL),y
+004209  2  88           	dey
+00420A  2  10 F8        	bpl	WGStrokeRect_horzLoopEvenAligned1	; Loop for w/2
+00420C  2               
+00420C  2  AD 08 00     	lda	PARAM2						; Is width even?
+00420F  2  29 01        	and	#$01
+004211  2  F0 0A        	beq	WGStrokeRect_horzLoopEvenAlignedEvenWidth
+004213  2               
+004213  2               	; CASE 1a: Left edge even aligned, odd width
+004213  2               	;SETSWITCH	PAGE2OFF
+004213  2  AD 08 00     	lda	PARAM2						; Fill in extra last column
+004216  2  4A           	lsr
+004217  2  A8           	tay
+004218  2  AD 19 00     	lda	SCRATCH0					; Plot the character
+00421B  2  91 28        	sta	(BASL),y
+00421D  2               
+00421D  2               WGStrokeRect_horzLoopEvenAlignedEvenWidth:
+00421D  2  E8           	inx
+00421E  2  EC 07 00     	cpx	PARAM1
+004221  2  D0 56        	bne WGStrokeRect_vertEdge
+004223  2  18           	clc								; Prepare for bottom edge
+004224  2  AD 07 00     	lda PARAM1
+004227  2  6D 09 00     	adc PARAM3
+00422A  2  AA           	tax
+00422B  2  A9 4C        	lda	#CH_BOTTOM
+00422D  2  8D 19 00     	sta SCRATCH0
+004230  2  4C C8 41     	jmp	WGStrokeRect_horzEdge
+004233  2               
+004233  2               WGStrokeRect_horzLoopOdd:
+004233  2               	; CASE 2: Left edge odd-aligned, even width
+004233  2  8D 55 C0     	SETSWITCH	PAGE2ON
+004236  2  AD 08 00     	lda	PARAM2
+004239  2  4A           	lsr
+00423A  2  A8           	tay					; Iterate w/2
+00423B  2  5A           	phy					; We'll reuse this calculation for the even columns
+00423C  2               
+00423C  2               WGStrokeRect_horzLoopOddAligned0:		; Draw even columns
+00423C  2  AD 19 00     	lda	SCRATCH0					; Plot the character
+00423F  2  91 28        	sta	(BASL),y
+004241  2  88           	dey
+004242  2  D0 F8        	bne	WGStrokeRect_horzLoopOddAligned0	; Loop for w/2
+004244  2               
+004244  2  8D 54 C0     	SETSWITCH	PAGE2OFF				; Prepare for odd columns
+004247  2  7A           	ply									; Iterate w/2 again, shift left 1
+004248  2  88           	dey
+004249  2               
+004249  2               WGStrokeRect_horzLoopOddAligned1:		; Draw even columns
+004249  2  AD 19 00     	lda	SCRATCH0					; Plot the character
+00424C  2  91 28        	sta	(BASL),y
+00424E  2  88           	dey
+00424F  2  10 F8        	bpl	WGStrokeRect_horzLoopOddAligned1	; Loop for w/2
+004251  2               
+004251  2  AD 08 00     	lda	PARAM2						; Is width even?
+004254  2  29 01        	and	#$01
+004256  2  F0 0B        	beq	WGStrokeRect_horzLoopOddAlignedEvenWidth
+004258  2               
+004258  2               	; CASE 2a: Left edge odd aligned, odd width
+004258  2  AD 08 00     	lda	PARAM2						; Fill in extra last column
+00425B  2  3A           	dec
+00425C  2  4A           	lsr
+00425D  2  A8           	tay
+00425E  2  AD 19 00     	lda	SCRATCH0					; Plot the character
+004261  2  91 28        	sta	(BASL),y
+004263  2               
+004263  2               WGStrokeRect_horzLoopOddAlignedEvenWidth:
+004263  2  E8           	inx
+004264  2  EC 07 00     	cpx	PARAM1
+004267  2  D0 10        	bne WGStrokeRect_vertEdge
+004269  2  18           	clc								; Prepare for bottom edge
+00426A  2  AD 07 00     	lda PARAM1
+00426D  2  6D 09 00     	adc PARAM3
+004270  2  AA           	tax
+004271  2  A9 4C        	lda #CH_BOTTOM
+004273  2  8D 19 00     	sta SCRATCH0
+004276  2  4C C8 41     	jmp	WGStrokeRect_horzEdge
+004279  2               
+004279  2               
+004279  2               WGStrokeRect_vertEdge:
+004279  2               	; Left and right edges
+004279  2               	;
+004279  2  18           	clc
+00427A  2  AD 07 00     	lda	PARAM1				; Compute bottom edge
+00427D  2  6D 09 00     	adc PARAM3
+004280  2  8D 19 00     	sta	SCRATCH0
+004283  2               
+004283  2  AE 07 00     	ldx	PARAM1				; Start with top edge
+004286  2               
+004286  2               WGStrokeRect_vertLoop:
+004286  2               
+004286  2  DA           	phx					; We'll need X back for now, but save the line number
+004287  2               
+004287  2  BD 8C 46     	lda TEXTLINES_L,x	; Compute video memory address of left edge of rect
+00428A  2  8D 28 00     	sta BASL
+00428D  2  BD 74 46     	lda TEXTLINES_H,x
+004290  2  8D 29 00     	sta BASH
+004293  2               
+004293  2  AD 06 00     	lda	PARAM0
+004296  2  3A           	dec
+004297  2  4A           	lsr
+004298  2  18           	clc
+004299  2  6D 28 00     	adc	BASL
+00429C  2  8D 28 00     	sta BASL
+00429F  2  A9 00        	lda	#$0
+0042A1  2  6D 29 00     	adc BASH
+0042A4  2  8D 29 00     	sta BASH
+0042A7  2               
+0042A7  2  AD 06 00     	lda	PARAM0			; Left edge even?
+0042AA  2  3A           	dec
+0042AB  2  29 01        	and	#$01
+0042AD  2  D0 3C        	bne	WGStrokeRect_vertLoopOdd
+0042AF  2               
+0042AF  2               	; CASE 1: Left edge even-aligned, even width
+0042AF  2  8D 55 C0     	SETSWITCH	PAGE2ON
+0042B2  2  A0 00        	ldy	#$0
+0042B4  2  A9 5A        	lda	#CH_LEFT					; Plot the left edge
+0042B6  2  91 28        	sta	(BASL),y
+0042B8  2               
+0042B8  2  AD 08 00     	lda	PARAM2						; Is width even?
+0042BB  2  1A           	inc
+0042BC  2  1A           	inc
+0042BD  2  29 01        	and	#$01
+0042BF  2  D0 12        	bne	WGStrokeRect_vertLoopEvenAlignedOddWidth
+0042C1  2               
+0042C1  2  AD 08 00     	lda PARAM2						; Calculate right edge
+0042C4  2  1A           	inc
+0042C5  2  1A           	inc
+0042C6  2  4A           	lsr
+0042C7  2  3A           	dec
+0042C8  2  A8           	tay
+0042C9  2  8D 54 C0     	SETSWITCH	PAGE2OFF
+0042CC  2  A9 5F        	lda	#CH_RIGHT					; Plot the right edge
+0042CE  2  91 28        	sta	(BASL),y
+0042D0  2  4C E1 42     	jmp	WGStrokeRect_vertLoopEvenAlignedNextRow
+0042D3  2               
+0042D3  2               WGStrokeRect_vertLoopEvenAlignedOddWidth:
+0042D3  2               	; CASE 1a: Left edge even-aligned, odd width
+0042D3  2  8D 55 C0     	SETSWITCH	PAGE2ON
+0042D6  2  AD 08 00     	lda PARAM2						; Calculate right edge
+0042D9  2  1A           	inc
+0042DA  2  1A           	inc
+0042DB  2  4A           	lsr
+0042DC  2  A8           	tay
+0042DD  2  A9 5F        	lda	#CH_RIGHT					; Plot the right edge
+0042DF  2  91 28        	sta	(BASL),y
+0042E1  2               
+0042E1  2               WGStrokeRect_vertLoopEvenAlignedNextRow:
+0042E1  2  FA           	plx								; Prepare for next row
+0042E2  2  E8           	inx
+0042E3  2  EC 19 00     	cpx	SCRATCH0
+0042E6  2  D0 9E        	bne	WGStrokeRect_vertLoop
+0042E8  2  4C 29 43     	jmp	WGStrokeRect_done
+0042EB  2               
+0042EB  2               
+0042EB  2               WGStrokeRect_vertLoopOdd:
+0042EB  2               	; CASE 2: Left edge odd-aligned, even width
+0042EB  2  8D 54 C0     	SETSWITCH	PAGE2OFF
+0042EE  2  A0 00        	ldy	#$0
+0042F0  2  A9 5A        	lda	#CH_LEFT					; Plot the left edge
+0042F2  2  91 28        	sta	(BASL),y
+0042F4  2               
+0042F4  2  AD 08 00     	lda	PARAM2						; Is width even?
+0042F7  2  1A           	inc
+0042F8  2  1A           	inc
+0042F9  2  29 01        	and	#$01
+0042FB  2  D0 11        	bne	WGStrokeRect_vertLoopOddAlignedOddWidth
+0042FD  2               
+0042FD  2  AD 08 00     	lda PARAM2						; Calculate right edge
+004300  2  1A           	inc
+004301  2  1A           	inc
+004302  2  4A           	lsr
+004303  2  A8           	tay
+004304  2  8D 55 C0     	SETSWITCH	PAGE2ON
+004307  2  A9 5F        	lda	#CH_RIGHT					; Plot the right edge
+004309  2  91 28        	sta	(BASL),y
+00430B  2  4C 1C 43     	jmp	WGStrokeRect_vertLoopOddAlignedNextRow
+00430E  2               
+00430E  2               WGStrokeRect_vertLoopOddAlignedOddWidth:
+00430E  2               	; CASE 2a: Left edge odd-aligned, odd width
+00430E  2  8D 54 C0     	SETSWITCH	PAGE2OFF
+004311  2  AD 08 00     	lda PARAM2						; Calculate right edge
+004314  2  1A           	inc
+004315  2  1A           	inc
+004316  2  4A           	lsr
+004317  2  A8           	tay
+004318  2  A9 5F        	lda	#CH_RIGHT					; Plot the right edge
+00431A  2  91 28        	sta	(BASL),y
+00431C  2               
+00431C  2               WGStrokeRect_vertLoopOddAlignedNextRow:
+00431C  2  FA           	plx								; Prepare for next row
+00431D  2  E8           	inx
+00431E  2  EC 19 00     	cpx	SCRATCH0
+004321  2  D0 03        	bne	WGStrokeRect_vertLoopJmp
+004323  2  4C 29 43     	jmp WGStrokeRect_done
+004326  2               WGStrokeRect_vertLoopJmp:
+004326  2  4C 86 42     	jmp WGStrokeRect_vertLoop
+004329  2               
+004329  2               WGStrokeRect_done:
+004329  2  68 8D 1A 00  	RESTORE_ZPS
+00432D  2  68 8D 19 00  
+004331  2  68 A8 68 AA  	RESTORE_AXY
+004335  2  68           
+004336  2  60           	rts
+004337  2               
+004337  2               
+004337  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+004337  2               ; WGPlot
+004337  2               ; Plots a character at current cursor position (assumes 80 cols)
+004337  2               ; A: Character to plot
+004337  2               ; Side effects: Clobbers SCRATCH0,BASL,BASH
+004337  2               ;
+004337  2               WGPlot:
+004337  2  8D 19 00     	sta SCRATCH0
+00433A  2  48 8A 48 98  	SAVE_AXY
+00433E  2  48           
+00433F  2  AD 19 00 48  	SAVE_ZPS
+004343  2  AD 1A 00 48  
+004347  2               
+004347  2  AE F0 45     	ldx	WG_CURSORY
+00434A  2  BD 8C 46     	lda TEXTLINES_L,x	; Compute video memory address of point
+00434D  2  8D 28 00     	sta BASL
+004350  2  BD 74 46     	lda TEXTLINES_H,x
+004353  2  8D 29 00     	sta BASH
+004356  2               
+004356  2  AD EF 45     	lda	WG_CURSORX
+004359  2  4A           	lsr
+00435A  2  18           	clc
+00435B  2  6D 28 00     	adc	BASL
+00435E  2  8D 28 00     	sta BASL
+004361  2  A9 00        	lda	#$0
+004363  2  6D 29 00     	adc BASH
+004366  2  8D 29 00     	sta BASH
+004369  2               
+004369  2  AD EF 45     	lda	WG_CURSORX			; X even?
+00436C  2  29 01        	and	#$01
+00436E  2  D0 0D        	bne	WGPlot_xOdd
+004370  2               
+004370  2  8D 55 C0     	SETSWITCH	PAGE2ON		; Plot the character
+004373  2  A0 00        	ldy	#$0
+004375  2  AD 19 00     	lda	SCRATCH0
+004378  2  91 28        	sta	(BASL),y
+00437A  2  4C 87 43     	jmp WGPlot_done
+00437D  2               
+00437D  2               WGPlot_xOdd:
+00437D  2  8D 54 C0     	SETSWITCH	PAGE2OFF	; Plot the character
+004380  2  A0 00        	ldy	#$0
+004382  2  AD 19 00     	lda	SCRATCH0
+004385  2  91 28        	sta	(BASL),y
+004387  2               
+004387  2               WGPlot_done:
+004387  2  68 8D 1A 00  	RESTORE_ZPS
+00438B  2  68 8D 19 00  
+00438F  2  68 A8 68 AA  	RESTORE_AXY
+004393  2  68           
+004394  2  60           	rts
+004395  2               
+004395  2               
+004395  2               
+004395  2               
+004395  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+004395  2               ; WGPrintASCII
+004395  2               ; Prints a null-terminated ASCII string at the current view's
+004395  2               ; cursor position. Clips to current view
+004395  2               ; PARAM0: String pointer, LSB
+004395  2               ; PARAM1: String pointer, MSB
+004395  2               ; Side effects: Clobbers BASL,BASH
+004395  2               ;
+004395  2               WGPrintASCII:
+004395  2  48 8A 48 98  	SAVE_AXY
+004399  2  48           
+00439A  2  AD 19 00 48  	SAVE_ZPS
+00439E  2  AD 1A 00 48  
+0043A2  2               
+0043A2  2  20 1E 45     	jsr	WGSyncGlobalCursor
+0043A5  2               
+0043A5  2  AD F3 45 29  	LDY_ACTIVEVIEW
+0043A9  2  0F 0A 0A 0A  
+0043AD  2  0A A8        
+0043AF  2               
+0043AF  2  C8           	iny						; Clip to upper extent
+0043B0  2  AD F0 45     	lda	WG_CURSORY
+0043B3  2  D9 F4 45     	cmp WG_VIEWRECORDS,y
+0043B6  2  90 65        	bcc	WGPrintASCII_done
+0043B8  2               
+0043B8  2  B9 F4 45     	lda	WG_VIEWRECORDS,y	; Clip to lower extent
+0043BB  2  C8           	iny
+0043BC  2  C8           	iny
+0043BD  2  18           	clc
+0043BE  2  79 F4 45     	adc	WG_VIEWRECORDS,y
+0043C1  2  3A           	dec
+0043C2  2  CD F0 45     	cmp	WG_CURSORY
+0043C5  2  90 56        	bcc	WGPrintASCII_done
+0043C7  2               
+0043C7  2  20 B3 40     	jsr	WGStrLen			; We'll need the length of the string to clip horizontally
+0043CA  2  8D 19 00     	sta	SCRATCH0
+0043CD  2               
+0043CD  2  88           	dey						; Clip left/right extents
+0043CE  2  88           	dey
+0043CF  2  88           	dey
+0043D0  2  AD EF 45     	lda	WG_CURSORX			; startIndex = -(globalX - windowStartX)
+0043D3  2  38           	sec
+0043D4  2  F9 F4 45     	sbc	WG_VIEWRECORDS,y
+0043D7  2  49 FF        	eor	#$ff
+0043D9  2  1A           	inc
+0043DA  2  30 0F        	bmi	WGPrintASCII_leftEdgeStart
+0043DC  2  CD 19 00     	cmp	SCRATCH0
+0043DF  2  B0 3C        	bcs	WGPrintASCII_done	; Entire string is left of window
+0043E1  2               
+0043E1  2  AA           	tax						; Starting mid-string on the left
+0043E2  2  B9 F4 45     	lda	WG_VIEWRECORDS,y
+0043E5  2  8D EF 45     	sta	WG_CURSORX
+0043E8  2  8A           	txa
+0043E9  2  80 02        	bra	WGPrintASCII_findRightEdge
+0043EB  2               
+0043EB  2               WGPrintASCII_leftEdgeStart:
+0043EB  2  A9 00        	lda #0
+0043ED  2               
+0043ED  2               WGPrintASCII_findRightEdge:
+0043ED  2  48           	pha						; Stash start index
+0043EE  2               
+0043EE  2  B9 F4 45     	lda	WG_VIEWRECORDS,y
+0043F1  2  C8           	iny
+0043F2  2  C8           	iny
+0043F3  2  18           	clc
+0043F4  2  79 F4 45     	adc	WG_VIEWRECORDS,y
+0043F7  2  AA           	tax
+0043F8  2  CA           	dex
+0043F9  2  7A           	ply						; End cursor in X, start index in Y
+0043FA  2               
+0043FA  2               WGPrintASCII_loop:
+0043FA  2  EC EF 45     	cpx	WG_CURSORX
+0043FD  2  90 1E        	bcc	WGPrintASCII_done	; Hit the right edge of the window
+0043FF  2  B1 06        	lda	(PARAM0),y
+004401  2  F0 1A        	beq	WGPrintASCII_done	; Hit the end of the string
+004403  2  09 80        	ora #$80
+004405  2  20 37 43     	jsr	WGPlot
+004408  2               
+004408  2  C8           	iny
+004409  2  18           	clc
+00440A  2  A9 01        	lda #1
+00440C  2  6D EF 45     	adc WG_CURSORX
+00440F  2  8D EF 45     	sta	WG_CURSORX
+004412  2  A9 00        	lda #0
+004414  2  6D F0 45     	adc WG_CURSORY
+004417  2  8D F0 45     	sta	WG_CURSORY
+00441A  2  4C FA 43     	jmp	WGPrintASCII_loop
+00441D  2               
+00441D  2               WGPrintASCII_done:
+00441D  2  68 8D 1A 00  	RESTORE_ZPS
+004421  2  68 8D 19 00  
+004425  2  68 A8 68 AA  	RESTORE_AXY
+004429  2  68           
+00442A  2  60           	rts
+00442B  2               
+00442B  2               
+00442B  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+00442B  2               ; WGPrint
+00442B  2               ; Prints a null-terminated Apple string at the current view's
+00442B  2               ; cursor position. Clips to current view.
+00442B  2               ; PARAM0: String pointer, LSB
+00442B  2               ; PARAM1: String pointer, MSB
+00442B  2               ; Side effects: Clobbers BASL,BASH
+00442B  2               ;
+00442B  2               WGPrint:
+00442B  2  48 8A 48 98  	SAVE_AXY
+00442F  2  48           
+004430  2  AD 19 00 48  	SAVE_ZPS
+004434  2  AD 1A 00 48  
+004438  2               
+004438  2               
+004438  2               
+004438  2               
+004438  2               WGPrint_done:
+004438  2  68 8D 1A 00  	RESTORE_ZPS
+00443C  2  68 8D 19 00  
+004440  2  68 A8 68 AA  	RESTORE_AXY
+004444  2  68           
+004445  2  60           	rts
+004446  2               
+004446  1               .include "views.s"
+004446  2               ;
+004446  2               ;  views.s
+004446  2               ;  Management routines for GUI views
+004446  2               ;
+004446  2               ;  Created by Quinn Dunki on 8/15/14.
+004446  2               ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
+004446  2               ;
+004446  2               
+004446  2               
+004446  2               
+004446  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+004446  2               ; WGCreateView
+004446  2               ; Creates a new view
+004446  2               ; PARAM0: Pointer to configuration string (LSB)
+004446  2               ; PARAM1: Pointer to configuration string (MSB)
+004446  2               ;
+004446  2               ; Configuration string: "STXXYYSWSHVWVH"
+004446  2               ; ST: (4:4) Style:ID
+004446  2               ; XX: Screen X origin
+004446  2               ; YY: Screen Y origin
+004446  2               ; SW: Screen width
+004446  2               ; SH: Screen height
+004446  2               ; VW: View Width
+004446  2               ; VH: View Height
+004446  2               ;
+004446  2               WGCreateView:
+004446  2  48 8A 48 98  	SAVE_AXY
+00444A  2  48           
+00444B  2  AD 19 00 48  	SAVE_ZPS
+00444F  2  AD 1A 00 48  
+004453  2               
+004453  2  A0 00        	ldy #0
+004455  2  20 9C 40     	jsr	scanHex8
+004458  2  48           	pha
+004459  2               
+004459  2  29 0F        	and #%00001111	; Find our new view record
+00445B  2  0A           	asl
+00445C  2  0A           	asl
+00445D  2  0A           	asl
+00445E  2  0A           	asl				; Records are 8 bytes wide
+00445F  2  AA           	tax
+004460  2               
+004460  2  68           	pla				; Cache style nybble for later
+004461  2  4A           	lsr
+004462  2  4A           	lsr
+004463  2  4A           	lsr
+004464  2  4A           	lsr
+004465  2  48           	pha
+004466  2               
+004466  2  20 9C 40     	jsr	scanHex8
+004469  2  9D F4 45     	sta	WG_VIEWRECORDS,x	; Screen X
+00446C  2  E8           	inx
+00446D  2               
+00446D  2  20 9C 40     	jsr	scanHex8
+004470  2  9D F4 45     	sta	WG_VIEWRECORDS,x	; Screen Y
+004473  2  E8           	inx
+004474  2               
+004474  2  20 9C 40     	jsr	scanHex8
+004477  2  9D F4 45     	sta	WG_VIEWRECORDS,x	; Screen Width
+00447A  2  E8           	inx
+00447B  2               
+00447B  2  20 9C 40     	jsr	scanHex8
+00447E  2  9D F4 45     	sta	WG_VIEWRECORDS,x	; Screen Height
+004481  2  E8           	inx
+004482  2               
+004482  2  68           	pla
+004483  2  9D F4 45     	sta	WG_VIEWRECORDS,x	; Style
+004486  2  E8           	inx
+004487  2               
+004487  2  A9 00        	lda	#0					; Initialize scrolling
+004489  2  9D F4 45     	sta	WG_VIEWRECORDS,x
+00448C  2  E8           	inx
+00448D  2  9D F4 45     	sta	WG_VIEWRECORDS,x
+004490  2  E8           	inx
+004491  2               
+004491  2  20 9C 40     	jsr	scanHex8
+004494  2  9D F4 45     	sta	WG_VIEWRECORDS,x	; View Width
+004497  2  E8           	inx
+004498  2               
+004498  2  20 9C 40     	jsr	scanHex8
+00449B  2  9D F4 45     	sta	WG_VIEWRECORDS,x	; View Height
+00449E  2               
+00449E  2               WGCreateView_done:
+00449E  2  68 8D 1A 00  	RESTORE_ZPS
+0044A2  2  68 8D 19 00  
+0044A6  2  68 A8 68 AA  	RESTORE_AXY
+0044AA  2  68           
+0044AB  2  60           	rts
+0044AC  2               
+0044AC  2               
+0044AC  2               
+0044AC  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+0044AC  2               ; WGPaintView
+0044AC  2               ; Paints the current view
+0044AC  2               ;
+0044AC  2               WGPaintView:
+0044AC  2  48 98 48     	SAVE_AY
+0044AF  2  AD 06 00 48  	SAVE_ZPP
+0044B3  2  AD 07 00 48  
+0044B7  2  AD 08 00 48  
+0044BF  2               
+0044BF  2  AD F3 45 29  	LDY_ACTIVEVIEW
+0044C3  2  0F 0A 0A 0A  
+0044C7  2  0A A8        
+0044C9  2               
+0044C9  2  B9 F4 45     	lda	WG_VIEWRECORDS,y	; Fetch the record
+0044CC  2  8D 06 00     	sta PARAM0
+0044CF  2  C8           	iny
+0044D0  2  B9 F4 45     	lda	WG_VIEWRECORDS,y
+0044D3  2  8D 07 00     	sta PARAM1
+0044D6  2  C8           	iny
+0044D7  2  B9 F4 45     	lda	WG_VIEWRECORDS,y
+0044DA  2  8D 08 00     	sta PARAM2
+0044DD  2  C8           	iny
+0044DE  2  B9 F4 45     	lda	WG_VIEWRECORDS,y
+0044E1  2  8D 09 00     	sta PARAM3
+0044E4  2               
+0044E4  2  20 B2 41     	jsr WGStrokeRect
+0044E7  2               
+0044E7  2               WGPaintView_done:
+0044E7  2  68 8D 09 00  	RESTORE_ZPP
+0044EB  2  68 8D 08 00  
+0044EF  2  68 8D 07 00  
+0044F7  2  68 A8 68     	RESTORE_AY
+0044FA  2  60           	rts
+0044FB  2               
+0044FB  2               
+0044FB  2               
+0044FB  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+0044FB  2               ; WGSelectView
+0044FB  2               ; Selects the active view
+0044FB  2               ; A: ID
+0044FB  2               ;
+0044FB  2               WGSelectView:
+0044FB  2  48 98 48     	SAVE_AY
+0044FE  2  8D F3 45     	sta	WG_ACTIVEVIEW
+004501  2               
+004501  2  AD F3 45 29  	LDY_ACTIVEVIEW
+004505  2  0F 0A 0A 0A  
+004509  2  0A A8        
+00450B  2               
+00450B  2               	; Initialize cursor to local origin
+00450B  2  A9 00        	lda #0
+00450D  2  8D F1 45     	sta WG_LOCALCURSORX
+004510  2  8D F2 45     	sta WG_LOCALCURSORY
+004513  2               
+004513  2               WGSelectView_done:
+004513  2  68 A8 68     	RESTORE_AY
+004516  2  60           	rts
+004517  2               
+004517  2               
+004517  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+004517  2               ; WGSetCursor
+004517  2               ; Sets the current local view cursor
+004517  2               ; X: X
+004517  2               ; Y: Y
+004517  2               ;
+004517  2               WGSetCursor:
+004517  2  8E F1 45     	stx	WG_LOCALCURSORX
+00451A  2  8C F2 45     	sty	WG_LOCALCURSORY
+00451D  2  60           	rts
+00451E  2               
+00451E  2               
+00451E  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+00451E  2               ; WGSyncGlobalCursor
+00451E  2               ; Synchronizes the global cursor with the current local view's
+00451E  2               ; cursor
+00451E  2               ;
+00451E  2               WGSyncGlobalCursor:
+00451E  2  48 98 48     	SAVE_AY
+004521  2               
+004521  2               	; X
+004521  2  AD F3 45 29  	LDY_ACTIVEVIEW
+004525  2  0F 0A 0A 0A  
+004529  2  0A A8        
+00452B  2               
+00452B  2  18           	clc						; Transform to viewspace
+00452C  2  AD F1 45     	lda WG_LOCALCURSORX
+00452F  2  79 F4 45     	adc	WG_VIEWRECORDS,y
+004532  2               
+004532  2  C8           	iny
+004533  2  C8           	iny
+004534  2  C8           	iny
+004535  2  C8           	iny
+004536  2  C8           	iny
+004537  2  18           	clc
+004538  2  79 F4 45     	adc	WG_VIEWRECORDS,y	; Transform to scrollspace
+00453B  2  8D EF 45     	sta WG_CURSORX
+00453E  2               
+00453E  2               	; Y
+00453E  2  AD F3 45 29  	LDY_ACTIVEVIEW
+004542  2  0F 0A 0A 0A  
+004546  2  0A A8        
+004548  2  C8           	iny
+004549  2               
+004549  2  18           	clc						; Transform to viewspace
+00454A  2  AD F2 45     	lda WG_LOCALCURSORY
+00454D  2  79 F4 45     	adc	WG_VIEWRECORDS,y
+004550  2               
+004550  2  C8           	iny
+004551  2  C8           	iny
+004552  2  C8           	iny
+004553  2  C8           	iny
+004554  2  C8           	iny
+004555  2  18           	clc
+004556  2  79 F4 45     	adc	WG_VIEWRECORDS,y	; Transform to scrollspace
+004559  2  8D F0 45     	sta WG_CURSORY
+00455C  2               
+00455C  2               WGSyncGlobalCursor_done:
+00455C  2  68 A8 68     	RESTORE_AY
+00455F  2  60           	rts
+004560  2               
+004560  2               
+004560  2               
+004560  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+004560  2               ; WGScrollX
+004560  2               ; Scrolls the current view horizontally
+004560  2               ; A: Delta to scroll
+004560  2               ; Side effects: Clobbers A
+004560  2               ;
+004560  2               WGScrollX:
+004560  2  5A           	phy
+004561  2  48           	pha
+004562  2  AD F3 45 29  	LDY_ACTIVEVIEW
+004566  2  0F 0A 0A 0A  
+00456A  2  0A A8        
+00456C  2  68           	pla
+00456D  2  C8           	iny
+00456E  2  C8           	iny
+00456F  2  C8           	iny
+004570  2  C8           	iny
+004571  2  C8           	iny
+004572  2  18           	clc
+004573  2  79 F4 45     	adc	WG_VIEWRECORDS,y
+004576  2  99 F4 45     	sta	WG_VIEWRECORDS,y
+004579  2               
+004579  2               WGScrollX_done:
+004579  2  7A           	ply
+00457A  2  60           	rts
+00457B  2               
+00457B  2               
+00457B  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+00457B  2               ; WGScrollY
+00457B  2               ; Scrolls the current view vertically
+00457B  2               ; A: Delta to scroll
+00457B  2               ; Side effects: Clobbers A
+00457B  2               ;
+00457B  2               WGScrollY:
+00457B  2  5A           	phy
+00457C  2  48           	pha
+00457D  2  AD F3 45 29  	LDY_ACTIVEVIEW
+004581  2  0F 0A 0A 0A  
+004585  2  0A A8        
+004587  2  68           	pla
+004588  2  C8           	iny
+004589  2  C8           	iny
+00458A  2  C8           	iny
+00458B  2  C8           	iny
+00458C  2  C8           	iny
+00458D  2  C8           	iny
+00458E  2  18           	clc
+00458F  2  79 F4 45     	adc	WG_VIEWRECORDS,y
+004592  2  99 F4 45     	sta	WG_VIEWRECORDS,y
+004595  2               
+004595  2               WGScrollY_done:
+004595  2  7A           	ply
+004596  2  60           	rts
+004597  2               
+004597  2               
+004597  2               
+004597  1               .include "unit_test.s"
+004597  2               ;
+004597  2               ;  unit_test.s
+004597  2               ;  WeeGui
+004597  2               ;
+004597  2               ;  Unit tests of various systems
+004597  2               ;
+004597  2               ;  Created by Quinn Dunki on 8/15/14.
+004597  2               ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
+004597  2               ;
+004597  2               
+004597  2               ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+004597  2               ; tortureTestRects
+004597  2               ; Strokes and paints rectangles of many different geometries
+004597  2               ;
+004597  2               	; Stack:
+004597  2               	; Curr X
+004597  2               	; Curr Y
+004597  2               	; Curr Width
+004597  2               	; Curr Height
+004597  2               tortureTestRects:
+004597  2  20 C0 40     	jsr WGClearScreen
+00459A  2               
+00459A  2  A9 26        	lda	#38			; Initialize
+00459C  2  48           	pha
+00459D  2  A9 0B        	lda #11
+00459F  2  48           	pha
+0045A0  2  A9 02        	lda #2
+0045A2  2  48           	pha
+0045A3  2  A9 02        	lda #2
+0045A5  2  48           	pha
+0045A6  2               
+0045A6  2               tortureTestRectsLoop:
+0045A6  2               
+0045A6  2  20 C0 40     	jsr WGClearScreen
+0045A9  2               
+0045A9  2  BA           	tsx
+0045AA  2  E8           	inx
+0045AB  2  BD 00 01     	lda	$0100,x		; Load Height, then modify
+0045AE  2  8D 09 00     	sta	PARAM3
+0045B1  2  1A           	inc
+0045B2  2  1A           	inc
+0045B3  2  9D 00 01     	sta	$0100,x
+0045B6  2  C9 19        	cmp	#25
+0045B8  2  B0 2E        	bcs	tortureTestRectsDone
+0045BA  2               
+0045BA  2  E8           	inx				; Load Width, then modify
+0045BB  2  BD 00 01     	lda	$0100,x
+0045BE  2  8D 08 00     	sta PARAM2
+0045C1  2  1A           	inc
+0045C2  2  1A           	inc
+0045C3  2  1A           	inc
+0045C4  2  1A           	inc
+0045C5  2  1A           	inc
+0045C6  2  1A           	inc
+0045C7  2  9D 00 01     	sta	$0100,x
+0045CA  2               
+0045CA  2  E8           	inx				; Load Y, then modify
+0045CB  2  BD 00 01     	lda	$0100,x
+0045CE  2  8D 07 00     	sta	PARAM1
+0045D1  2  3A           	dec
+0045D2  2  9D 00 01     	sta	$0100,x
+0045D5  2               
+0045D5  2  E8           	inx				; Load X, then modify
+0045D6  2  BD 00 01     	lda	$0100,x
+0045D9  2  8D 06 00     	sta	PARAM0
+0045DC  2  3A           	dec
+0045DD  2  3A           	dec
+0045DE  2  3A           	dec
+0045DF  2  9D 00 01     	sta	$0100,x
+0045E2  2               
+0045E2  2               ;	ldx	#'Q'+$80
+0045E2  2               ;	jsr	WGFillRect
+0045E2  2  20 B2 41     	jsr	WGStrokeRect
+0045E5  2               
+0045E5  2               ;	jsr delayShort
+0045E5  2               
+0045E5  2  4C A6 45     	jmp tortureTestRectsLoop
+0045E8  2               
+0045E8  2               tortureTestRectsDone:
+0045E8  2  68           	pla
+0045E9  2  68           	pla
+0045EA  2  68           	pla
+0045EB  2  68           	pla
+0045EC  2  4C 97 45     	jmp	tortureTestRects
+0045EF  2               
+0045EF  2               
+0045EF  1               .include "memory.s"
+0045EF  2               ;
+0045EF  2               ;  memory.s
+0045EF  2               ;  Memory mapping information
+0045EF  2               ;
+0045EF  2               ;  Created by Quinn Dunki on 8/15/14.
+0045EF  2               ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
+0045EF  2               ;
+0045EF  2               
+0045EF  2               
+0045EF  2               ; Reserved locations
+0045EF  2               
+0045EF  2               INVERSE			= $32
+0045EF  2               BASL			= $28
+0045EF  2               BASH			= $29
+0045EF  2               
+0045EF  2               
+0045EF  2               ; Zero page locations we use (unused by Monitor, Applesoft, or ProDOS)
+0045EF  2               PARAM0			= $06
+0045EF  2               PARAM1			= $07
+0045EF  2               PARAM2			= $08
+0045EF  2               PARAM3			= $09
+0045EF  2               SCRATCH0		= $19
+0045EF  2               SCRATCH1		= $1A
+0045EF  2               
+0045EF  2               ; Constants
+0045EF  2               
+0045EF  2               CHAR_NORMAL = $ff
+0045EF  2               CHAR_INVERSE = $3f
+0045EF  2               CHAR_FLASH = $7f
+0045EF  2               
+0045EF  2               
+0045EF  2               ; ROM entry points
+0045EF  2               
+0045EF  2               COUT			= $fded
+0045EF  2               BASCALC			= $fbc1
+0045EF  2               
+0045EF  2               
+0045EF  2               ; System state
+0045EF  2               WG_CURSORX:		; In screenspace
+0045EF  2  00           .byte	0
+0045F0  2               WG_CURSORY:
+0045F0  2  00           .byte	0
+0045F1  2               
+0045F1  2               WG_LOCALCURSORX:		; In current viewspace
+0045F1  2  00           .byte	0
+0045F2  2               WG_LOCALCURSORY:
+0045F2  2  00           .byte	0
+0045F3  2               
+0045F3  2               WG_ACTIVEVIEW:
+0045F3  2  00           .byte 0
+0045F4  2               
+0045F4  2               WG_VIEWRECORDS:
+0045F4  2               	; X, Y, Screen Width, Screen Height, Style, X Offset, Y Offset, View Width, View Height
+0045F4  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+0045F8  2  00 00 00 00  
+0045FC  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004600  2  00 00 00 00  
+004604  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004608  2  00 00 00 00  
+00460C  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004610  2  00 00 00 00  
+004614  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004618  2  00 00 00 00  
+00461C  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004620  2  00 00 00 00  
+004624  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004628  2  00 00 00 00  
+00462C  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004630  2  00 00 00 00  
+004634  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004638  2  00 00 00 00  
+00463C  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004640  2  00 00 00 00  
+004644  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004648  2  00 00 00 00  
+00464C  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004650  2  00 00 00 00  
+004654  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004658  2  00 00 00 00  
+00465C  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004660  2  00 00 00 00  
+004664  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004668  2  00 00 00 00  
+00466C  2  00 00 00 00  .byte 0,0,0,0,0,0,0,0
+004670  2  00 00 00 00  
+004674  2               
+004674  2               
+004674  2               ; Video memory lookup table
+004674  2               TEXTLINES_H:
+004674  2  04           .byte	$04	;0
+004675  2  04           .byte	$04	;1
+004676  2  05           .byte	$05	;2
+004677  2  05           .byte	$05	;3
+004678  2  06           .byte	$06	;4
+004679  2  06           .byte	$06	;5
+00467A  2  07           .byte	$07	;6
+00467B  2  07           .byte	$07	;7
+00467C  2  04           .byte	$04	;8
+00467D  2  04           .byte	$04	;9
+00467E  2  05           .byte	$05	;10
+00467F  2  05           .byte	$05	;11
+004680  2  06           .byte	$06	;12
+004681  2  06           .byte	$06	;13
+004682  2  07           .byte	$07	;14
+004683  2  07           .byte	$07	;15
+004684  2  04           .byte	$04	;16
+004685  2  04           .byte	$04	;17
+004686  2  05           .byte	$05	;18
+004687  2  05           .byte	$05	;19
+004688  2  06           .byte	$06	;20
+004689  2  06           .byte	$06	;21
+00468A  2  07           .byte	$07	;22
+00468B  2  07           .byte	$07	;23
+00468C  2               
+00468C  2               TEXTLINES_L:
+00468C  2  00           .byte	$00	;0
+00468D  2  80           .byte	$80	;1
+00468E  2  00           .byte	$00	;2
+00468F  2  80           .byte	$80	;3
+004690  2  00           .byte	$00	;4
+004691  2  80           .byte	$80	;5
+004692  2  00           .byte	$00	;6
+004693  2  80           .byte	$80	;7
+004694  2  28           .byte	$28	;8
+004695  2  A8           .byte	$a8	;9
+004696  2  28           .byte	$28	;10
+004697  2  A8           .byte	$a8	;11
+004698  2  28           .byte	$28	;12
+004699  2  A8           .byte	$a8	;13
+00469A  2  28           .byte	$28	;14
+00469B  2  A8           .byte	$a8	;15
+00469C  2  50           .byte	$50	;16
+00469D  2  D0           .byte	$d0	;17
+00469E  2  50           .byte	$50	;18
+00469F  2  D0           .byte	$d0	;19
+0046A0  2  50           .byte	$50	;20
+0046A1  2  D0           .byte	$d0	;21
+0046A2  2  50           .byte	$50	;22
+0046A3  2  D0           .byte	$d0	;23
+0046A4  2               
+0046A4  1               
+0046A4  1               
+0046A4  1               testView:
+0046A4  1  30 30 30 37  	.byte "0007033e130404"
+0046A8  1  30 33 33 65  
+0046AC  1  31 33 30 34  
+0046B2  1               
+0046B2  1               testStr:
+0046B2  1  54 68 69 73  	.byte "This is a test of the emergency broadcast system. If this had been a real emergency, you would be dead now.",0
+0046B6  1  20 69 73 20  
+0046BA  1  61 20 74 65  
+00471E  1               
+00471E  1               
+00471E  1               
+00471E  1               

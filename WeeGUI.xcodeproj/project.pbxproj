@@ -1,0 +1,205 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXFileReference section */
+		709E88E319AC0A5F0069DB55 /* views.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = views.s; sourceTree = "<group>"; };
+		709E88E419AC0DC20069DB55 /* unit_test.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = unit_test.s; sourceTree = "<group>"; };
+		70B2272519A9685200702171 /* utility.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = utility.s; sourceTree = "<group>"; };
+		70D435B119A0137F001BFD9B /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		70D435B219A013AF001BFD9B /* gui.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = gui.s; sourceTree = "<group>"; };
+		70D435B419A0141F001BFD9B /* guidemo.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = guidemo.s; sourceTree = "<group>"; };
+		70F1DB4A19A56CDA00321637 /* macros.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = macros.s; sourceTree = "<group>"; };
+		70F1DB4B19A56D6300321637 /* switches.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = switches.s; sourceTree = "<group>"; };
+		70F1DB5619A6B02900321637 /* painting.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = painting.s; sourceTree = "<group>"; };
+		70F1DB5D19A7FF8700321637 /* memory.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = memory.s; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		70D435A619A012CF001BFD9B = {
+			isa = PBXGroup;
+			children = (
+				70D435B119A0137F001BFD9B /* Makefile */,
+				70F1DB4A19A56CDA00321637 /* macros.s */,
+				70F1DB4B19A56D6300321637 /* switches.s */,
+				70F1DB5D19A7FF8700321637 /* memory.s */,
+				70B2272519A9685200702171 /* utility.s */,
+				70F1DB5619A6B02900321637 /* painting.s */,
+				709E88E319AC0A5F0069DB55 /* views.s */,
+				70D435B219A013AF001BFD9B /* gui.s */,
+				709E88E419AC0DC20069DB55 /* unit_test.s */,
+				70D435B419A0141F001BFD9B /* guidemo.s */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		70D435AB19A012D0001BFD9B /* WeeGUI */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = 70D435AE19A012D0001BFD9B /* Build configuration list for PBXLegacyTarget "WeeGUI" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			dependencies = (
+			);
+			name = WeeGUI;
+			passBuildSettingsInEnvironment = 1;
+			productName = WeeGUI;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		70D435A719A012CF001BFD9B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0600;
+				ORGANIZATIONNAME = "One Girl, One Laptop Productions";
+				TargetAttributes = {
+					70D435AB19A012D0001BFD9B = {
+						CreatedOnToolsVersion = 6.0;
+					};
+				};
+			};
+			buildConfigurationList = 70D435AA19A012CF001BFD9B /* Build configuration list for PBXProject "WeeGUI" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 70D435A619A012CF001BFD9B;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				70D435AB19A012D0001BFD9B /* WeeGUI */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		70D435AC19A012D0001BFD9B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		70D435AD19A012D0001BFD9B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		70D435AF19A012D0001BFD9B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUGGING_SYMBOLS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		70D435B019A012D0001BFD9B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		70D435AA19A012CF001BFD9B /* Build configuration list for PBXProject "WeeGUI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				70D435AC19A012D0001BFD9B /* Debug */,
+				70D435AD19A012D0001BFD9B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		70D435AE19A012D0001BFD9B /* Build configuration list for PBXLegacyTarget "WeeGUI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				70D435AF19A012D0001BFD9B /* Debug */,
+				70D435B019A012D0001BFD9B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 70D435A719A012CF001BFD9B /* Project object */;
+}

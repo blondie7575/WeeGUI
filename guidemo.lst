@@ -1,0 +1,37 @@
+ca65 V2.13.3 - (C) Copyright 1998-2012 Ullrich von Bassewitz
+Main file   : guidemo.s
+Current file: guidemo.s
+
+000000r 1               ;
+000000r 1               ;  gui.s
+000000r 1               ;  AssemblyTest
+000000r 1               ;
+000000r 1               ;  Created by Quinn Dunki on 8/15/14.
+000000r 1               ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
+000000r 1               ;
+000000r 1               
+000000r 1               
+000000r 1               .org $6000
+006000  1               
+006000  1               ; Reserved locations
+006000  1               
+006000  1               
+006000  1               ; Constants
+006000  1               
+006000  1               
+006000  1               ; ROM entry points
+006000  1               
+006000  1               
+006000  1               ; WeeGUI entry points
+006000  1               
+006000  1               GUI_MAIN = $4000
+006000  1               
+006000  1               
+006000  1               ; Main
+006000  1               
+006000  1               main:
+006000  1  4C 00 40     	jmp GUI_MAIN
+006003  1               
+006003  1               
+006003  1               
+006003  1               
