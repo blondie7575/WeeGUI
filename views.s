@@ -11,8 +11,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGCreateView
 ; Creates a new view
-; PARAM0: Pointer to configuration string (LSB)
-; PARAM1: Pointer to configuration string (MSB)
+; PARAM0: Pointer to ASCII configuration string (LSB)
+; PARAM1: Pointer to ASCII configuration string (MSB)
 ;
 ; Configuration string: "STXXYYSWSHVWVH"
 ; ST: (4:4) Style:ID
@@ -122,18 +122,18 @@ WGPaintView_done:
 ; A: ID
 ;
 WGSelectView:
-	SAVE_AY
+	SAVE_AXY
 	sta	WG_ACTIVEVIEW
-
-	LDY_ACTIVEVIEW
 
 	; Initialize cursor to local origin
 	lda #0
 	sta WG_LOCALCURSORX
 	sta WG_LOCALCURSORY
 
+	jsr	cacheClipPlanes		; View changed, so clipping cache is stale
+
 WGSelectView_done:
-	RESTORE_AY
+	RESTORE_AXY
 	rts
 
 
@@ -216,6 +216,8 @@ WGScrollX:
 	adc	WG_VIEWRECORDS,y
 	sta	WG_VIEWRECORDS,y
 
+	jsr	cacheClipPlanes		; Scroll offset changed, so clipping cache is stale
+
 WGScrollX_done:
 	ply
 	rts
@@ -242,8 +244,65 @@ WGScrollY:
 	adc	WG_VIEWRECORDS,y
 	sta	WG_VIEWRECORDS,y
 
+	jsr	cacheClipPlanes		; Scroll offset changed, so clipping cache is stale
+
 WGScrollY_done:
 	ply
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; cacheClipPlanes
+; Internal routine to cache the clipping planes for the view
+;
+cacheClipPlanes:
+	SAVE_AY
+
+	; Compute clip planes in view space
+	LDY_ACTIVEVIEW
+
+	iny						; Left edge
+	iny
+	iny
+	iny
+	iny
+	lda	WG_VIEWRECORDS,y
+	eor #$ff
+	inc
+	sta	WG_VIEWCLIP+0
+
+	dey						; Right edge
+	dey
+	dey
+	clc
+	adc	WG_VIEWRECORDS,y
+	sta	WG_VIEWCLIP+2
+
+	iny						; Right span (distance from window edge to view edge, in viewspace
+	iny
+	iny
+	iny
+	iny
+	lda	WG_VIEWRECORDS,y
+	sec
+	sbc	WG_VIEWCLIP+2
+	sta	WG_VIEWCLIP+4
+	
+	dey						; Top edge
+	lda	WG_VIEWRECORDS,y
+	eor #$ff
+	inc
+	sta	WG_VIEWCLIP+1
+
+	dey						; Bottom edge
+	dey
+	dey
+	clc
+	adc	WG_VIEWRECORDS,y
+	sta	WG_VIEWCLIP+3
+
+	RESTORE_AY
 	rts
 
 

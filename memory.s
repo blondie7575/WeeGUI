@@ -33,10 +33,13 @@ CHAR_FLASH = $7f
 
 COUT			= $fded
 BASCALC			= $fbc1
+PRBYTE			= $fdda
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; System state
-WG_CURSORX:		; In screenspace
+;
+WG_CURSORX:				; In screenspace
 .byte	0
 WG_CURSORY:
 .byte	0
@@ -49,27 +52,38 @@ WG_LOCALCURSORY:
 WG_ACTIVEVIEW:
 .byte 0
 
+WG_VIEWCLIP:
+	; X0,Y0,X1,Y1. Edges of current window, in view space, right span
+.byte 0,0,0,0,0
+
 WG_VIEWRECORDS:
 	; X, Y, Screen Width, Screen Height, Style, X Offset, Y Offset, View Width, View Height
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
-.byte 0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+
+WG_SCRATCHA:
+.byte 0
 
 
-; Video memory lookup table
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Lookup tables
+;
+
+; Video memory
 TEXTLINES_H:
 .byte	$04	;0
 .byte	$04	;1

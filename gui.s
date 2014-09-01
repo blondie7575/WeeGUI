@@ -33,20 +33,50 @@ main:
 
 	jsr	WGPaintView
 
-	ldx	#4
-	ldy	#3
+	ldx	#5
+	ldy	#0
 	jsr	WGSetCursor
 
-;	lda	#-4
-;	jsr	WGScrollX
-;	lda	#-3
-;	jsr	WGScrollY
+	lda	#0
+	jsr	WGScrollX
+	lda	#-2
+	jsr	WGScrollY
+
+;	lda WG_VIEWCLIP+0
+;	jsr PRBYTE
+;	lda WG_VIEWCLIP+1
+;	jsr PRBYTE
+;	lda WG_VIEWCLIP+2
+;	jsr PRBYTE
+;	lda WG_VIEWCLIP+3
+;	jsr PRBYTE
+;	lda WG_VIEWCLIP+4
+;	jsr PRBYTE
+
+;	lda WG_VIEWRECORDS+0
+;	jsr PRBYTE
+;	lda WG_VIEWRECORDS+1
+;	jsr PRBYTE
+;	lda WG_VIEWRECORDS+2
+;	jsr PRBYTE
+;	lda WG_VIEWRECORDS+3
+;	jsr PRBYTE
+;	lda WG_VIEWRECORDS+4
+;	jsr PRBYTE
+;	lda WG_VIEWRECORDS+5
+;	jsr PRBYTE
+;	lda WG_VIEWRECORDS+6
+;	jsr PRBYTE
+;	lda WG_VIEWRECORDS+7
+;	jsr PRBYTE
+;	lda WG_VIEWRECORDS+8
+;	jsr PRBYTE
 
 	lda	#<testStr
 	sta	PARAM0
 	lda #>testStr
 	sta PARAM1
-	jsr WGPrintASCII
+	jsr WGPrint
 
 ;	lda	#1
 ;	sta PARAM0
@@ -119,10 +149,10 @@ read80ColSwitch_40:
 
 
 testView:
-	.byte "0007033e130404"
+	.byte "0007033e13207e"	; 0, 7,3,62,19,126,126
 
 testStr:
-	.byte "This is a test of the emergency broadcast system. If this had been a real emergency, you would be dead now.",0
+	.byte "This is a test of the emergency broadcast system.",0; If this had been a real emergency, you would be dead now.",0	; 107 chars
 
 
 

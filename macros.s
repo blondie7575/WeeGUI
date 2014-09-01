@@ -110,7 +110,11 @@
 	asl
 	asl
 	asl
-	asl				; Records are 8 bytes wide
+	asl
+	asl
+	asl
+	asl
+	asl				; Records are 16 bytes wide
 	tay
 .endmacro
 
@@ -121,7 +125,11 @@
 	asl
 	asl
 	asl
-	asl				; Records are 8 bytes wide
+	asl
+	asl
+	asl
+	asl
+	asl				; Records are 16 bytes wide
 	tax
 .endmacro
 

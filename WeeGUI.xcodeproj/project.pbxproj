@@ -13,6 +13,7 @@
 		70D435B119A0137F001BFD9B /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		70D435B219A013AF001BFD9B /* gui.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = gui.s; sourceTree = "<group>"; };
 		70D435B419A0141F001BFD9B /* guidemo.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = guidemo.s; sourceTree = "<group>"; };
+		70E84C3019B4ED4300159159 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		70F1DB4A19A56CDA00321637 /* macros.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = macros.s; sourceTree = "<group>"; };
 		70F1DB4B19A56D6300321637 /* switches.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = switches.s; sourceTree = "<group>"; };
 		70F1DB5619A6B02900321637 /* painting.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = painting.s; sourceTree = "<group>"; };
@@ -23,6 +24,7 @@
 		70D435A619A012CF001BFD9B = {
 			isa = PBXGroup;
 			children = (
+				70E84C3019B4ED4300159159 /* README.md */,
 				70D435B119A0137F001BFD9B /* Makefile */,
 				70F1DB4A19A56CDA00321637 /* macros.s */,
 				70F1DB4B19A56D6300321637 /* switches.s */,
