@@ -20,27 +20,30 @@
 
 main:
 	jsr begin80cols
-	jsr WGClearScreen
+	jmp	tortureTestPrint
+	;jmp	tortureTestRects
 
-	lda	#<testView
-	sta	PARAM0
-	lda	#>testView
-	sta	PARAM1
-	jsr	WGCreateView
+;	jsr WGClearScreen
 
-	lda #0
-	jsr	WGSelectView
+;	lda	#<testView
+;	sta	PARAM0
+;	lda	#>testView
+;	sta	PARAM1
+;	jsr	WGCreateView
 
-	jsr	WGPaintView
+;	lda #0
+;	jsr	WGSelectView
 
-	ldx	#5
-	ldy	#0
-	jsr	WGSetCursor
+;	jsr	WGPaintView
 
-	lda	#0
-	jsr	WGScrollX
-	lda	#-2
-	jsr	WGScrollY
+;	ldx	#5
+;	ldy	#0
+;	jsr	WGSetCursor
+
+;	lda	#0
+;	jsr	WGScrollX
+;	lda	#-2
+;	jsr	WGScrollY
 
 ;	lda WG_VIEWCLIP+0
 ;	jsr PRBYTE
@@ -72,11 +75,11 @@ main:
 ;	lda WG_VIEWRECORDS+8
 ;	jsr PRBYTE
 
-	lda	#<testStr
-	sta	PARAM0
-	lda #>testStr
-	sta PARAM1
-	jsr WGPrint
+;	lda	#<testStr
+;	sta	PARAM0
+;	lda #>testStr
+;	sta PARAM1
+;	jsr WGPrint
 
 ;	lda	#1
 ;	sta PARAM0
@@ -148,11 +151,11 @@ read80ColSwitch_40:
 .include "memory.s"
 
 
-testView:
-	.byte "0007033e13207e"	; 0, 7,3,62,19,126,126
+;testView:
+;	.byte "0007033e13207e"	; 0, 7,3,62,19,126,126
 
-testStr:
-	.byte "This is a test of the emergency broadcast system.",0; If this had been a real emergency, you would be dead now.",0	; 107 chars
+;testStr:
+;	.byte "This is a test of the emergency broadcast system.",0; If this had been a real emergency, you would be dead now.",0	; 107 chars
 
 
 

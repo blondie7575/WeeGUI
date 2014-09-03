@@ -62,6 +62,7 @@ WGFillRect:
 	clc					; Compute bottom edge
 	lda	PARAM1
 	adc PARAM3
+	dec
 	tax
 
 WGFillRect_vertLoop:
@@ -487,93 +488,6 @@ WGPlot_xOdd:
 	sta	(BASL),y
 
 WGPlot_done:
-	RESTORE_AXY
-	rts
-
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGPrintASCII
-; Prints a null-terminated ASCII string at the current view's
-; cursor position. Clips to current view
-; PARAM0: String pointer, LSB
-; PARAM1: String pointer, MSB
-; Side effects: Clobbers BASL,BASH
-;
-WGPrintASCII:
-	SAVE_AXY
-	SAVE_ZPS
-
-	jsr	WGSyncGlobalCursor
-
-	LDY_ACTIVEVIEW
-
-	iny						; Clip to upper extent
-	lda	WG_CURSORY
-	cmp WG_VIEWRECORDS,y
-	bcc	WGPrintASCII_done
-
-	lda	WG_VIEWRECORDS,y	; Clip to lower extent
-	iny
-	iny
-	clc
-	adc	WG_VIEWRECORDS,y
-	dec
-	cmp	WG_CURSORY
-	bcc	WGPrintASCII_done
-
-	jsr	WGStrLen			; We'll need the length of the string to clip horizontally
-	sta	SCRATCH0
-
-	dey						; Clip left/right extents
-	dey
-	dey
-	lda	WG_CURSORX			; startIndex = -(globalX - windowStartX)
-	sec
-	sbc	WG_VIEWRECORDS,y
-	eor	#$ff
-	inc
-	bmi	WGPrintASCII_leftEdgeStart
-	cmp	SCRATCH0
-	bcs	WGPrintASCII_done	; Entire string is left of window
-
-	tax						; Starting mid-string on the left
-	lda	WG_VIEWRECORDS,y
-	sta	WG_CURSORX
-	txa
-	bra	WGPrintASCII_findRightEdge
-
-WGPrintASCII_leftEdgeStart:
-	lda #0
-
-WGPrintASCII_findRightEdge:
-	pha						; Stash start index
-
-	lda	WG_VIEWRECORDS,y
-	iny
-	iny
-	clc
-	adc	WG_VIEWRECORDS,y
-	tax
-	dex
-	ply						; End cursor in X, start index in Y
-
-WGPrintASCII_loop:
-	cpx	WG_CURSORX
-	bcc	WGPrintASCII_done	; Hit the right edge of the window
-	lda	(PARAM0),y
-	beq	WGPrintASCII_done	; Hit the end of the string
-	ora #$80
-	jsr	WGPlot
-
-	iny
-	clc
-	inc WG_CURSORX
-	jmp	WGPrintASCII_loop
-
-WGPrintASCII_done:
-	RESTORE_ZPS
 	RESTORE_AXY
 	rts
 

@@ -138,8 +138,8 @@
 	lda #$80
 macroWaitVBLToFinish:
 	bit	RDVBLBAR
-	bmi	tortureTestRectsWaitVBLToFinish
+	bmi	macroWaitVBLToFinish
 macroWaitVBLToStart:
 	bit	RDVBLBAR
-	bpl	tortureTestRectsWaitVBLToStart
+	bpl	macroWaitVBLToStart
 .endmacro

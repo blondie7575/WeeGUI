@@ -89,6 +89,7 @@ scanHexDigitDone:
 ; PARAM1: Pointer to string (MSB)
 ; Y: Offset into string
 ; Out A: 8-bit hex value
+;     Y: One past what we scanned
 ; Side effects: Clobbers Y and S0
 ;
 scanHex8:

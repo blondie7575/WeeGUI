@@ -29,6 +29,7 @@ WGCreateView:
 
 	ldy #0
 	jsr	scanHex8
+	lda #0
 	pha
 
 	and #%00001111	; Find our new view record
@@ -117,6 +118,76 @@ WGPaintView_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGEraseView
+; Erases the current view (including decoration)
+;
+WGEraseView:
+	SAVE_AY
+	SAVE_ZPP
+
+	LDY_ACTIVEVIEW
+
+	lda	WG_VIEWRECORDS,y	; Fetch the record
+	dec
+	sta PARAM0
+	iny
+	lda	WG_VIEWRECORDS,y
+	dec
+	sta PARAM1
+	iny
+	lda	WG_VIEWRECORDS,y
+	inc
+	inc
+	sta PARAM2
+	iny
+	lda	WG_VIEWRECORDS,y
+	inc
+	inc
+	sta PARAM3
+
+	ldx	#' '+$80
+	jsr WGFillRect
+
+WGEraseView_done:
+	RESTORE_ZPP
+	RESTORE_AY
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGEraseViewContents
+; Erases the contents of the current view (interior contents only)
+;
+WGEraseViewContents:
+	SAVE_AXY
+	SAVE_ZPP
+
+	LDY_ACTIVEVIEW
+
+	lda	WG_VIEWRECORDS,y	; Fetch the record
+	sta PARAM0
+	iny
+	lda	WG_VIEWRECORDS,y
+	sta PARAM1
+	iny
+	lda	WG_VIEWRECORDS,y
+	sta PARAM2
+	iny
+	lda	WG_VIEWRECORDS,y
+	sta PARAM3
+
+	ldx	#' '+$80
+	jsr WGFillRect
+
+WGEraseViewContents_done:
+	RESTORE_ZPP
+	RESTORE_AXY
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGSelectView
 ; Selects the active view
 ; A: ID
@@ -199,23 +270,20 @@ WGSyncGlobalCursor_done:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGScrollX
 ; Scrolls the current view horizontally
-; A: Delta to scroll
+; A: New scroll amount
 ; Side effects: Clobbers A
 ;
 WGScrollX:
 	phy
 	pha
 	LDY_ACTIVEVIEW
+	iny
+	iny
+	iny
+	iny
+	iny
 	pla
-	iny
-	iny
-	iny
-	iny
-	iny
-	clc
-	adc	WG_VIEWRECORDS,y
 	sta	WG_VIEWRECORDS,y
-
 	jsr	cacheClipPlanes		; Scroll offset changed, so clipping cache is stale
 
 WGScrollX_done:
@@ -226,7 +294,7 @@ WGScrollX_done:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGScrollY
 ; Scrolls the current view vertically
-; A: Delta to scroll
+; A: New scroll amount
 ; Side effects: Clobbers A
 ;
 WGScrollY:
@@ -240,8 +308,6 @@ WGScrollY:
 	iny
 	iny
 	iny
-	clc
-	adc	WG_VIEWRECORDS,y
 	sta	WG_VIEWRECORDS,y
 
 	jsr	cacheClipPlanes		; Scroll offset changed, so clipping cache is stale
