@@ -225,6 +225,10 @@ WGStrokeRect_horzEdge:
 	and	#$01
 	bne	WGStrokeRect_horzLoopOdd
 
+	lda	PARAM2
+	cmp #1				; Width==1 is a special case
+	beq WGStrokeRect_horzLoopEvenAlignedOneWidth
+
 	; CASE 1: Left edge even-aligned, even width
 	SETSWITCH	PAGE2OFF
 	lda	PARAM2
@@ -252,8 +256,8 @@ WGStrokeRect_horzLoopEvenAligned1:	; Draw odd columns
 	and	#$01
 	beq	WGStrokeRect_horzLoopEvenAlignedEvenWidth
 
+WGStrokeRect_horzLoopEvenAlignedOddWidth:
 	; CASE 1a: Left edge even aligned, odd width
-	;SETSWITCH	PAGE2OFF
 	lda	PARAM2						; Fill in extra last column
 	lsr
 	tay
@@ -272,8 +276,17 @@ WGStrokeRect_horzLoopEvenAlignedEvenWidth:
 	sta SCRATCH0
 	jmp	WGStrokeRect_horzEdge
 
+WGStrokeRect_horzLoopEvenAlignedOneWidth:
+	SETSWITCH	PAGE2ON
+	bra WGStrokeRect_horzLoopEvenAlignedOddWidth
+
 WGStrokeRect_horzLoopOdd:
 	; CASE 2: Left edge odd-aligned, even width
+
+	lda	PARAM2
+	cmp #1				; Width==1 is a special case
+	beq WGStrokeRect_horzLoopOddAlignedOneWidth
+
 	SETSWITCH	PAGE2ON
 	lda	PARAM2
 	lsr
@@ -300,6 +313,7 @@ WGStrokeRect_horzLoopOddAligned1:		; Draw even columns
 	and	#$01
 	beq	WGStrokeRect_horzLoopOddAlignedEvenWidth
 
+WGStrokeRect_horzLoopOddAlignedOddWidth:
 	; CASE 2a: Left edge odd aligned, odd width
 	lda	PARAM2						; Fill in extra last column
 	dec
@@ -320,6 +334,9 @@ WGStrokeRect_horzLoopOddAlignedEvenWidth:
 	sta SCRATCH0
 	jmp	WGStrokeRect_horzEdge
 
+WGStrokeRect_horzLoopOddAlignedOneWidth:
+	SETSWITCH	PAGE2OFF
+	bra WGStrokeRect_horzLoopOddAlignedOddWidth
 
 WGStrokeRect_vertEdge:
 	; Left and right edges
@@ -449,7 +466,7 @@ WGStrokeRect_done:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGPlot
 ; Plots a character at current cursor position (assumes 80 cols)
-; A: Character to plot
+; A: Character to plot (Apple format)
 ; Side effects: Clobbers S0, BASL,BASH
 ;
 WGPlot:
@@ -494,7 +511,7 @@ WGPlot_done:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGPrint
-; Prints a null-terminated Apple string at the current view's
+; Prints a null-terminated ASCII string at the current view's
 ; cursor position. Clips to current view.
 ; PARAM0: String pointer, LSB
 ; PARAM1: String pointer, MSB
@@ -580,10 +597,14 @@ WGPrint_lineLoop:
 WGPrint_visibleChars:
 	jsr	WGSyncGlobalCursor
 
-WGPrint_charLoop:
+	lda INVERSE
+	cmp #CHAR_INVERSE
+	beq WGPrint_charLoopInverse
+	
+WGPrint_charLoopNormal:
 	lda	(PARAM0),y			; Draw current character
 	beq WGPrint_done
-	ora #$80
+	ora #%10000000
 	jsr	WGPlot
 	iny
 
@@ -595,7 +616,12 @@ WGPrint_charLoop:
 	beq	WGPrint_nextLine
 	cmp	WG_VIEWCLIP+2		; Check for right clip plane
 	beq	WGPrint_endVisible
-	bra WGPrint_charLoop
+	bra WGPrint_charLoopNormal
+
+WGPrint_done:				; This is up here to keep local branches in range
+	RESTORE_ZPS
+	RESTORE_AXY
+	rts
 
 WGPrint_endVisible:
 	tya
@@ -617,7 +643,54 @@ WGPrint_nextLine:
 	sta	WG_LOCALCURSORX
 	jmp WGPrint_lineLoop
 
-WGPrint_done:
-	RESTORE_ZPS
-	RESTORE_AXY
+WGPrint_charLoopInverse:
+	lda	(PARAM0),y			; Draw current character
+	beq WGPrint_done
+	cmp #$60
+	bcc WGPrint_charLoopInverseLow
+	and #%01111111			; Inverse lowercase is in alternate character set
+	bra WGPrint_charLoopInversePlot
+
+WGPrint_charLoopInverseLow:
+	and #%00111111			; Normal inverse
+
+WGPrint_charLoopInversePlot:	; This is down here to keep local branches in range
+	jsr	WGPlot
+	iny
+
+	inc WG_CURSORX			; Advance cursors
+	inc WG_LOCALCURSORX
+
+	lda WG_LOCALCURSORX
+	cmp	WG_SCRATCHA			; Check for wrap boundary
+	beq	WGPrint_nextLine
+	cmp	WG_VIEWCLIP+2		; Check for right clip plane
+	beq	WGPrint_endVisible
+	bra WGPrint_charLoopInverse
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGNormal
+; Sets normal text rendering mode
+;
+WGNormal:
+	pha
+	lda #CHAR_NORMAL
+	sta INVERSE
+	pla
 	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGInverse
+; Sets inverse text rendering mode
+;
+WGInverse:
+	pha
+	lda #CHAR_INVERSE
+	sta INVERSE
+	pla
+	rts
+
+

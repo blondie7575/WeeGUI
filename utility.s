@@ -68,11 +68,17 @@ delayShortInner:
 ; Out A: Hex value
 ;
 scanHexDigit:
+	cmp		#'a'
+	bcs		scanHexDigitLowCase
 	cmp		#'A'
 	bcs		scanHexDigitLetter
 	sec
 	sbc		#'0'
 	jmp		scanHexDigitDone
+
+scanHexDigitLowCase:
+	sec
+	sbc		#32
 
 scanHexDigitLetter:
 	sec
@@ -90,7 +96,7 @@ scanHexDigitDone:
 ; Y: Offset into string
 ; Out A: 8-bit hex value
 ;     Y: One past what we scanned
-; Side effects: Clobbers Y and S0
+; Side effects: Clobbers S0
 ;
 scanHex8:
 	lda		(PARAM0),y

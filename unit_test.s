@@ -113,9 +113,9 @@ tortureTestPrint_print:
 	VBL_SYNC
 	jsr	WGEraseViewContents
 
-	lda	#<testStr
+	lda	#<unitTestStr
 	sta	PARAM0
-	lda #>testStr
+	lda #>unitTestStr
 	sta PARAM1
 
 	jsr WGPrint
@@ -283,5 +283,5 @@ tortureTestRectsOddDone:
 testPrintView:
 	.byte "000F061E0A287E"	; 0, 7,3,62,19,75,126
 
-testStr:
+unitTestStr:
 	.byte "This is a test of the emergency broadcast system. If this had been a real emergency, you would be dead now. Amusingly, it can be noted that if this had been a real emergency, and you were now a steaming pile of ash, there would of course be nobody.",0; to read this message. That begs any number",0; of extistential questions about this very text.",0

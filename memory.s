@@ -28,6 +28,11 @@ CHAR_NORMAL = $ff
 CHAR_INVERSE = $3f
 CHAR_FLASH = $7f
 
+VIEW_STYLE_PLAIN = $00
+VIEW_STYLE_FANCY = $01
+VIEW_STYLE_CHECK = $02
+VIEW_STYLE_BUTTON = $03
+
 
 ; ROM entry points
 
@@ -57,7 +62,7 @@ WG_VIEWCLIP:
 .byte 0,0,0,0,0
 
 WG_VIEWRECORDS:
-	; X, Y, Screen Width, Screen Height, Style, X Offset, Y Offset, View Width, View Height
+	; X, Y, Screen Width, Screen Height, Style, X Offset, Y Offset, View Width, View Height, State, CallbackH, CallbackL, TitleH, TitleL
 .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0

@@ -29,7 +29,6 @@ WGCreateView:
 
 	ldy #0
 	jsr	scanHex8
-	lda #0
 	pha
 
 	and #%00001111	; Find our new view record
@@ -87,30 +86,224 @@ WGCreateView_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGCreateCheckbox
+; Creates a new checkbox
+; PARAM0: Pointer to ASCII configuration string (LSB)
+; PARAM1: Pointer to ASCII configuration string (MSB)
+;
+; Configuration string: "STXXYY"
+; ST: (4:4) Reserved:ID
+; XX: Screen X origin
+; YY: Screen Y origin
+;
+WGCreateCheckbox:
+	SAVE_AXY
+	SAVE_ZPS
+
+	ldy #0
+	jsr	scanHex8
+
+	and #%00001111	; Find our new view record
+	asl
+	asl
+	asl
+	asl				; Records are 8 bytes wide
+	tax
+
+	jsr	scanHex8
+	sta	WG_VIEWRECORDS,x	; Screen X
+	inx
+
+	jsr	scanHex8
+	sta	WG_VIEWRECORDS,x	; Screen Y
+	inx
+
+	lda	#1
+	sta	WG_VIEWRECORDS,x	; Initialize screen width
+	inx
+	sta	WG_VIEWRECORDS,x	; Initialize screen height
+	inx
+
+	lda #VIEW_STYLE_CHECK
+	sta	WG_VIEWRECORDS,x	; Style
+	inx
+
+	lda	#0					; Initialize scrolling
+	sta	WG_VIEWRECORDS,x
+	inx
+	sta	WG_VIEWRECORDS,x
+	inx
+
+	lda	#0
+	sta	WG_VIEWRECORDS,x	; Initialize view width
+	inx
+	sta	WG_VIEWRECORDS,x	; Initialize view height
+	inx
+
+	lda	#%00000000			; Initialize state
+	sta	WG_VIEWRECORDS,x
+	inx
+	sta	WG_VIEWRECORDS,x	; Initialize callback
+	inx
+	sta	WG_VIEWRECORDS,x
+
+WGCreateCheckbox_done:
+	RESTORE_ZPS
+	RESTORE_AXY
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGCreateButton
+; Creates a new button
+; PARAM0: Pointer to ASCII configuration string (LSB)
+; PARAM1: Pointer to ASCII configuration string (MSB)
+;
+; Configuration string: "STXXYYBW"
+; ST: (4:4) Reserved:ID
+; XX: Screen X origin
+; YY: Screen Y origin
+; BW: Button width
+WGCreateButton:
+	SAVE_AXY
+	SAVE_ZPS
+
+	ldy #0
+	jsr	scanHex8
+
+	and #%00001111	; Find our new view record
+	asl
+	asl
+	asl
+	asl				; Records are 8 bytes wide
+	tax
+
+	jsr	scanHex8
+	sta	WG_VIEWRECORDS,x	; Screen X
+	inx
+
+	jsr	scanHex8
+	sta	WG_VIEWRECORDS,x	; Screen Y
+	inx
+
+	jsr	scanHex8
+	sta	WG_VIEWRECORDS,x	; Screen width
+	inx
+
+	lda #1
+	sta	WG_VIEWRECORDS,x	; Initialize screen height
+	inx
+
+	lda #VIEW_STYLE_BUTTON
+	sta	WG_VIEWRECORDS,x	; Style
+	inx
+
+	lda	#0					; Initialize scrolling
+	sta	WG_VIEWRECORDS,x
+	inx
+	sta	WG_VIEWRECORDS,x
+	inx
+
+	lda	#0
+	sta	WG_VIEWRECORDS,x	; Initialize view width
+	inx
+	sta	WG_VIEWRECORDS,x	; Initialize view height
+	inx
+
+	lda	#%00000000			; Initialize state
+	sta	WG_VIEWRECORDS,x
+	inx
+	sta	WG_VIEWRECORDS,x	; Initialize callback
+	inx
+	sta	WG_VIEWRECORDS,x
+	inx
+
+	lda	#0
+	sta	WG_VIEWRECORDS,x	; Initialize title
+	inx
+	sta	WG_VIEWRECORDS,x	; Initialize title
+
+WGCreateButton_done:
+	RESTORE_ZPS
+	RESTORE_AXY
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGPaintView
 ; Paints the current view
 ;
 WGPaintView:
 	SAVE_AY
 	SAVE_ZPP
+	SAVE_ZPS
 
 	LDY_ACTIVEVIEW
+	lda WG_VIEWRECORDS+4,y	; Cache style information
+	sta SCRATCH0
 
-	lda	WG_VIEWRECORDS,y	; Fetch the record
+	lda	WG_VIEWRECORDS+0,y	; Fetch the geometry
 	sta PARAM0
-	iny
-	lda	WG_VIEWRECORDS,y
+	lda	WG_VIEWRECORDS+1,y
 	sta PARAM1
-	iny
-	lda	WG_VIEWRECORDS,y
+	lda	WG_VIEWRECORDS+2,y
 	sta PARAM2
-	iny
-	lda	WG_VIEWRECORDS,y
+	lda	WG_VIEWRECORDS+3,y
 	sta PARAM3
 
-	jsr WGStrokeRect
+	jsr WGStrokeRect		; Draw outline
+
+	lda SCRATCH0
+	cmp #VIEW_STYLE_CHECK
+	beq WGPaintView_check
+	cmp #VIEW_STYLE_BUTTON
+	beq	WGPaintView_button
+	bra WGPaintView_done
+
+WGPaintView_check:
+	lda	WG_VIEWRECORDS+9,y	; Render checkbox state
+	beq WGPaintView_done
+
+	lda WG_VIEWRECORDS+0,y
+	sta	WG_CURSORX
+	lda WG_VIEWRECORDS+1,y
+	sta	WG_CURSORY
+	lda WG_VIEWRECORDS+9,y
+	and #$80
+	bne WGPaintView_checkSelected
+	lda #'D'
+	bra WGPaintView_checkPlot
+
+WGPaintView_checkSelected:
+	lda #'E'
+
+WGPaintView_checkPlot:
+	jsr WGPlot
+	bra WGPaintView_done
+
+WGPaintView_button:
+	lda WG_VIEWRECORDS+13,y	; Prep the title string
+	sta PARAM0
+	lda WG_VIEWRECORDS+12,y
+	sta PARAM1
+
+	jsr WGStrLen			; Compute centering offset for title
+	lsr
+	sta SCRATCH1
+	lda WG_VIEWRECORDS+2,y
+	lsr
+	sec
+	sbc SCRATCH1
+	sta	WG_LOCALCURSORX
+
+	lda #0					; Position and print title
+	sta	WG_LOCALCURSORY
+	jsr WGPrint
 
 WGPaintView_done:
+	RESTORE_ZPS
 	RESTORE_ZPP
 	RESTORE_AY
 	rts
@@ -206,6 +399,26 @@ WGSelectView:
 WGSelectView_done:
 	RESTORE_AXY
 	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGViewSetTitle
+; Sets the title of the active view
+; PARAM0: Null-terminated string pointer (LSB)
+; PARAM1: Null-terminated string pointer (MSB)
+WGViewSetTitle:
+	SAVE_AXY
+
+	LDY_ACTIVEVIEW
+	lda PARAM0
+	sta WG_VIEWRECORDS+13,y
+	lda PARAM1
+	sta WG_VIEWRECORDS+12,y
+
+WGViewSetTitle_done:
+	RESTORE_AXY
+	rts
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -20,21 +20,44 @@
 
 main:
 	jsr begin80cols
-	jmp	tortureTestPrint
+	;jmp	tortureTestPrint
 	;jmp	tortureTestRects
 
-;	jsr WGClearScreen
+	jsr WGClearScreen
+	jsr WGInverse
 
-;	lda	#<testView
-;	sta	PARAM0
-;	lda	#>testView
-;	sta	PARAM1
-;	jsr	WGCreateView
+	lda #<testStr
+	sta PARAM0
+	lda #>testStr
+	sta PARAM1
+	jsr WGPrint
+	ldx #0
+	ldy #1
+	jsr WGSetCursor
+	lda #<testStr2
+	sta PARAM0
+	lda #>testStr2
+	sta PARAM1
+	jsr WGPrint
+	jmp loop
 
-;	lda #0
-;	jsr	WGSelectView
 
-;	jsr	WGPaintView
+	lda	#<testView
+	sta	PARAM0
+	lda	#>testView
+	sta	PARAM1
+	jsr	WGCreateButton
+
+	lda #0
+	jsr	WGSelectView
+
+	lda #<testTitle
+	sta PARAM0
+	lda #>testTitle
+	sta PARAM1
+	jsr WGViewSetTitle
+	
+	jsr	WGPaintView
 
 ;	ldx	#5
 ;	ldy	#0
@@ -151,11 +174,17 @@ read80ColSwitch_40:
 .include "memory.s"
 
 
-;testView:
+testView:
 ;	.byte "0007033e13207e"	; 0, 7,3,62,19,126,126
+;	.byte "00230a"
+	.byte "00230a0f"
 
-;testStr:
+testStr:
 ;	.byte "This is a test of the emergency broadcast system.",0; If this had been a real emergency, you would be dead now.",0	; 107 chars
-
+	.byte "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_ !",34,"#$%&'()*+,-./0123456789:;<=>?`abcdefghijklmno",0
+testStr2:
+	.byte "pqrstuvwxyz{|}~",$ff,0
+testTitle:
+	.byte "Okay",0
 
 
