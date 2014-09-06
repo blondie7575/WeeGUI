@@ -19,7 +19,8 @@
 ; Main
 
 main:
-	jsr begin80cols
+	jsr WGInit
+	jsr WG80
 	;jmp	tortureTestPrint
 	;jmp	tortureTestRects
 
@@ -29,18 +30,39 @@ main:
 	sta	PARAM0
 	lda	#>testView
 	sta	PARAM1
+	jsr	WGCreateView
+
+	lda	#<testCheck
+	sta	PARAM0
+	lda	#>testCheck
+	sta	PARAM1
+	jsr	WGCreateCheckbox
+
+	lda	#<testButton1
+	sta	PARAM0
+	lda	#>testButton1
+	sta	PARAM1
 	jsr	WGCreateButton
 
-	lda #0
-	jsr	WGSelectView
-
-	lda #<testTitle
+	lda #<testTitle1
 	sta PARAM0
-	lda #>testTitle
+	lda #>testTitle1
 	sta PARAM1
 	jsr WGViewSetTitle
-	
-	jsr	WGPaintView
+
+	lda	#<testButton2
+	sta	PARAM0
+	lda	#>testButton2
+	sta	PARAM1
+	jsr	WGCreateButton
+
+	lda #<testTitle2
+	sta PARAM0
+	lda #>testTitle2
+	sta PARAM1
+	jsr WGViewSetTitle
+
+	jsr WGViewPaintAll
 
 ;	ldx	#5
 ;	ldy	#0
@@ -103,18 +125,50 @@ main:
 
 ;	jmp tortureTestRects
 
-loop:
-;	lda	#'Q' + $80
-;	jsr	COUT
-	jmp loop
+keyLoop:
+	lda KBD
+	bpl keyLoop
+	sta KBDSTRB
+
+	and #%01111111
+	cmp #9
+	beq keyLoop_focusNext
+	cmp #13
+	beq keyLoop_toggle
+	cmp #32
+	beq keyLoop_toggle
+
+	jmp keyLoop
+
+keyLoop_focusNext:
+	jsr WGViewFocusNext
+	jmp keyLoop
+
+keyLoop_toggle:
+	jsr WGViewFocusAction
+	jmp keyLoop
+	
 	rts			; This seems to work for returning to BASIC.SYSTEM, but I don't think it's right
 	
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; begin80cols
+; WGInit
+; Initialization. Should be called once at app startup
+WGInit:
+	pha
+
+	lda	#0
+	sta WG_FOCUSVIEW
+
+	pla
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WG80
 ; Enables 80 column mode (and enhanced video firmware)
-begin80cols:
+WG80:
 	lda	#$a0
 	jsr	$c300
 	SETSWITCH	TEXTON
@@ -158,16 +212,25 @@ read80ColSwitch_40:
 
 
 testView:
-;	.byte "0007033e13207e"	; 0, 7,3,62,19,126,126
-;	.byte "00230a"
-	.byte "00230a0f"
+	.byte "0007033e133e7e"	; 0, 7,3,62,19,62,126
+
+testCheck:
+	.byte "011004"
+
+testButton1:
+	.byte "02230a0f"
+
+testButton2:
+	.byte "03230d0f"
 
 testStr:
 ;	.byte "This is a test of the emergency broadcast system.",0; If this had been a real emergency, you would be dead now.",0	; 107 chars
 	.byte "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_ !",34,"#$%&'()*+,-./0123456789:;<=>?`abcdefghijklmno",0
 testStr2:
 	.byte "pqrstuvwxyz{|}~",$ff,0
-testTitle:
+testTitle1:
 	.byte "Okay",0
+testTitle2:
+	.byte "Cancel",0
 
 

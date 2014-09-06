@@ -106,11 +106,6 @@
 
 .macro LDY_ACTIVEVIEW
 	lda WG_ACTIVEVIEW	; Find our new view record
-	and #%00001111
-	asl
-	asl
-	asl
-	asl
 	asl
 	asl
 	asl
@@ -121,16 +116,21 @@
 
 .macro LDX_ACTIVEVIEW
 	lda WG_ACTIVEVIEW	; Find our new view record
-	and #%00001111
-	asl
-	asl
-	asl
-	asl
 	asl
 	asl
 	asl
 	asl				; Records are 16 bytes wide
 	tax
+.endmacro
+
+
+.macro LDY_FOCUSVIEW
+	lda WG_FOCUSVIEW	; Find our new view record
+	asl
+	asl
+	asl
+	asl				; Records are 16 bytes wide
+	tay
 .endmacro
 
 

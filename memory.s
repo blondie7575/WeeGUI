@@ -39,6 +39,7 @@ VIEW_STYLE_BUTTON = $03
 COUT			= $fded
 BASCALC			= $fbc1
 PRBYTE			= $fdda
+RDKEY			= $fd0c
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -55,6 +56,9 @@ WG_LOCALCURSORY:
 .byte	0
 
 WG_ACTIVEVIEW:
+.byte 0
+
+WG_FOCUSVIEW:
 .byte 0
 
 WG_VIEWCLIP:

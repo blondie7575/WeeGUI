@@ -10,7 +10,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGCreateView
-; Creates a new view
+; Creates and selects a new view
 ; PARAM0: Pointer to ASCII configuration string (LSB)
 ; PARAM1: Pointer to ASCII configuration string (MSB)
 ;
@@ -32,6 +32,7 @@ WGCreateView:
 	pha
 
 	and #%00001111	; Find our new view record
+	jsr WGSelectView
 	asl
 	asl
 	asl
@@ -104,10 +105,11 @@ WGCreateCheckbox:
 	jsr	scanHex8
 
 	and #%00001111	; Find our new view record
+	jsr WGSelectView
 	asl
 	asl
 	asl
-	asl				; Records are 8 bytes wide
+	asl				; Records are 16 bytes wide
 	tax
 
 	jsr	scanHex8
@@ -173,10 +175,11 @@ WGCreateButton:
 	jsr	scanHex8
 
 	and #%00001111	; Find our new view record
+	jsr WGSelectView
 	asl
 	asl
 	asl
-	asl				; Records are 8 bytes wide
+	asl				; Records are 16 bytes wide
 	tax
 
 	jsr	scanHex8
@@ -241,6 +244,7 @@ WGPaintView:
 	SAVE_ZPS
 
 	LDY_ACTIVEVIEW
+
 	lda WG_VIEWRECORDS+4,y	; Cache style information
 	sta SCRATCH0
 
@@ -263,24 +267,7 @@ WGPaintView:
 	bra WGPaintView_done
 
 WGPaintView_check:
-	lda	WG_VIEWRECORDS+9,y	; Render checkbox state
-	beq WGPaintView_done
-
-	lda WG_VIEWRECORDS+0,y
-	sta	WG_CURSORX
-	lda WG_VIEWRECORDS+1,y
-	sta	WG_CURSORY
-	lda WG_VIEWRECORDS+9,y
-	and #$80
-	bne WGPaintView_checkSelected
-	lda #'D'
-	bra WGPaintView_checkPlot
-
-WGPaintView_checkSelected:
-	lda #'E'
-
-WGPaintView_checkPlot:
-	jsr WGPlot
+	jsr paintCheck
 	bra WGPaintView_done
 
 WGPaintView_button:
@@ -290,6 +277,48 @@ WGPaintView_done:
 	RESTORE_ZPS
 	RESTORE_ZPP
 	RESTORE_AY
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; paintCheck
+; Paints the contents of a checkbox
+; Y: Index into view records of checkbox to paint
+; Side effects: Clobbers A, S0
+paintCheck:
+	lda WG_VIEWRECORDS+0,y		; Position cursor
+	sta	WG_CURSORX
+	lda WG_VIEWRECORDS+1,y
+	sta	WG_CURSORY
+
+	lda	WG_VIEWRECORDS+9,y		; Determine our visual state
+	and #$80
+	bne paintCheck_selected
+
+	lda	WG_VIEWRECORDS+9,y
+	and #$01
+	beq paintCheck_unselectedUnchecked
+
+	lda #'D'
+	bra paintCheck_plot
+
+paintCheck_unselectedUnchecked:
+	lda #' '+$80
+	bra paintCheck_plot
+
+paintCheck_selected:
+	lda	WG_VIEWRECORDS+9,y
+	and #$01
+	beq paintCheck_selectedUnchecked
+
+	lda #'E'
+	bra paintCheck_plot
+
+paintCheck_selectedUnchecked:
+	lda #' '
+
+paintCheck_plot:				; Paint our state
+	jsr WGPlot
 	rts
 
 
@@ -442,8 +471,8 @@ WGEraseViewContents_done:
 ; A: ID
 ;
 WGSelectView:
-	SAVE_AXY
 	sta	WG_ACTIVEVIEW
+	pha
 
 	; Initialize cursor to local origin
 	lda #0
@@ -453,7 +482,78 @@ WGSelectView:
 	jsr	cacheClipPlanes		; View changed, so clipping cache is stale
 
 WGSelectView_done:
-	RESTORE_AXY
+	pla
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGViewFocusNext
+; Shifts focus to the next view
+; Side effects: Changes selected view, repaints some views
+;
+WGViewFocusNext:
+	SAVE_AY
+
+	LDY_FOCUSVIEW				; Unfocus current view
+	lda WG_VIEWRECORDS+9,y
+	and #%01111111
+	sta WG_VIEWRECORDS+9,y
+
+	lda WG_FOCUSVIEW
+	jsr WGSelectView
+	jsr WGPaintView
+
+	inc	WG_FOCUSVIEW			; Increment and wrap
+	LDY_FOCUSVIEW
+	lda WG_VIEWRECORDS+2,y
+	bne WGViewFocusNext_focus
+	lda #0
+	sta	WG_FOCUSVIEW
+
+WGViewFocusNext_focus:
+	lda	WG_FOCUSVIEW
+	jsr WGSelectView
+
+	lda WG_VIEWRECORDS+9,y
+	ora #%10000000
+	sta WG_VIEWRECORDS+9,y
+
+	jsr WGPaintView
+
+	RESTORE_AY
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGViewFocusAction
+; Performs the action of the focused view
+; Side effects: Changes selected view, Repaints some views
+;
+WGViewFocusAction:
+	SAVE_AY
+
+	LDY_FOCUSVIEW
+	lda WG_VIEWRECORDS+4,y		; What kind of view is it?
+
+	cmp #VIEW_STYLE_CHECK
+	beq WGViewFocusAction_toggleCheckbox
+	cmp #VIEW_STYLE_BUTTON
+	beq WGViewFocusAction_buttonClick
+
+	bra WGViewFocusAction_done
+
+WGViewFocusAction_toggleCheckbox:
+	lda WG_VIEWRECORDS+9,y
+	eor #%00000001
+	sta WG_VIEWRECORDS+9,y
+	lda WG_FOCUSVIEW
+	jsr WGSelectView
+	jsr WGPaintView
+
+WGViewFocusAction_buttonClick:
+
+WGViewFocusAction_done:
+	RESTORE_AY
 	rts
 
 
@@ -585,6 +685,33 @@ WGScrollY_done:
 	ply
 	rts
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGViewPaintAll
+; Repaints all views
+; Side effects: Changes selected view
+;
+WGViewPaintAll:
+	SAVE_AXY
+
+	ldx #0
+
+WGViewPaintAll_loop:
+	txa
+	jsr WGSelectView
+
+	LDY_ACTIVEVIEW
+	lda WG_VIEWRECORDS+2,y		; Last view?
+	beq WGViewPaintAll_done
+
+	jsr WGPaintView
+	inx
+	bra WGViewPaintAll_loop
+
+WGViewPaintAll_done:
+	RESTORE_AXY
+	rts
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
