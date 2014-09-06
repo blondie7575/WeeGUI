@@ -9,4 +9,4 @@ Known issues
 To Do:
 ------
 
-- Make scanning support lower case
+- Make WGFillRect support 1 height and 1 width

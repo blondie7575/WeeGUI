@@ -24,23 +24,6 @@ main:
 	;jmp	tortureTestRects
 
 	jsr WGClearScreen
-	jsr WGInverse
-
-	lda #<testStr
-	sta PARAM0
-	lda #>testStr
-	sta PARAM1
-	jsr WGPrint
-	ldx #0
-	ldy #1
-	jsr WGSetCursor
-	lda #<testStr2
-	sta PARAM0
-	lda #>testStr2
-	sta PARAM1
-	jsr WGPrint
-	jmp loop
-
 
 	lda	#<testView
 	sta	PARAM0

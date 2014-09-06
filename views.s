@@ -284,6 +284,24 @@ WGPaintView_checkPlot:
 	bra WGPaintView_done
 
 WGPaintView_button:
+	jsr	paintButton
+
+WGPaintView_done:
+	RESTORE_ZPS
+	RESTORE_ZPP
+	RESTORE_AY
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; paintButton
+; Paints the contents of a button
+; Y: Index into view records of button to paint
+;
+paintButton:
+	SAVE_AX
+	SAVE_ZPS
+
 	lda WG_VIEWRECORDS+13,y	; Prep the title string
 	sta PARAM0
 	lda WG_VIEWRECORDS+12,y
@@ -296,18 +314,56 @@ WGPaintView_button:
 	lsr
 	sec
 	sbc SCRATCH1
-	sta	WG_LOCALCURSORX
+	sta SCRATCH1			; Cache this for left margin rendering
 
 	lda #0					; Position and print title
+	sta	WG_LOCALCURSORX
+	lda #0
 	sta	WG_LOCALCURSORY
+	jsr WGSyncGlobalCursor
+
+	lda WG_VIEWRECORDS+9,y	; Is button highlighted?
+	and #$80
+	bne paintButton_titleSelected
+	jsr WGNormal
+	lda #' '+$80
+	bra paintButton_titleMarginLeft
+
+paintButton_titleSelected:
+	jsr WGInverse
+	lda #' '
+
+paintButton_titleMarginLeft:
+	ldx #0
+
+paintButton_titleMarginLeftLoop:
+	cpx	SCRATCH1
+	bcs paintButton_title	; Left margin finished
+	jsr WGPlot
+	inc WG_CURSORX
+	inc WG_LOCALCURSORX
+	inx
+	jmp paintButton_titleMarginLeftLoop
+
+paintButton_title:
 	jsr WGPrint
+	ldx WG_VIEWRECORDS+2,y
+	stx SCRATCH1			; Loop until right edge of button is reached
+	ldx WG_LOCALCURSORX
 
-WGPaintView_done:
+paintButton_titleMarginRightLoop:
+	cpx	SCRATCH1
+	bcs paintButton_done	; Right margin finished
+	jsr WGPlot
+	inc WG_CURSORX
+	inc WG_LOCALCURSORX
+	inx
+	jmp paintButton_titleMarginRightLoop
+
+paintButton_done:
 	RESTORE_ZPS
-	RESTORE_ZPP
-	RESTORE_AY
+	RESTORE_AX
 	rts
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
