@@ -145,6 +145,8 @@ keyLoop:
 	beq keyLoop_toggle
 	cmp #32
 	beq keyLoop_toggle
+	cmp #'o'
+	beq	keyLoop_focusOkay
 
 	jmp keyLoop
 
@@ -159,7 +161,13 @@ keyLoop_focusPrev:
 keyLoop_toggle:
 	jsr WGViewFocusAction
 	jmp keyLoop
-	
+
+keyLoop_focusOkay:
+	lda #2
+	jsr WGSelectView
+	jsr WGViewFocus
+	jmp keyLoop
+
 	rts			; This seems to work for returning to BASIC.SYSTEM, but I don't think it's right
 	
 

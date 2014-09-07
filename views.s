@@ -487,6 +487,42 @@ WGSelectView_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGViewFocus
+; Shifts focus to the selected view
+; Side effects: Changes selected view, repaints some views
+;
+WGViewFocus:
+	SAVE_AY
+
+	lda WG_ACTIVEVIEW			; Stash current selection
+	pha
+
+	LDY_FOCUSVIEW				; Unfocus current view
+	lda WG_VIEWRECORDS+9,y
+	and #%01111111
+	sta WG_VIEWRECORDS+9,y
+
+	lda WG_FOCUSVIEW
+	jsr WGSelectView
+	jsr WGPaintView
+
+	pla
+	sta WG_FOCUSVIEW			; Focus on our original selection
+	jsr WGSelectView
+
+	LDY_FOCUSVIEW
+
+	lda WG_VIEWRECORDS+9,y		; Change state and repaint to reflect it
+	ora #%10000000
+	sta WG_VIEWRECORDS+9,y
+
+	jsr WGPaintView
+
+	RESTORE_AY
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGViewFocusNext
 ; Shifts focus to the next view
 ; Side effects: Changes selected view, repaints some views
@@ -511,7 +547,7 @@ WGViewFocusNext:
 	sta	WG_FOCUSVIEW
 
 WGViewFocusNext_focus:
-	lda	WG_FOCUSVIEW
+	lda	WG_FOCUSVIEW			; Change state and repaint to reflect it
 	jsr WGSelectView
 
 	lda WG_VIEWRECORDS+9,y
@@ -554,11 +590,11 @@ WGViewFocusPrev_findEndLoop:
 	bra WGViewFocusPrev_findEndLoop
 
 WGViewFocusPrev_focus:
-	lda	WG_FOCUSVIEW
+	lda	WG_FOCUSVIEW			; Change state and repaint to reflect it
 	jsr WGSelectView
 
 	LDY_FOCUSVIEW
-	
+
 	lda WG_VIEWRECORDS+9,y
 	ora #%10000000
 	sta WG_VIEWRECORDS+9,y
