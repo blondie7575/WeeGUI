@@ -12,9 +12,9 @@
 
 ; Common definitions
 
+.include "zeropage.s"
 .include "switches.s"
 .include "macros.s"
-
 
 ; Main
 
@@ -31,6 +31,12 @@ main:
 	lda	#>testView
 	sta	PARAM1
 	jsr	WGCreateView
+
+	lda #<testTitle0
+	sta PARAM0
+	lda #>testTitle0
+	sta PARAM1
+	jsr WGViewSetTitle
 
 	lda	#<testCheck
 	sta	PARAM0
@@ -230,13 +236,14 @@ read80ColSwitch_40:
 ; Code modules
 .include "utility.s"
 .include "painting.s"
+.include "rects.s"
 .include "views.s"
 .include "unit_test.s"
 .include "memory.s"
 
 
 testView:
-	.byte "0007033e133e7e"	; 0, 7,3,62,19,62,126
+	.byte "1007033e133e7e"	; 1:0, 7,3,62,19,62,126
 
 testCheck:
 	.byte "011004"
@@ -252,9 +259,20 @@ testStr:
 	.byte "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_ !",34,"#$%&'()*+,-./0123456789:;<=>?`abcdefghijklmno",0
 testStr2:
 	.byte "pqrstuvwxyz{|}~",$ff,0
+testTitle0:
+	.byte "Nifty Window",0
 testTitle1:
 	.byte "Okay",0
 testTitle2:
 	.byte "Cancel",0
 
+
+
+
+; Suppress some linker warnings - Must be the last thing in the file
+.SEGMENT "ZPSAVE"
+.SEGMENT "EXEHDR"
+.SEGMENT "STARTUP"
+.SEGMENT "INIT"
+.SEGMENT "LOWCODE"
 

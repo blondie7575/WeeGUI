@@ -257,7 +257,11 @@ WGPaintView:
 	lda	WG_VIEWRECORDS+3,y
 	sta PARAM3
 
-	jsr WGStrokeRect		; Draw outline
+	lda SCRATCH0					; Draw outline
+	cmp #VIEW_STYLE_FANCY
+	beq WGPaintView_decorated
+
+	jsr WGStrokeRect
 
 	lda SCRATCH0
 	cmp #VIEW_STYLE_CHECK
@@ -266,6 +270,11 @@ WGPaintView:
 	beq	WGPaintView_button
 	bra WGPaintView_done
 
+WGPaintView_decorated:
+	jsr WGFancyRect
+	jsr paintWindowTitle
+	bra WGPaintView_done
+	
 WGPaintView_check:
 	jsr paintCheck
 	bra WGPaintView_done
@@ -390,6 +399,39 @@ paintButton_titleMarginRightLoop:
 	jmp paintButton_titleMarginRightLoop
 
 paintButton_done:
+	RESTORE_ZPS
+	RESTORE_AX
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; paintWindowTitle
+; Paints the title of a fancy window
+; Y: Index into view records of view title to paint
+;
+paintWindowTitle:
+	SAVE_AX
+	SAVE_ZPS
+
+	lda WG_VIEWRECORDS+13,y	; Prep the title string
+	sta PARAM0
+	lda WG_VIEWRECORDS+12,y
+	sta PARAM1
+
+	jsr WGStrLen			; Compute centering offset for title
+	lsr
+	sta SCRATCH1
+	lda WG_VIEWRECORDS+2,y
+	lsr
+	sec
+	sbc SCRATCH1
+	sta	WG_LOCALCURSORX
+	lda #-1
+	sta WG_LOCALCURSORY
+
+	jsr WGPrint
+
+paintWindowTitle_done:
 	RESTORE_ZPS
 	RESTORE_AX
 	rts
