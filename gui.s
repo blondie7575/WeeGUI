@@ -24,7 +24,7 @@ main:
 	;jmp	tortureTestPrint
 	;jmp	tortureTestRects
 
-	jsr WGClearScreen
+	jsr WGDesktop
 
 	lda	#<testView
 	sta	PARAM0

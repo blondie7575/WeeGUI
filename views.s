@@ -442,7 +442,7 @@ paintWindowTitle_done:
 ; Erases the current view (including decoration)
 ;
 WGEraseView:
-	SAVE_AY
+	SAVE_AXY
 	SAVE_ZPP
 
 	LDY_ACTIVEVIEW
@@ -470,7 +470,7 @@ WGEraseView:
 
 WGEraseView_done:
 	RESTORE_ZPP
-	RESTORE_AY
+	RESTORE_AXY
 	rts
 
 
@@ -859,6 +859,7 @@ WGViewPaintAll_loop:
 	lda WG_VIEWRECORDS+2,y		; Last view?
 	beq WGViewPaintAll_done
 
+	jsr WGEraseViewContents
 	jsr WGPaintView
 	inx
 	bra WGViewPaintAll_loop

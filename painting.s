@@ -44,6 +44,43 @@ WGClearScreen_charLoop:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGDesktop
+; Paints the desktop pattern (assumes 80 cols)
+; Side effects: Clobbers BASL,BASH
+;
+WGDesktop:
+
+	SAVE_AXY
+	SETSWITCH	PAGE2OFF
+	ldx	#23
+
+WGDesktop_lineLoop:
+	lda TEXTLINES_L,x	; Compute video memory address of line
+	sta BASL
+	lda TEXTLINES_H,x
+	sta BASH
+
+	ldy	#39
+
+WGDesktop_charLoop:
+	lda #'W'
+	sta	(BASL),y
+	SETSWITCH	PAGE2ON
+	lda #'V'
+	sta	(BASL),y
+	SETSWITCH	PAGE2OFF
+	dey
+	bpl	WGDesktop_charLoop
+
+	dex
+	bpl WGDesktop_lineLoop
+
+	RESTORE_AXY
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGPlot
 ; Plots a character at current cursor position (assumes 80 cols)
 ; A: Character to plot (Apple format)
