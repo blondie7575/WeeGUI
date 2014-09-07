@@ -525,6 +525,51 @@ WGViewFocusNext_focus:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGViewFocusPrev
+; Shifts focus to the prev view
+; Side effects: Changes selected view, repaints some views
+;
+WGViewFocusPrev:
+	SAVE_AXY
+
+	LDY_FOCUSVIEW				; Unfocus current view
+	lda WG_VIEWRECORDS+9,y
+	and #%01111111
+	sta WG_VIEWRECORDS+9,y
+
+	lda WG_FOCUSVIEW
+	jsr WGSelectView
+	jsr WGPaintView
+
+	dec	WG_FOCUSVIEW			; Decrement and wrap
+	bpl WGViewFocusPrev_focus
+
+	ldx #$f
+WGViewFocusPrev_findEndLoop:
+	stx WG_FOCUSVIEW
+	LDY_FOCUSVIEW
+	lda WG_VIEWRECORDS+2,y
+	bne WGViewFocusPrev_focus
+	dex
+	bra WGViewFocusPrev_findEndLoop
+
+WGViewFocusPrev_focus:
+	lda	WG_FOCUSVIEW
+	jsr WGSelectView
+
+	LDY_FOCUSVIEW
+	
+	lda WG_VIEWRECORDS+9,y
+	ora #%10000000
+	sta WG_VIEWRECORDS+9,y
+
+	jsr WGPaintView
+
+	RESTORE_AXY
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGViewFocusAction
 ; Performs the action of the focused view
 ; Side effects: Changes selected view, Repaints some views
@@ -543,17 +588,28 @@ WGViewFocusAction:
 	bra WGViewFocusAction_done
 
 WGViewFocusAction_toggleCheckbox:
-	lda WG_VIEWRECORDS+9,y
+	lda WG_VIEWRECORDS+9,y		; Change the checkbox's state and redraw
 	eor #%00000001
 	sta WG_VIEWRECORDS+9,y
 	lda WG_FOCUSVIEW
 	jsr WGSelectView
 	jsr WGPaintView
+	; Fall through so checkboxes can have callbacks too
 
+	; NOTE: Self-modifying code ahead!
 WGViewFocusAction_buttonClick:
+	lda WG_VIEWRECORDS+10,y		; Do we have a callback?
+	beq WGViewFocusAction_done
+	sta WGViewFocusAction_userJSR+2		; Modify code below so we can JSR to user's code
+	lda WG_VIEWRECORDS+11,y
+	sta WGViewFocusAction_userJSR+1
+
+WGViewFocusAction_userJSR:
+	jsr WGViewFocusAction_placeholder	; Overwritten with user's function pointer
 
 WGViewFocusAction_done:
 	RESTORE_AY
+WGViewFocusAction_placeholder:
 	rts
 
 
@@ -573,6 +629,26 @@ WGViewSetTitle:
 
 WGViewSetTitle_done:
 	RESTORE_AXY
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGViewSetAction
+; Sets the callback action of the active view
+; PARAM0: Null-terminated function pointer (LSB)
+; PARAM1: Null-terminated function pointer (MSB)
+WGViewSetAction:
+	SAVE_AY
+
+	LDY_ACTIVEVIEW
+	lda PARAM0
+	sta WG_VIEWRECORDS+11,y
+	lda PARAM1
+	sta WG_VIEWRECORDS+10,y
+
+WGViewSetAction_done:
+	RESTORE_AY
 	rts
 
 

@@ -50,6 +50,12 @@ main:
 	sta PARAM1
 	jsr WGViewSetTitle
 
+	lda #<testCallback
+	sta PARAM0
+	lda #>testCallback
+	sta PARAM1
+	jsr WGViewSetAction
+
 	lda	#<testButton2
 	sta	PARAM0
 	lda	#>testButton2
@@ -133,6 +139,8 @@ keyLoop:
 	and #%01111111
 	cmp #9
 	beq keyLoop_focusNext
+	cmp #27
+	beq keyLoop_focusPrev
 	cmp #13
 	beq keyLoop_toggle
 	cmp #32
@@ -144,12 +152,20 @@ keyLoop_focusNext:
 	jsr WGViewFocusNext
 	jmp keyLoop
 
+keyLoop_focusPrev:
+	jsr WGViewFocusPrev
+	jmp keyLoop
+
 keyLoop_toggle:
 	jsr WGViewFocusAction
 	jmp keyLoop
 	
 	rts			; This seems to work for returning to BASIC.SYSTEM, but I don't think it's right
 	
+
+testCallback:
+	jsr $ff3a
+	rts
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
