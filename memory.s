@@ -51,6 +51,7 @@ WG_VIEWCLIP:
 .byte 0,0,0,0,0
 
 WG_VIEWRECORDS:
+	; 0  1       2             3           4       5         6          7           8         9        10         11        12      13
 	; X, Y, Screen Width, Screen Height, Style, X Offset, Y Offset, View Width, View Height, State, CallbackH, CallbackL, TitleH, TitleL
 .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0

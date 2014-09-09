@@ -815,6 +815,62 @@ WGScrollX_done:
 	
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGScrollXBy
+; Scrolls the current view horizontally by a delta
+; A: Scroll delta
+; Side effects: Clobbers A
+;
+WGScrollXBy:
+	phy
+	phx
+	tax
+
+	SAVE_ZPS
+
+	LDY_ACTIVEVIEW
+
+	txa
+	bpl WGScrollXBy_contentRight
+
+	lda WG_VIEWRECORDS+2,y	; Compute left limit
+	sec
+	sbc WG_VIEWRECORDS+7,y
+	sta SCRATCH0
+
+	txa						; Compute new scroll value
+	clc
+	adc WG_VIEWRECORDS+5,y
+	cmp SCRATCH0				; Clamp if needed
+	bmi WGScrollXBy_clampLeft
+	sta WG_VIEWRECORDS+5,y
+	bra WGScrollXBy_done
+
+WGScrollXBy_clampLeft:
+	lda SCRATCH0
+	sta WG_VIEWRECORDS+5,y
+	bra WGScrollXBy_done
+
+WGScrollXBy_contentRight:
+	clc						; Compute new scroll value
+	adc WG_VIEWRECORDS+5,y
+	cmp #0					; Clamp if needed
+	beq @0
+	bpl WGScrollXBy_clampRight
+@0:	sta WG_VIEWRECORDS+5,y
+	bra WGScrollXBy_done
+
+WGScrollXBy_clampRight:
+	lda #0
+	sta WG_VIEWRECORDS+5,y
+
+WGScrollXBy_done:
+	RESTORE_ZPS
+	plx
+	ply
+	rts
+	
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGScrollY
 ; Scrolls the current view vertically
 ; A: New scroll amount
@@ -840,6 +896,62 @@ WGScrollY_done:
 	rts
 
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGScrollYBy
+; Scrolls the current view horizontally by a delta
+; A: Scroll delta
+; Side effects: Clobbers A
+;
+WGScrollYBy:
+	phy
+	phx
+	tax
+
+	SAVE_ZPS
+
+	LDY_ACTIVEVIEW
+
+	txa
+	bpl WGScrollYBy_contentDown
+
+	lda WG_VIEWRECORDS+3,y	; Compute bottom limit
+	sec
+	sbc WG_VIEWRECORDS+8,y
+	sta SCRATCH0
+
+	txa						; Compute new scroll value
+	clc
+	adc WG_VIEWRECORDS+6,y
+	cmp SCRATCH0				; Clamp if needed
+	bmi WGScrollYBy_clampTop
+	sta WG_VIEWRECORDS+6,y
+	bra WGScrollYBy_done
+
+WGScrollYBy_clampTop:
+	lda SCRATCH0
+	sta WG_VIEWRECORDS+6,y
+	bra WGScrollYBy_done
+
+WGScrollYBy_contentDown:
+	clc						; Compute new scroll value
+	adc WG_VIEWRECORDS+6,y
+	cmp #0					; Clamp if needed
+	beq @0
+	bpl WGScrollYBy_clampBottom
+@0:	sta WG_VIEWRECORDS+6,y
+	bra WGScrollYBy_done
+
+WGScrollYBy_clampBottom:
+	lda #0
+	sta WG_VIEWRECORDS+6,y
+
+WGScrollYBy_done:
+	RESTORE_ZPS
+	plx
+	ply
+	rts
+	
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGViewPaintAll

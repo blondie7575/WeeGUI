@@ -75,6 +75,7 @@ main:
 	jsr WGViewSetTitle
 
 	jsr WGViewPaintAll
+	jsr testPaintContents
 
 ;	ldx	#5
 ;	ldy	#0
@@ -153,6 +154,14 @@ keyLoop:
 	beq keyLoop_toggle
 	cmp #'o'
 	beq	keyLoop_focusOkay
+	cmp #8
+	beq	keyLoop_leftArrow
+	cmp #21
+	beq	keyLoop_rightArrow
+	cmp #11
+	beq	keyLoop_upArrow
+	cmp #10
+	beq	keyLoop_downArrow
 
 	jmp keyLoop
 
@@ -168,6 +177,30 @@ keyLoop_toggle:
 	jsr WGViewFocusAction
 	jmp keyLoop
 
+keyLoop_leftArrow:
+	lda #1
+	jsr WGScrollXBy
+	jsr testPaintContents
+	jmp keyLoop
+
+keyLoop_rightArrow:
+	lda #-1
+	jsr WGScrollXBy
+	jsr testPaintContents
+	jmp keyLoop
+
+keyLoop_upArrow:
+	lda #1
+	jsr WGScrollYBy
+	jsr testPaintContents
+	jmp keyLoop
+
+keyLoop_downArrow:
+	lda #-1
+	jsr WGScrollYBy
+	jsr testPaintContents
+	jmp keyLoop
+
 keyLoop_focusOkay:
 	lda #2
 	jsr WGSelectView
@@ -175,7 +208,51 @@ keyLoop_focusOkay:
 	jmp keyLoop
 
 	rts			; This seems to work for returning to BASIC.SYSTEM, but I don't think it's right
-	
+
+testPaintContents:
+	SAVE_AXY
+
+	lda #0
+	jsr WGSelectView
+	jsr WGEraseViewContents
+
+
+;;
+	ldx #0
+	ldy #4
+	jsr WGSetCursor
+	lda #<testStr
+	sta PARAM0
+	lda #>testStr
+	sta PARAM1
+	jsr WGPrint
+	bra testPaintContents_done
+;;
+
+
+	ldy #0
+testPaintContents_loop:
+	ldx #0
+	jsr WGSetCursor
+
+	tya
+	clc
+	adc #'A'
+	sta testStr3
+
+	lda #<testStr3
+	sta PARAM0
+	lda #>testStr3
+	sta PARAM1
+	jsr WGPrint
+
+	iny
+	cpy #25
+	bne testPaintContents_loop
+
+testPaintContents_done:
+	RESTORE_AXY
+	rts
 
 testCallback:
 	jsr $ff3a
@@ -243,7 +320,7 @@ read80ColSwitch_40:
 
 
 testView:
-	.byte "1007033e133e7e"	; 1:0, 7,3,62,19,62,126
+	.byte "1007033e125019"	; 1:0, 7,3,62,18,80,25
 
 testCheck:
 	.byte "011004"
@@ -259,6 +336,9 @@ testStr:
 	.byte "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_ !",34,"#$%&'()*+,-./0123456789:;<=>?`abcdefghijklmno",0
 testStr2:
 	.byte "pqrstuvwxyz{|}~",$ff,0
+testStr3:
+	.byte "x",0
+
 testTitle0:
 	.byte "Nifty Window",0
 testTitle1:

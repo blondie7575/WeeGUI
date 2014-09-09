@@ -138,6 +138,10 @@ WGPrint:
 	SAVE_AXY
 	SAVE_ZPS
 
+	lda WG_LOCALCURSORY
+	cmp	WG_VIEWCLIP+3
+	bcs	WGPrint_leapDone	; Entire string is below the clip box
+
 	jsr	WGStrLen			; We'll need the length of the string
 	sta	SCRATCH1
 
@@ -171,6 +175,9 @@ WGPrint_lineLoopFirst:		; Calculating start of first line is slightly different
 	lda WG_VIEWCLIP+0
 	sta	WG_LOCALCURSORX
 	bra WGPrint_visibleChars
+
+WGPrint_leapDone:
+	bra WGPrint_done
 
 WGPrint_skipToEndFirst:
 	lda WG_SCRATCHA			; Skip string index ahead by distance to EOL
@@ -255,7 +262,9 @@ WGPrint_nextLine:
 	beq	WGPrint_done
 	cmp	WG_VIEWRECORDS,x		; Check for bottom of view
 	beq	WGPrint_done
-
+	lda	(PARAM0),y				; Check for end string landing exactly at line end
+	beq	WGPrint_done
+	
 	lda #0						; Wrap to next line
 	sta	WG_LOCALCURSORX
 	jmp WGPrint_lineLoop
