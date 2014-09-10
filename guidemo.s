@@ -27,7 +27,7 @@ GUI_MAIN = $4000
 
 main:
 	jmp GUI_MAIN
-
+	;rts
 
 
 

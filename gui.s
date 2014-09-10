@@ -1,6 +1,6 @@
 ;
 ;  gui.s
-;  AssemblyTest
+;  Top level management routines
 ;
 ;  Created by Quinn Dunki on 8/15/14.
 ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
@@ -21,6 +21,7 @@
 main:
 	jsr WGInit
 	jsr WG80
+	rts
 	;jmp	tortureTestPrint
 	;jmp	tortureTestRects
 
@@ -265,8 +266,7 @@ testCallback:
 WGInit:
 	pha
 
-	lda	#0
-	sta WG_FOCUSVIEW
+	jsr WGInitApplesoft
 
 	pla
 	rts
@@ -315,6 +315,7 @@ read80ColSwitch_40:
 .include "painting.s"
 .include "rects.s"
 .include "views.s"
+.include "applesoft.s"
 .include "unit_test.s"
 .include "memory.s"
 
