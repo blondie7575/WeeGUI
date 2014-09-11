@@ -26,7 +26,7 @@
 WGCreateView:
 	SAVE_AXY
 	SAVE_ZPS
-
+	
 	ldy #0
 	jsr	scanHex8
 	pha
