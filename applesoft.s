@@ -262,37 +262,6 @@ WGAmpersandStrArguments_done:
 WGAmpersand_VIEW:
 	jsr WGAmpersandStrArguments
 
-;	lda WGAmpersandCommandBuffer
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+1
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+2
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+3
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+4
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+5
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+6
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+7
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+8
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+9
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+10
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+11
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+12
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+13
-;	jsr PRBYTE
-;	lda WGAmpersandCommandBuffer+14
-;	jsr PRBYTE
-
 	jsr WGCreateView
 	jsr WGPaintView
 	rts

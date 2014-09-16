@@ -11,10 +11,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGCreateView
 ; Creates and selects a new view
-; PARAM0: Pointer to ASCII configuration string (LSB)
-; PARAM1: Pointer to ASCII configuration string (MSB)
+; PARAM0: Pointer to configuration struct (LSB)
+; PARAM1: Pointer to configuration struct (MSB)
 ;
-; Configuration string: "STXXYYSWSHVWVH"
+; Configuration struct:
 ; ST: (4:4) Style:ID
 ; XX: Screen X origin
 ; YY: Screen Y origin
@@ -28,7 +28,7 @@ WGCreateView:
 	SAVE_ZPS
 	
 	ldy #0
-	jsr	scanHex8
+	lda (PARAM0),y
 	pha
 
 	and #%00001111	; Find our new view record
@@ -46,19 +46,23 @@ WGCreateView:
 	lsr
 	pha
 
-	jsr	scanHex8
+	iny
+	lda (PARAM0),y
 	sta	WG_VIEWRECORDS,x	; Screen X
 	inx
 
-	jsr	scanHex8
+	iny
+	lda (PARAM0),y
 	sta	WG_VIEWRECORDS,x	; Screen Y
 	inx
 
-	jsr	scanHex8
+	iny
+	lda (PARAM0),y
 	sta	WG_VIEWRECORDS,x	; Screen Width
 	inx
 
-	jsr	scanHex8
+	iny
+	lda (PARAM0),y
 	sta	WG_VIEWRECORDS,x	; Screen Height
 	inx
 
@@ -72,11 +76,13 @@ WGCreateView:
 	sta	WG_VIEWRECORDS,x
 	inx
 
-	jsr	scanHex8
+	iny
+	lda (PARAM0),y
 	sta	WG_VIEWRECORDS,x	; View Width
 	inx
 
-	jsr	scanHex8
+	iny
+	lda (PARAM0),y
 	sta	WG_VIEWRECORDS,x	; View Height
 
 WGCreateView_done:
@@ -89,10 +95,10 @@ WGCreateView_done:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGCreateCheckbox
 ; Creates a new checkbox
-; PARAM0: Pointer to ASCII configuration string (LSB)
-; PARAM1: Pointer to ASCII configuration string (MSB)
+; PARAM0: Pointer to configuration struct (LSB)
+; PARAM1: Pointer to configuration struct (MSB)
 ;
-; Configuration string: "STXXYY"
+; Configuration struct:
 ; ST: (4:4) Reserved:ID
 ; XX: Screen X origin
 ; YY: Screen Y origin
@@ -102,7 +108,7 @@ WGCreateCheckbox:
 	SAVE_ZPS
 
 	ldy #0
-	jsr	scanHex8
+	lda (PARAM0),y
 
 	and #%00001111	; Find our new view record
 	jsr WGSelectView
@@ -112,11 +118,13 @@ WGCreateCheckbox:
 	asl				; Records are 16 bytes wide
 	tax
 
-	jsr	scanHex8
+	iny
+	lda (PARAM0),y
 	sta	WG_VIEWRECORDS,x	; Screen X
 	inx
 
-	jsr	scanHex8
+	iny
+	lda (PARAM0),y
 	sta	WG_VIEWRECORDS,x	; Screen Y
 	inx
 
@@ -159,10 +167,10 @@ WGCreateCheckbox_done:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGCreateButton
 ; Creates a new button
-; PARAM0: Pointer to ASCII configuration string (LSB)
-; PARAM1: Pointer to ASCII configuration string (MSB)
+; PARAM0: Pointer to configuration struct (LSB)
+; PARAM1: Pointer to configuration struct (MSB)
 ;
-; Configuration string: "STXXYYBW"
+; Configuration struct:
 ; ST: (4:4) Reserved:ID
 ; XX: Screen X origin
 ; YY: Screen Y origin
@@ -172,7 +180,7 @@ WGCreateButton:
 	SAVE_ZPS
 
 	ldy #0
-	jsr	scanHex8
+	lda (PARAM0),y
 
 	and #%00001111	; Find our new view record
 	jsr WGSelectView
@@ -182,15 +190,18 @@ WGCreateButton:
 	asl				; Records are 16 bytes wide
 	tax
 
-	jsr	scanHex8
+	iny
+	lda (PARAM0),y
 	sta	WG_VIEWRECORDS,x	; Screen X
 	inx
 
-	jsr	scanHex8
+	iny
+	lda (PARAM0),y
 	sta	WG_VIEWRECORDS,x	; Screen Y
 	inx
 
-	jsr	scanHex8
+	iny
+	lda (PARAM0),y
 	sta	WG_VIEWRECORDS,x	; Screen width
 	inx
 
@@ -425,11 +436,20 @@ paintWindowTitle:
 	lsr
 	sec
 	sbc SCRATCH1
-	sta	WG_LOCALCURSORX
+	sta	WG_LOCALCURSORX		; Position cursor
 	lda #-1
 	sta WG_LOCALCURSORY
+	jsr WGSyncGlobalCursor
 
-	jsr WGPrint
+	ldy #0
+paintWindowTitleLoop:
+	lda (PARAM0),y
+	beq paintWindowTitle_done
+	ora #%10000000
+	jsr	WGPlot				; Draw the character
+	iny
+	inc WG_CURSORX			; Advance cursors
+	bra paintWindowTitleLoop
 
 paintWindowTitle_done:
 	RESTORE_ZPS
@@ -581,12 +601,19 @@ WGViewFocusNext:
 	jsr WGSelectView
 	jsr WGPaintView
 
+WGViewFocusNext_loop:
 	inc	WG_FOCUSVIEW			; Increment and wrap
 	LDY_FOCUSVIEW
 	lda WG_VIEWRECORDS+2,y
-	bne WGViewFocusNext_focus
+	bne WGViewFocusNext_wantFocus
 	lda #0
 	sta	WG_FOCUSVIEW
+
+WGViewFocusNext_wantFocus:		; Does this view accept focus?
+	LDY_FOCUSVIEW
+	lda WG_VIEWRECORDS+4,y
+	cmp #VIEW_STYLE_TAKESFOCUS
+	bcc WGViewFocusNext_loop
 
 WGViewFocusNext_focus:
 	lda	WG_FOCUSVIEW			; Change state and repaint to reflect it
@@ -619,17 +646,24 @@ WGViewFocusPrev:
 	jsr WGSelectView
 	jsr WGPaintView
 
+WGViewFocusPrev_loop:
 	dec	WG_FOCUSVIEW			; Decrement and wrap
-	bpl WGViewFocusPrev_focus
+	bpl WGViewFocusPrev_wantFocus
 
 	ldx #$f
 WGViewFocusPrev_findEndLoop:
 	stx WG_FOCUSVIEW
 	LDY_FOCUSVIEW
 	lda WG_VIEWRECORDS+2,y
-	bne WGViewFocusPrev_focus
+	bne WGViewFocusPrev_wantFocus
 	dex
 	bra WGViewFocusPrev_findEndLoop
+
+WGViewFocusPrev_wantFocus:		; Does this view accept focus?
+	LDY_FOCUSVIEW
+	lda WG_VIEWRECORDS+4,y
+	cmp #VIEW_STYLE_TAKESFOCUS
+	bcc WGViewFocusPrev_loop
 
 WGViewFocusPrev_focus:
 	lda	WG_FOCUSVIEW			; Change state and repaint to reflect it

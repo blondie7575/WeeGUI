@@ -18,6 +18,7 @@ VIEW_STYLE_FANCY = $01
 VIEW_STYLE_CHECK = $02
 VIEW_STYLE_BUTTON = $03
 
+VIEW_STYLE_TAKESFOCUS = $02	; Styles >= this one are selectable
 
 ; ROM entry points
 

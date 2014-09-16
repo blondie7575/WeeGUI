@@ -21,7 +21,7 @@
 main:
 	jsr WGInit
 	jsr WG80
-	rts
+	;rts
 	;jmp	tortureTestPrint
 	;jmp	tortureTestRects
 
@@ -76,7 +76,7 @@ main:
 	jsr WGViewSetTitle
 
 	jsr WGViewPaintAll
-	jsr testPaintContents
+;	jsr testPaintContents
 
 ;	ldx	#5
 ;	ldy	#0
@@ -87,57 +87,6 @@ main:
 ;	lda	#-2
 ;	jsr	WGScrollY
 
-;	lda WG_VIEWCLIP+0
-;	jsr PRBYTE
-;	lda WG_VIEWCLIP+1
-;	jsr PRBYTE
-;	lda WG_VIEWCLIP+2
-;	jsr PRBYTE
-;	lda WG_VIEWCLIP+3
-;	jsr PRBYTE
-;	lda WG_VIEWCLIP+4
-;	jsr PRBYTE
-
-;	lda WG_VIEWRECORDS+0
-;	jsr PRBYTE
-;	lda WG_VIEWRECORDS+1
-;	jsr PRBYTE
-;	lda WG_VIEWRECORDS+2
-;	jsr PRBYTE
-;	lda WG_VIEWRECORDS+3
-;	jsr PRBYTE
-;	lda WG_VIEWRECORDS+4
-;	jsr PRBYTE
-;	lda WG_VIEWRECORDS+5
-;	jsr PRBYTE
-;	lda WG_VIEWRECORDS+6
-;	jsr PRBYTE
-;	lda WG_VIEWRECORDS+7
-;	jsr PRBYTE
-;	lda WG_VIEWRECORDS+8
-;	jsr PRBYTE
-
-;	lda	#<testStr
-;	sta	PARAM0
-;	lda #>testStr
-;	sta PARAM1
-;	jsr WGPrint
-
-;	lda	#1
-;	sta PARAM0
-;	lda	#1
-;	sta	PARAM1
-;	lda #2
-;	sta	PARAM2
-;	lda	#2
-;	sta	PARAM3
-;	ldx	#'Q'+$80
-;	jsr	WGFillRect
-;	jsr	WGStrokeRect
-;	jmp loop
-;	jsr	waitForKey
-
-;	jmp tortureTestRects
 
 keyLoop:
 	lda KBD
@@ -219,6 +168,7 @@ testPaintContents:
 
 
 ;;
+	jsr WGNormal
 	ldx #0
 	ldy #4
 	jsr WGSetCursor
@@ -321,16 +271,16 @@ read80ColSwitch_40:
 
 
 testView:
-	.byte "1007033e125019"	; 1:0, 7,3,62,18,80,25
+	.byte $10,7,3,62,18,80,25
 
 testCheck:
-	.byte "011004"
+	.byte 1,16,4
 
 testButton1:
-	.byte "02230a0f"
+	.byte 2,35,10,15
 
 testButton2:
-	.byte "03230d0f"
+	.byte 3,35,13,15
 
 testStr:
 ;	.byte "This is a test of the emergency broadcast system.",0; If this had been a real emergency, you would be dead now.",0	; 107 chars
