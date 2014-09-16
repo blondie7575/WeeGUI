@@ -271,7 +271,7 @@ read80ColSwitch_40:
 
 
 testView:
-	.byte $10,7,3,62,18,80,25
+	.byte 0,1,7,3,62,18,80,25
 
 testCheck:
 	.byte 1,16,4

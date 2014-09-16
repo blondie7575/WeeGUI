@@ -9,10 +9,11 @@
 
 ; Reserved locations
 
-INVERSE			= $32
-BASL			= $28
-BASH			= $29
-
+INVERSE			= $32	; Text output state
+CH				= $24	; Cursor X pos
+CV				= $25	; Cursor Y pos
+BASL			= $28	; Current video memory line
+BASH			= $29	; Current video memory line
 
 ; Zero page locations we use (unused by Monitor, Applesoft, or ProDOS)
 PARAM0			= $06

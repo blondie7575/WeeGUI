@@ -27,3 +27,6 @@ KBD				= $c000 ; Read
 KBDSTRB			= $c010	; Read/Write
 
 RDVBLBAR		= $C019	; Read bit 7 (active low)
+
+OURCH			= $057b ; 80 col cursor position (H)
+OURCV			= $05fb ; 80 col cursor position (V)

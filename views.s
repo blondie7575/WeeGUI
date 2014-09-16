@@ -15,7 +15,8 @@
 ; PARAM1: Pointer to configuration struct (MSB)
 ;
 ; Configuration struct:
-; ST: (4:4) Style:ID
+; ID: View ID (0-f)
+; ST: Style
 ; XX: Screen X origin
 ; YY: Screen Y origin
 ; SW: Screen width
@@ -29,22 +30,17 @@ WGCreateView:
 	
 	ldy #0
 	lda (PARAM0),y
-	pha
 
-	and #%00001111	; Find our new view record
-	jsr WGSelectView
+	jsr WGSelectView ; Find our new view record
 	asl
 	asl
 	asl
 	asl				; Records are 8 bytes wide
 	tax
 
-	pla				; Cache style nybble for later
-	lsr
-	lsr
-	lsr
-	lsr
-	pha
+	iny
+	lda (PARAM0),y
+	pha				; Cache style byte for later
 
 	iny
 	lda (PARAM0),y
@@ -85,6 +81,18 @@ WGCreateView:
 	lda (PARAM0),y
 	sta	WG_VIEWRECORDS,x	; View Height
 
+	lda #0
+	inx						; Initialize state
+	sta WG_VIEWRECORDS,x
+	inx
+	sta WG_VIEWRECORDS,x	; Initialize callback
+	inx
+	sta WG_VIEWRECORDS,x
+	inx
+	sta WG_VIEWRECORDS,x	; Initialize title
+	inx
+	sta WG_VIEWRECORDS,x
+
 WGCreateView_done:
 	RESTORE_ZPS
 	RESTORE_AXY
@@ -99,7 +107,7 @@ WGCreateView_done:
 ; PARAM1: Pointer to configuration struct (MSB)
 ;
 ; Configuration struct:
-; ST: (4:4) Reserved:ID
+; ID: View ID (0-f)
 ; XX: Screen X origin
 ; YY: Screen Y origin
 ;
@@ -110,8 +118,7 @@ WGCreateCheckbox:
 	ldy #0
 	lda (PARAM0),y
 
-	and #%00001111	; Find our new view record
-	jsr WGSelectView
+	jsr WGSelectView ; Find our new view record
 	asl
 	asl
 	asl
@@ -171,7 +178,7 @@ WGCreateCheckbox_done:
 ; PARAM1: Pointer to configuration struct (MSB)
 ;
 ; Configuration struct:
-; ST: (4:4) Reserved:ID
+; ID: View ID (0-f)
 ; XX: Screen X origin
 ; YY: Screen Y origin
 ; BW: Button width
@@ -182,8 +189,7 @@ WGCreateButton:
 	ldy #0
 	lda (PARAM0),y
 
-	and #%00001111	; Find our new view record
-	jsr WGSelectView
+	jsr WGSelectView ; Find our new view record
 	asl
 	asl
 	asl
@@ -428,7 +434,13 @@ paintWindowTitle:
 	sta PARAM0
 	lda WG_VIEWRECORDS+12,y
 	sta PARAM1
+	bne paintWindowTitle_compute
 
+paintWindowTitle_checkNull:
+	lda PARAM0
+	beq paintWindowTitle_done
+
+paintWindowTitle_compute:
 	jsr WGStrLen			; Compute centering offset for title
 	lsr
 	sta SCRATCH1

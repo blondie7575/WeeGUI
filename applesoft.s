@@ -22,6 +22,7 @@ GETNUM = $e746			; Gets an 8-bit, stores it X, skips past a comma
 
 ERR_UNDEFINEDFUNC = 224
 ERR_SYNTAX = 16
+ERR_ENDOFDATA = 5
 ERR_TOOLONG = 176
 
 MAXCMDLEN = 14
@@ -62,7 +63,7 @@ WGAmpersand:
 
 WGAmpersand_parseLoop:
 	txa
-	beq WGAmpersand_parseFail	; Check for end-of-statement (CHRGET handles : and EOL)
+	beq WGAmpersand_matchStart	; Check for end-of-statement (CHRGET handles : and EOL)
 	cmp #'('
 	beq WGAmpersand_matchStart
 
@@ -190,6 +191,57 @@ WGAmpersandIntArguments_done:
 	rts
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersandStructArgument
+; Buffers integer arguments for current command into a struct
+; TXTPTR: Start of argument list (after opening parenthesis)
+; OUT PARAM0/1 : Pointer to struct containing int values
+WGAmpersandStructArgument:
+	SAVE_AXY
+
+	ldy #0
+	phy					; Can't rely on Applesoft routines to be register-safe
+
+	lda #'('
+	jsr SYNCHR			; Expect opening parenthesis
+
+WGAmpersandStructArguments_loop:
+	jsr GETBYT
+	txa
+	ply
+	sta WGAmpersandCommandBuffer,y
+	phy
+
+	jsr CHRGOT
+	cmp #')'			; All done!
+	beq WGAmpersandStructArguments_cleanup
+	jsr CHKCOM			; Verify parameter separator
+
+	ply
+	iny
+	phy
+	cpy #WGAmpersandCommandBufferEnd-WGAmpersandCommandBuffer	; Check for too many arguments
+	bne WGAmpersandStructArguments_loop
+
+WGAmpersandStructArguments_fail:
+	ldx #ERR_TOOLONG
+	jsr ERROR
+	bra WGAmpersandStructArguments_done
+
+WGAmpersandStructArguments_cleanup:
+	jsr CHRGET			; Consume closing parenthesis
+
+WGAmpersandStructArguments_done:
+	ply
+
+	lda #<WGAmpersandCommandBuffer
+	sta PARAM0
+	lda #>WGAmpersandCommandBuffer
+	sta PARAM1
+
+	RESTORE_AXY
+	rts
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersandStrArgument
@@ -256,24 +308,61 @@ WGAmpersandStrArguments_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_VIEW
-; Create a view
-;
-WGAmpersand_VIEW:
-	jsr WGAmpersandStrArguments
+; WGAmpersand_HOME
+; Clears the screen
+; &HOME
+WGAmpersand_HOME:
+	jsr WGClearScreen
+	jsr WGBottomCursor
 
-	jsr WGCreateView
-	jsr WGPaintView
 	rts
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_DESK
 ; Render the desktop
-;
+; &DESK
 WGAmpersand_DESK:
 	jsr WGDesktop
+	jsr WGBottomCursor
 	rts
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_WINDOW
+; Create a view
+; &WINDOW(id,style,x,y,width,height,canvas width,canvas height)
+WGAmpersand_WINDOW:
+	jsr WGAmpersandStructArgument
+	jsr WGCreateView
+	jsr WGPaintView
+	jsr WGBottomCursor
+
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGBottomCursor
+; Leave the cursor state in a place that Applesoft is happy with
+;
+WGBottomCursor:
+	SAVE_AY
+
+	lda #0
+	sta CH
+	sta OURCH
+	lda #23
+	sta CV
+	sta OURCV
+
+	lda TEXTLINES_H+23
+	sta BASH
+	lda TEXTLINES_L+23
+	sta BASL
+
+	RESTORE_AY
+	rts
 
 
 
@@ -291,11 +380,15 @@ WGAmpersandCommandBufferEnd:
 ; Jump table for ampersand commands.
 ; Each row is 16 bytes (14 for name, 2 for address)
 WGAmpersandCommandTable:
-.byte "VIEW",0,0,0,0,0,0,0,0,0,0
-.addr WGAmpersand_VIEW
+
+.byte $97,0,0,0,0,0,0,0,0,0,0,0,0,0		; HOME
+.addr WGAmpersand_HOME
 
 .byte "DESK",0,0,0,0,0,0,0,0,0,0
 .addr WGAmpersand_DESK
+
+.byte "WINDOW",0,0,0,0,0,0,0,0
+.addr WGAmpersand_WINDOW
 
 
 WGAmpersandCommandTableEnd:
