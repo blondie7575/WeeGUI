@@ -14,7 +14,8 @@ WG_AMPVECTOR = $03f5
 CHRGET = $00b1			; Advances text point and gets character in A
 CHRGOT = $00b7			; Returns character at text pointer in A
 SYNCHR = $dec0			; Validates current character is what's in A
-TXTPTR = $00b8	; (and $b9)		; Current location in BASIC listing
+TXTPTRL = $00b8			; Current location in BASIC listing (LSB)
+TXTPTRH = $00b9			; Current location in BASIC listing (MSB)
 ERROR = $d412			; Reports error in X
 CHKCOM = $debe			; Validates current character is a ',', then gets it
 GETBYT = $e6f8			; Gets an integer at text pointer, stores in X
@@ -206,12 +207,17 @@ WGAmpersandStructArgument:
 	jsr SYNCHR			; Expect opening parenthesis
 
 WGAmpersandStructArguments_loop:
+	jsr CHRGOT
+	cmp #'"'			; Check for string pointer
+	beq WGAmpersandStructArguments_string
+
 	jsr GETBYT
 	txa
 	ply
 	sta WGAmpersandCommandBuffer,y
 	phy
 
+WGAmpersandStructArguments_nextParam:
 	jsr CHRGOT
 	cmp #')'			; All done!
 	beq WGAmpersandStructArguments_cleanup
@@ -228,8 +234,37 @@ WGAmpersandStructArguments_fail:
 	jsr ERROR
 	bra WGAmpersandStructArguments_done
 
+WGAmpersandStructArguments_string:
+	jsr CHRGET								; Consume opening quote
+	lda TXTPTRL								; Allocate for, and copy the string at TXTPTR
+	sta PARAM0
+	lda TXTPTRH
+	sta PARAM1
+	lda #'"'								; Specify quote as our terminator
+	jsr WGStoreStr
+
+	ply										; Store returned string pointer in our struct
+	lda PARAM1
+	sta WGAmpersandCommandBuffer,y
+	iny
+	lda PARAM0
+	sta WGAmpersandCommandBuffer,y
+	iny
+	phy
+
+WGAmpersandStructArguments_stringLoop:
+	jsr CHRGET								; Consume the rest of the string
+	beq WGAmpersandStructArguments_stringLoopDone
+	cmp #'"'								; Check for closing quote
+	beq WGAmpersandStructArguments_stringLoopDone
+	bra WGAmpersandStructArguments_stringLoop
+
+WGAmpersandStructArguments_stringLoopDone:
+	jsr CHRGET								; Consume closing quote
+	bra WGAmpersandStructArguments_nextParam
+
 WGAmpersandStructArguments_cleanup:
-	jsr CHRGET			; Consume closing parenthesis
+	jsr CHRGET								; Consume closing parenthesis
 
 WGAmpersandStructArguments_done:
 	ply
@@ -341,6 +376,39 @@ WGAmpersand_WINDOW:
 	rts
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_CHECKBOX
+; Create a checkbox
+; &CHECKBOX(id,x,y)
+WGAmpersand_CHECKBOX:
+	jsr WGAmpersandStructArgument
+	jsr WGCreateCheckbox
+	jsr WGPaintView
+	jsr WGBottomCursor
+
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_BUTTON
+; Create a button
+; &BUTTON(id,x,y,width,"title")
+WGAmpersand_BUTTON:
+	jsr WGAmpersandStructArgument
+	jsr WGCreateButton
+
+	lda WGAmpersandCommandBuffer+4
+	sta PARAM0
+	lda WGAmpersandCommandBuffer+5
+	sta PARAM1
+	jsr WGViewSetTitle
+
+	jsr WGPaintView
+	jsr WGBottomCursor
+
+	rts
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGBottomCursor
@@ -379,6 +447,11 @@ WGAmpersandCommandBufferEnd:
 
 ; Jump table for ampersand commands.
 ; Each row is 16 bytes (14 for name, 2 for address)
+;
+; Note the strange byte values amidst some strings- this is because
+; all text is tokenized before we receive it, so reserved words may
+; be compressed
+;
 WGAmpersandCommandTable:
 
 .byte $97,0,0,0,0,0,0,0,0,0,0,0,0,0		; HOME
@@ -389,6 +462,12 @@ WGAmpersandCommandTable:
 
 .byte "WINDOW",0,0,0,0,0,0,0,0
 .addr WGAmpersand_WINDOW
+
+.byte "CHECKBOX",0,0,0,0,0,0
+.addr WGAmpersand_CHECKBOX
+
+.byte "BUT",$c1,"N",0,0,0,0,0,0,0,0,0		; BUTTON
+.addr WGAmpersand_BUTTON
 
 
 WGAmpersandCommandTableEnd:

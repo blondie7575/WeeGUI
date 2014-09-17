@@ -29,9 +29,9 @@ WGCreateView:
 	SAVE_ZPS
 	
 	ldy #0
-	lda (PARAM0),y
+	lda (PARAM0),y	; Find our new view record
+	pha				; Cache view ID so we can select when we're done
 
-	jsr WGSelectView ; Find our new view record
 	asl
 	asl
 	asl
@@ -93,6 +93,9 @@ WGCreateView:
 	inx
 	sta WG_VIEWRECORDS,x
 
+	pla
+	jsr WGSelectView		; Leave this as the active view
+
 WGCreateView_done:
 	RESTORE_ZPS
 	RESTORE_AXY
@@ -116,9 +119,9 @@ WGCreateCheckbox:
 	SAVE_ZPS
 
 	ldy #0
-	lda (PARAM0),y
+	lda (PARAM0),y	; Find our new view record
+	pha				; Cache view ID so we can select when we're done
 
-	jsr WGSelectView ; Find our new view record
 	asl
 	asl
 	asl
@@ -164,6 +167,9 @@ WGCreateCheckbox:
 	inx
 	sta	WG_VIEWRECORDS,x
 
+	pla
+	jsr WGSelectView		; Leave this as the active view
+
 WGCreateCheckbox_done:
 	RESTORE_ZPS
 	RESTORE_AXY
@@ -187,9 +193,9 @@ WGCreateButton:
 	SAVE_ZPS
 
 	ldy #0
-	lda (PARAM0),y
+	lda (PARAM0),y	; Find our new view record
+	pha				; Cache view ID so we can select when we're done
 
-	jsr WGSelectView ; Find our new view record
 	asl
 	asl
 	asl
@@ -243,6 +249,9 @@ WGCreateButton:
 	sta	WG_VIEWRECORDS,x	; Initialize title
 	inx
 	sta	WG_VIEWRECORDS,x	; Initialize title
+
+	pla
+	jsr WGSelectView		; Leave this as the active view
 
 WGCreateButton_done:
 	RESTORE_ZPS

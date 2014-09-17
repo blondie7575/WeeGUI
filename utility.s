@@ -125,7 +125,7 @@ scanHex8:
 WGStrLen:
 	phy
 
-	ldy #$0
+	ldy #0
 WGStrLen_loop:
 	lda	(PARAM0),y
 	beq	WGStrLen_done
@@ -138,3 +138,64 @@ WGStrLen_done:
 	rts
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGStoreStr
+; Finds room in our block allocator and copies the given string.
+; A: Terminator character
+; PARAM0: String pointer, LSB
+; PARAM1: String pointer, MSB
+; Return: PARAM0: Stored string, LSB
+;         PARAM1: Stored string, MSB
+; Side Effects: Clobbers SA
+;
+WGStoreStr:
+	sta WG_SCRATCHA
+	SAVE_AXY
+
+	ldx #0
+	ldy #0
+
+WGStoreStr_findEmptyLoop:
+	lda WG_STRINGS,x
+	beq WGStoreStr_copy
+	txa
+	clc
+	adc #16	; String blocks are 16 bytes wide
+	bcs WGStoreStr_noRoom
+	tax
+	bra WGStoreStr_findEmptyLoop
+
+WGStoreStr_noRoom:
+	lda #0
+	sta PARAM0
+	sta PARAM1
+	bra WGStoreStr_done
+
+WGStoreStr_copy:
+	phx			; Remember the start of our string
+
+WGStoreStr_copyLoop:
+	lda	(PARAM0),y
+	cmp WG_SCRATCHA
+	beq WGStoreStr_terminate
+	sta WG_STRINGS,x
+	inx
+	iny
+	cpy #15				; Clip string to maximum block size
+	bne WGStoreStr_copyLoop
+
+WGStoreStr_terminate:
+	lda #0				; Terminate the stored string
+	sta WG_STRINGS,x
+
+	pla					; Return pointer to the start of the block
+	clc
+	adc #>WG_STRINGS
+	sta PARAM0
+	lda #0
+	adc #<WG_STRINGS
+	sta PARAM1
+
+WGStoreStr_done:
+	RESTORE_AXY
+	rts

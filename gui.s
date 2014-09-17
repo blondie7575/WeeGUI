@@ -21,7 +21,7 @@
 main:
 	jsr WGInit
 	jsr WG80
-	;rts
+	rts
 	;jmp	tortureTestPrint
 	;jmp	tortureTestRects
 
