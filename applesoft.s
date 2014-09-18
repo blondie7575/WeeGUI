@@ -343,6 +343,17 @@ WGAmpersandStrArguments_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_WEEGUI
+; Initializes WeeGUI
+; &WEEGUI
+WGAmpersand_WEEGUI:
+	jsr WGInit
+	jsr WG80
+
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_HOME
 ; Clears the screen
 ; &HOME
@@ -370,6 +381,7 @@ WGAmpersand_DESK:
 WGAmpersand_WINDOW:
 	jsr WGAmpersandStructArgument
 	jsr WGCreateView
+	jsr WGEraseView
 	jsr WGPaintView
 	jsr WGBottomCursor
 
@@ -377,10 +389,10 @@ WGAmpersand_WINDOW:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_CHECKBOX
+; WGAmpersand_CHKBOX
 ; Create a checkbox
-; &CHECKBOX(id,x,y)
-WGAmpersand_CHECKBOX:
+; &CHKBOX(id,x,y)
+WGAmpersand_CHKBOX:
 	jsr WGAmpersandStructArgument
 	jsr WGCreateCheckbox
 	jsr WGPaintView
@@ -390,17 +402,18 @@ WGAmpersand_CHECKBOX:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_BUTTON
+; WGAmpersand_BUTTN
 ; Create a button
-; &BUTTON(id,x,y,width,"title")
-WGAmpersand_BUTTON:
+; &BUTTN(id,x,y,width,"title")
+WGAmpersand_BUTTN:
 	jsr WGAmpersandStructArgument
 	jsr WGCreateButton
 
-	lda WGAmpersandCommandBuffer+4
-	sta PARAM0
 	lda WGAmpersandCommandBuffer+5
+	sta PARAM0
+	lda WGAmpersandCommandBuffer+4
 	sta PARAM1
+
 	jsr WGViewSetTitle
 
 	jsr WGPaintView
@@ -454,6 +467,9 @@ WGAmpersandCommandBufferEnd:
 ;
 WGAmpersandCommandTable:
 
+.byte "WEEGUI",0,0,0,0,0,0,0,0
+.addr WGAmpersand_WEEGUI
+
 .byte $97,0,0,0,0,0,0,0,0,0,0,0,0,0		; HOME
 .addr WGAmpersand_HOME
 
@@ -463,11 +479,11 @@ WGAmpersandCommandTable:
 .byte "WINDOW",0,0,0,0,0,0,0,0
 .addr WGAmpersand_WINDOW
 
-.byte "CHECKBOX",0,0,0,0,0,0
-.addr WGAmpersand_CHECKBOX
+.byte "CHKBOX",0,0,0,0,0,0,0,0
+.addr WGAmpersand_CHKBOX
 
-.byte "BUT",$c1,"N",0,0,0,0,0,0,0,0,0		; BUTTON
-.addr WGAmpersand_BUTTON
+.byte "BUTTN",0,0,0,0,0,0,0,0,0		; BUTTON
+.addr WGAmpersand_BUTTN
 
 
 WGAmpersandCommandTableEnd:

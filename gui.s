@@ -20,7 +20,15 @@
 
 main:
 	jsr WGInit
-	jsr WG80
+	;jsr WG80
+
+;	lda #0
+;	lda #<testTitle1
+;	sta PARAM0
+;	lda #>testTitle1
+;	sta PARAM1
+;	jsr WGStoreStr
+
 	rts
 	;jmp	tortureTestPrint
 	;jmp	tortureTestRects
@@ -214,11 +222,24 @@ testCallback:
 ; WGInit
 ; Initialization. Should be called once at app startup
 WGInit:
-	pha
+	SAVE_AXY
 
 	jsr WGInitApplesoft
 
-	pla
+	ldy #15			; Clear our block allocators
+WGInit_clearMemLoop:
+	tya
+	asl
+	asl
+	asl
+	asl
+	tax
+	lda #0
+	sta WG_STRINGS,x
+	dey
+	bpl WGInit_clearMemLoop
+
+	RESTORE_AXY
 	rts
 
 

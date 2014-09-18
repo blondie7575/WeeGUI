@@ -190,10 +190,10 @@ WGStoreStr_terminate:
 
 	pla					; Return pointer to the start of the block
 	clc
-	adc #>WG_STRINGS
+	adc #<WG_STRINGS
 	sta PARAM0
 	lda #0
-	adc #<WG_STRINGS
+	adc #>WG_STRINGS
 	sta PARAM1
 
 WGStoreStr_done:
