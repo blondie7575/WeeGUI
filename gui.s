@@ -20,7 +20,7 @@
 
 main:
 	jsr WGInit
-	;jsr WG80
+	jsr WG80
 
 ;	lda #0
 ;	lda #<testTitle1
@@ -247,12 +247,20 @@ WGInit_clearMemLoop:
 ; WG80
 ; Enables 80 column mode (and enhanced video firmware)
 WG80:
+	pha
+
+;	lda #3
+;	jsr $fe95
+
 	lda	#$a0
 	jsr	$c300
+	
 	SETSWITCH	TEXTON
 	SETSWITCH	PAGE2OFF
 	SETSWITCH	COL80ON
 	SETSWITCH	STORE80ON
+
+	pla
 	rts
 
 

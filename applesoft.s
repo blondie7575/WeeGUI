@@ -92,13 +92,17 @@ WGAmpersand_matchStart:
 
 WGAmpersand_matchLoop:
 	lda WGAmpersandCommandBuffer,y
-	beq WGAmpersand_matchFound		; Got one!
+	beq WGAmpersand_matchPossible
 	cmp WGAmpersandCommandTable,x
 	bne WGAmpersand_matchNext	; Not this one
 
 	iny
 	inx
 	bra WGAmpersand_matchLoop
+
+WGAmpersand_matchPossible:
+	lda WGAmpersandCommandTable,x
+	beq WGAmpersand_matchFound		; Got one!
 
 WGAmpersand_matchNext:
 	pla				; Advance index to next commmand in table
@@ -343,17 +347,6 @@ WGAmpersandStrArguments_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_WEEGUI
-; Initializes WeeGUI
-; &WEEGUI
-WGAmpersand_WEEGUI:
-	jsr WGInit
-	jsr WG80
-
-	rts
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_HOME
 ; Clears the screen
 ; &HOME
@@ -424,6 +417,62 @@ WGAmpersand_BUTTN:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_SELECT
+; Select a view
+; &SELECT(id)
+WGAmpersand_SELECT:
+	jsr WGAmpersandIntArguments
+	lda PARAM0
+	jsr WGSelectView
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_FOCUS
+; Focuses selected view
+; &FOCUS
+WGAmpersand_FOCUS:
+	jsr WGViewFocus
+	jsr WGBottomCursor
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_FOCUSN
+; Focuses next view
+; &FOCUSN
+WGAmpersand_FOCUSN:
+	jsr WGViewFocusNext
+	jsr WGBottomCursor
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_FOCUSP
+; Focuses previous view
+; &FOCUSN
+WGAmpersand_FOCUSP:
+	jsr WGViewFocusPrev
+	jsr WGBottomCursor
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_ACT
+; Takes action on focused view
+; &ACT
+WGAmpersand_ACT:
+	jsr WGViewFocusAction
+	jsr WGBottomCursor
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGBottomCursor
 ; Leave the cursor state in a place that Applesoft is happy with
 ;
@@ -467,9 +516,6 @@ WGAmpersandCommandBufferEnd:
 ;
 WGAmpersandCommandTable:
 
-.byte "WEEGUI",0,0,0,0,0,0,0,0
-.addr WGAmpersand_WEEGUI
-
 .byte $97,0,0,0,0,0,0,0,0,0,0,0,0,0		; HOME
 .addr WGAmpersand_HOME
 
@@ -482,8 +528,23 @@ WGAmpersandCommandTable:
 .byte "CHKBOX",0,0,0,0,0,0,0,0
 .addr WGAmpersand_CHKBOX
 
-.byte "BUTTN",0,0,0,0,0,0,0,0,0		; BUTTON
+.byte "BUTTN",0,0,0,0,0,0,0,0,0
 .addr WGAmpersand_BUTTN
+
+.byte "SELECT",0,0,0,0,0,0,0,0
+.addr WGAmpersand_SELECT
+
+.byte "FOCUS",0,0,0,0,0,0,0,0,0
+.addr WGAmpersand_FOCUS
+
+.byte "FOCUSN",0,0,0,0,0,0,0,0
+.addr WGAmpersand_FOCUSN
+
+.byte "FOCUSP",0,0,0,0,0,0,0,0
+.addr WGAmpersand_FOCUSP
+
+.byte "ACT",0,0,0,0,0,0,0,0,0,0,0
+.addr WGAmpersand_ACT
 
 
 WGAmpersandCommandTableEnd:
