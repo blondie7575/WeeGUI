@@ -10,16 +10,27 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Applesoft ROM entry points and constants
 ;
-WG_AMPVECTOR = $03f5
+LINNUML = $0050			; Scratch pad for calculating line numbers (LSB)
+LINNUMH = $0051			; Scratch pad for calculating line numbers (MSB)
+CURLINL = $0075			; Current line number (LSB)
+CURLINH = $0076			; Current line number (MSB)
 CHRGET = $00b1			; Advances text point and gets character in A
 CHRGOT = $00b7			; Returns character at text pointer in A
-SYNCHR = $dec0			; Validates current character is what's in A
 TXTPTRL = $00b8			; Current location in BASIC listing (LSB)
 TXTPTRH = $00b9			; Current location in BASIC listing (MSB)
+
+AMPVECTOR = $03f5		; Ampersand entry vector
 ERROR = $d412			; Reports error in X
+NEWSTT = $d7d2			; Advance to next Applesoft statement
+GOTO = $d93e			; Entry point of Applesoft GOTO
+LINGET = $da0c			; Read a line number (16-bit integer) into LINNUM
 CHKCOM = $debe			; Validates current character is a ',', then gets it
+SYNCHR = $dec0			; Validates current character is what's in A
 GETBYT = $e6f8			; Gets an integer at text pointer, stores in X
 GETNUM = $e746			; Gets an 8-bit, stores it X, skips past a comma
+
+TOKEN_GOSUB = $b0		; Applesoft's token for GOSUB
+TOKEN_HOME = $97		; Applesoft's token for HOME
 
 ERR_UNDEFINEDFUNC = 224
 ERR_SYNTAX = 16
@@ -37,11 +48,11 @@ WGInitApplesoft:
 	pha
 
 	lda #$4c					; Patch in our jump vector for &
-	sta WG_AMPVECTOR
+	sta AMPVECTOR
 	lda #<WGAmpersand
-	sta WG_AMPVECTOR+1
+	sta AMPVECTOR+1
 	lda #>WGAmpersand
-	sta WG_AMPVECTOR+2
+	sta AMPVECTOR+2
 
 	pla
 	rts
@@ -55,6 +66,10 @@ WGInitApplesoft:
 ; Side effects: Clobbers S0
 ;
 WGAmpersand:
+
+	tsx					; Start by caching a valid stack state to return to Applesoft,
+	stx WG_STACKPTR		; in case we need to do so in a hurry
+
 	sta SCRATCH0
 	SAVE_AXY
 	SAVE_ZPP
@@ -151,48 +166,96 @@ WGAmpersand_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersandIntArguments
-; Buffers integer arguments for the current command in PARAMx
-; TXTPTR: Start of argument list (after opening parenthesis)
-; OUT PARAMx : The arguments
-WGAmpersandIntArguments:
-	SAVE_AXY
-
-	ldy #0
-	phy					; Can't rely on Applesoft routines to be register-safe
+; WGAmpersandBeginArguments
+; Begins reading an ampersand argument list
+; Side effects: Clobbers all registers
+WGAmpersandBeginArguments:
+	pha
 
 	lda #'('
 	jsr SYNCHR			; Expect opening parenthesis
 
-WGAmpersandIntArguments_loop:
+	pla
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersandNextArgument
+; Prepares for the next argument in the list
+; Side effects: Clobbers all registers
+WGAmpersandNextArgument:
+	jsr CHRGOT
+	jsr CHKCOM			; Verify parameter separator
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersandEndArguments
+; Finishes reading an ampersand argument list
+; Side effects: Clobbers all registers
+WGAmpersandEndArguments:
+	pha
+
+	lda #')'
+	jsr SYNCHR			; Expect closing parenthesis
+
+	pla
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersandIntArgument
+; Reads an integer argument for the current command
+; OUT A : The argument
+; Side effects: Clobbers all registers
+WGAmpersandIntArgument:
 	jsr GETBYT
 	txa
-	ply
-	sta PARAM0,y
-	phy
+	rts
 
-	jsr CHRGOT
-	cmp #')'			; All done!
-	beq WGAmpersandIntArguments_cleanup
-	jsr CHKCOM			; Verify parameter separator
 
-	ply
-	iny
-	phy
-	cpy #4				 ; Check for too many arguments
-	bne WGAmpersandIntArguments_loop
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersandAddrArgument
+; Reads a 16-bit pointer (or integer) argument for the current command
+; OUT X : The argument (LSB)
+; OUT Y : The argument (MSB)
+; Side effects: Clobbers all registers
+WGAmpersandAddrArgument:
+	jsr LINGET
+	ldx LINNUML
+	ldy LINNUMH
+	rts
 
-WGAmpersandIntArguments_fail:
-	ldx #ERR_TOOLONG
-	jsr ERROR
-	bra WGAmpersandIntArguments_done
 
-WGAmpersandIntArguments_cleanup:
-	jsr CHRGET			; Consume closing parenthesis
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersandStrArgument
+; Reads a string argument for the current command in PARAM0/1
+; OUT X : Pointer to a stored copy of the string (LSB)
+; OUT Y : Pointer to a stored copy of the string (MSB)
+; Side effects: Clobbers P0/P1 and all registers
+WGAmpersandStrArgument:
+	lda #'"'
+	jsr SYNCHR			; Expect opening quote
 
-WGAmpersandIntArguments_done:
-	ply
-	RESTORE_AXY
+	lda TXTPTRL			; Allocate for, and copy the string at TXTPTR
+	sta PARAM0
+	lda TXTPTRH
+	sta PARAM1
+	lda #'"'			; Specify quote as our terminator
+	jsr WGStoreStr
+
+WGAmpersandStrArgument_loop:
+	jsr CHRGET								; Consume the rest of the string
+	beq WGAmpersandStrArgument_done
+	cmp #'"'								; Check for closing quote
+	bne WGAmpersandStrArgument_loop
+
+WGAmpersandStrArgument_done:
+	lda #'"'
+	jsr SYNCHR			; Expect closing quote
+
+	ldx PARAM0
+	ldy PARAM1
 	rts
 
 
@@ -283,64 +346,6 @@ WGAmpersandStructArguments_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersandStrArgument
-; Buffers a string argument for the current command in PARAM0/1
-; TXTPTR: Start of argument list (after opening parenthesis)
-; OUT PARAM0/1 : The argument
-WGAmpersandStrArguments:
-	SAVE_AXY
-
-	ldy #0
-	phy					; Can't rely on Applesoft routines to be register-safe
-
-	lda #'('
-	jsr SYNCHR			; Expect opening parenthesis
-
-WGAmpersandStrArguments_loop:
-	jsr CHRGOT
-	beq WGAmpersandStrArguments_tooShort
-	cmp #')'
-	beq WGAmpersandStrArguments_cleanup
-
-	ply
-	sta WGAmpersandCommandBuffer,y
-	iny
-	phy
-	cpy #WGAmpersandCommandBufferEnd-WGAmpersandCommandBuffer
-	beq WGAmpersandStrArguments_tooLong
-
-	jsr CHRGET
-	bra WGAmpersandStrArguments_loop
-
-WGAmpersandStrArguments_tooLong:
-	ldx #ERR_TOOLONG
-	jsr ERROR
-	bra WGAmpersandStrArguments_done
-
-WGAmpersandStrArguments_tooShort:
-	ldx #ERR_SYNTAX
-	jsr ERROR
-	bra WGAmpersandStrArguments_done
-
-WGAmpersandStrArguments_cleanup:
-	jsr CHRGET			; Consume closing parenthesis
-
-WGAmpersandStrArguments_done:
-	ply					; Null-terminate result
-	lda #0
-	sta WGAmpersandCommandBuffer,y
-
-	lda #<WGAmpersandCommandBuffer
-	sta PARAM0
-	lda #>WGAmpersandCommandBuffer
-	sta PARAM1
-
-	RESTORE_AXY
-	rts
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Ampersand API entry points
 ;
 
@@ -372,12 +377,51 @@ WGAmpersand_DESK:
 ; Create a view
 ; &WINDOW(id,style,x,y,width,height,canvas width,canvas height)
 WGAmpersand_WINDOW:
-	jsr WGAmpersandStructArgument
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+0
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	ora #VIEW_STYLE_APPLESOFT		; Flag this as an Applesoft-created view
+	sta WGAmpersandCommandBuffer+1
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+2
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+3
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+4
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+5
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+6
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+7
+
+	jsr WGAmpersandEndArguments
+
+	lda #<WGAmpersandCommandBuffer
+	sta PARAM0
+	lda #>WGAmpersandCommandBuffer
+	sta PARAM1
+
 	jsr WGCreateView
 	jsr WGEraseView
 	jsr WGPaintView
 	jsr WGBottomCursor
-
 	rts
 
 
@@ -386,8 +430,32 @@ WGAmpersand_WINDOW:
 ; Create a checkbox
 ; &CHKBOX(id,x,y)
 WGAmpersand_CHKBOX:
-	jsr WGAmpersandStructArgument
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+0
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+1
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+2
+
+	jsr WGAmpersandEndArguments
+
+	lda #<WGAmpersandCommandBuffer
+	sta PARAM0
+	lda #>WGAmpersandCommandBuffer
+	sta PARAM1
+
 	jsr WGCreateCheckbox
+
+	LDY_ACTIVEVIEW				; Flag this as an Applesoft-created view
+	lda #VIEW_STYLE_APPLESOFT
+	ora WG_VIEWRECORDS+4,y
+
 	jsr WGPaintView
 	jsr WGBottomCursor
 
@@ -399,12 +467,48 @@ WGAmpersand_CHKBOX:
 ; Create a button
 ; &BUTTN(id,x,y,width,"title")
 WGAmpersand_BUTTN:
-	jsr WGAmpersandStructArgument
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+0
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+1
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+2
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+3
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandAddrArgument
+	stx	WGAmpersandCommandBuffer+4
+	sty WGAmpersandCommandBuffer+5
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandStrArgument
+	stx	WGAmpersandCommandBuffer+6
+	sty WGAmpersandCommandBuffer+7
+
+	jsr WGAmpersandEndArguments
+
+	lda #<WGAmpersandCommandBuffer
+	sta PARAM0
+	lda #>WGAmpersandCommandBuffer
+	sta PARAM1
 	jsr WGCreateButton
 
-	lda WGAmpersandCommandBuffer+5
+	LDY_ACTIVEVIEW				; Flag this as an Applesoft-created view
+	lda #VIEW_STYLE_APPLESOFT
+	ora WG_VIEWRECORDS+4,y
+
+	lda WGAmpersandCommandBuffer+6	; Set the button text
 	sta PARAM0
-	lda WGAmpersandCommandBuffer+4
+	lda WGAmpersandCommandBuffer+7
 	sta PARAM1
 
 	jsr WGViewSetTitle
@@ -421,9 +525,12 @@ WGAmpersand_BUTTN:
 ; Select a view
 ; &SELECT(id)
 WGAmpersand_SELECT:
-	jsr WGAmpersandIntArguments
-	lda PARAM0
+	jsr WGAmpersandBeginArguments
+	jsr WGAmpersandIntArgument
+
 	jsr WGSelectView
+
+	jsr WGAmpersandEndArguments
 	rts
 
 
@@ -468,8 +575,24 @@ WGAmpersand_FOCUSP:
 WGAmpersand_ACT:
 	jsr WGViewFocusAction
 	jsr WGBottomCursor
+
+	bvs WGAmpersand_ACTGosub
 	rts
 
+WGAmpersand_ACTGosub:
+	jmp WGGosub			; No coming back from an Applesoft GOSUB!
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_GOSUB
+; A custom gosub, because we can. Only for testing at the moment
+; &GOSUB
+WGAmpersand_GOSUB:
+	lda #$e8
+	sta PARAM0
+	lda #$03
+	sta PARAM1
+	jmp WGGosub
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -497,6 +620,55 @@ WGBottomCursor:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGGosub
+; Performs an Applesoft GOSUB to a line number
+; PARAM0: Line number (LSB)
+; PARAM1: Line number (MSB)
+;
+WGGosub:
+	; Can't come back from what we're about to do, so cleanup from the
+	; original Ampersand entry point now!  This is some seriously voodoo
+	; shit we're gonna pull here.
+	ldx WG_STACKPTR
+	txs
+
+	; Fake an Applesoft GOSUB by pushing the same stuff it would do
+	lda TXTPTRH
+	pha
+	lda TXTPTRL
+	pha
+	lda CURLINH
+	pha
+	lda CURLINL
+	pha
+	lda #TOKEN_GOSUB
+	pha
+
+	; Here's the tricky bit- we jump into Applesoft's GOTO
+	; just after the part where it reads the line number. This
+	; allows us to piggy back on the hard work of finding the
+	; line number in the Applesoft source code, and storing
+	; it in the TXTPTR (thus performing the jump portion of
+	; a GOSUB). Since GOSUB normally falls through into GOTO,
+	; by faking the setup portion of the GOSUB, then leaving
+	; the state as GOTO expects it, we can fake the entire
+	; process to GOSUB to a line number we specify
+	lda PARAM0
+	sta LINNUML
+	lda PARAM1
+	sta LINNUMH
+
+	jsr GOTO+3
+
+	; The goto has pointed the interpreter at the subroutine,
+	; so now advance to the next statement to continue executing.
+	; We'll never regain control, which is why we had to clean
+	; up from the ampersand entry before we got here.
+	jmp NEWSTT
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Applesoft API state
 ;
 
@@ -505,6 +677,9 @@ WGAmpersandCommandBuffer:
 .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 WGAmpersandCommandBufferEnd:
 .byte 0			; Make sure this last byte is always kept as a terminator
+
+WG_STACKPTR:	; A place to save the stack pointer for tricky Applesoft manipulation
+.byte 0
 
 
 ; Jump table for ampersand commands.
@@ -516,7 +691,7 @@ WGAmpersandCommandBufferEnd:
 ;
 WGAmpersandCommandTable:
 
-.byte $97,0,0,0,0,0,0,0,0,0,0,0,0,0		; HOME
+.byte TOKEN_HOME,0,0,0,0,0,0,0,0,0,0,0,0,0
 .addr WGAmpersand_HOME
 
 .byte "DESK",0,0,0,0,0,0,0,0,0,0
@@ -545,6 +720,9 @@ WGAmpersandCommandTable:
 
 .byte "ACT",0,0,0,0,0,0,0,0,0,0,0
 .addr WGAmpersand_ACT
+
+.byte TOKEN_GOSUB,0,0,0,0,0,0,0,0,0,0,0,0,0		; For internal testing of the procedural gosub
+.addr WGAmpersand_GOSUB
 
 
 WGAmpersandCommandTableEnd:

@@ -188,6 +188,8 @@ WGCreateCheckbox_done:
 ; XX: Screen X origin
 ; YY: Screen Y origin
 ; BW: Button width
+; PL: Action callback (LSB)
+; PH: Action callback (MSB)
 WGCreateButton:
 	SAVE_AXY
 	SAVE_ZPS
@@ -240,8 +242,13 @@ WGCreateButton:
 	lda	#%00000000			; Initialize state
 	sta	WG_VIEWRECORDS,x
 	inx
-	sta	WG_VIEWRECORDS,x	; Initialize callback
+
+	iny
+	lda (PARAM0),y
+	sta	WG_VIEWRECORDS,x	; Callback
 	inx
+	iny
+	lda (PARAM0),y
 	sta	WG_VIEWRECORDS,x
 	inx
 
@@ -272,6 +279,7 @@ WGPaintView:
 	LDY_ACTIVEVIEW
 
 	lda WG_VIEWRECORDS+4,y	; Cache style information
+	and #$f					; Mask off flag bits
 	sta SCRATCH0
 
 	lda	WG_VIEWRECORDS+0,y	; Fetch the geometry
@@ -633,6 +641,7 @@ WGViewFocusNext_loop:
 WGViewFocusNext_wantFocus:		; Does this view accept focus?
 	LDY_FOCUSVIEW
 	lda WG_VIEWRECORDS+4,y
+	and #$f						; Mask off flag bits
 	cmp #VIEW_STYLE_TAKESFOCUS
 	bcc WGViewFocusNext_loop
 
@@ -683,6 +692,7 @@ WGViewFocusPrev_findEndLoop:
 WGViewFocusPrev_wantFocus:		; Does this view accept focus?
 	LDY_FOCUSVIEW
 	lda WG_VIEWRECORDS+4,y
+	and #$f						; Mask off flag bits
 	cmp #VIEW_STYLE_TAKESFOCUS
 	bcc WGViewFocusPrev_loop
 
@@ -705,6 +715,7 @@ WGViewFocusPrev_focus:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGViewFocusAction
 ; Performs the action of the focused view
+; OUT V : Set if the caller should perform an Applesoft GOSUB
 ; Side effects: Changes selected view, Repaints some views
 ;
 WGViewFocusAction:
@@ -712,6 +723,7 @@ WGViewFocusAction:
 
 	LDY_FOCUSVIEW
 	lda WG_VIEWRECORDS+4,y		; What kind of view is it?
+	and #$f						; Mask off flag bits
 
 	cmp #VIEW_STYLE_CHECK
 	beq WGViewFocusAction_toggleCheckbox
@@ -731,18 +743,45 @@ WGViewFocusAction_toggleCheckbox:
 
 	; NOTE: Self-modifying code ahead!
 WGViewFocusAction_buttonClick:
-	lda WG_VIEWRECORDS+10,y		; Do we have a callback?
+	lda WG_VIEWRECORDS+4,y				; Are we an Applesoft button?
+	and #VIEW_STYLE_APPLESOFT
+	beq WGViewFocusAction_buttonClickApplesoft
+
+	lda WG_VIEWRECORDS+10,y				; Do we have a callback?
 	beq WGViewFocusAction_done
 	sta WGViewFocusAction_userJSR+2		; Modify code below so we can JSR to user's code
 	lda WG_VIEWRECORDS+11,y
 	sta WGViewFocusAction_userJSR+1
 
 WGViewFocusAction_userJSR:
-	jsr WGViewFocusAction_placeholder	; Overwritten with user's function pointer
+	jsr WGViewFocusAction_knownRTS		; Overwritten with user's function pointer
+	bra WGViewFocusAction_done
+
+WGViewFocusAction_buttonClickApplesoft:
+	clv
+	lda WG_VIEWRECORDS+10,y				; Do we have a callback?
+	beq WGViewFocusAction_mightBeZero
+
+WGViewFocusAction_buttonClickApplesoftNotZero:
+	sta PARAM0
+	lda WG_VIEWRECORDS+11,y
+	sta PARAM1
+
+WGViewFocusAction_buttonClickApplesoftGosub:
+	; Caller needs to handle Applesoft Gosub, so signal with a flag and return
+	lda #%01000000
+	bit WGViewFocusAction_knownRTS	; Set V by BITting an RTS instruction
+	bra WGViewFocusAction_done
+
+WGViewFocusAction_mightBeZero:
+	lda WG_VIEWRECORDS+11,y
+	beq WGViewFocusAction_done
+	lda WG_VIEWRECORDS+10,y
+	bra WGViewFocusAction_buttonClickApplesoftNotZero
 
 WGViewFocusAction_done:
 	RESTORE_AY
-WGViewFocusAction_placeholder:
+WGViewFocusAction_knownRTS:
 	rts
 
 

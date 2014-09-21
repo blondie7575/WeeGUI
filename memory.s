@@ -20,6 +20,9 @@ VIEW_STYLE_BUTTON = $03
 
 VIEW_STYLE_TAKESFOCUS = $02	; Styles >= this one are selectable
 
+VIEW_STYLE_APPLESOFT = $80	; High nybble flag bit for views created from Applesoft
+
+
 ; ROM entry points
 
 COUT			= $fded
