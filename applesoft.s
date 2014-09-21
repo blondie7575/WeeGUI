@@ -336,10 +336,7 @@ WGAmpersandStructArguments_cleanup:
 WGAmpersandStructArguments_done:
 	ply
 
-	lda #<WGAmpersandCommandBuffer
-	sta PARAM0
-	lda #>WGAmpersandCommandBuffer
-	sta PARAM1
+	PARAM16 WGAmpersandCommandBuffer
 
 	RESTORE_AXY
 	rts
@@ -413,12 +410,8 @@ WGAmpersand_WINDOW:
 
 	jsr WGAmpersandEndArguments
 
-	lda #<WGAmpersandCommandBuffer
-	sta PARAM0
-	lda #>WGAmpersandCommandBuffer
-	sta PARAM1
+	CALL16 WGCreateView,WGAmpersandCommandBuffer
 
-	jsr WGCreateView
 	jsr WGEraseView
 	jsr WGPaintView
 	jsr WGBottomCursor
@@ -445,17 +438,13 @@ WGAmpersand_CHKBOX:
 
 	jsr WGAmpersandEndArguments
 
-	lda #<WGAmpersandCommandBuffer
-	sta PARAM0
-	lda #>WGAmpersandCommandBuffer
-	sta PARAM1
-
-	jsr WGCreateCheckbox
+	CALL16 WGCreateCheckbox,WGAmpersandCommandBuffer
 
 	LDY_ACTIVEVIEW				; Flag this as an Applesoft-created view
 	lda #VIEW_STYLE_APPLESOFT
 	ora WG_VIEWRECORDS+4,y
-
+	sta WG_VIEWRECORDS+4,y
+	
 	jsr WGPaintView
 	jsr WGBottomCursor
 
@@ -496,15 +485,12 @@ WGAmpersand_BUTTN:
 
 	jsr WGAmpersandEndArguments
 
-	lda #<WGAmpersandCommandBuffer
-	sta PARAM0
-	lda #>WGAmpersandCommandBuffer
-	sta PARAM1
-	jsr WGCreateButton
+	CALL16 WGCreateButton,WGAmpersandCommandBuffer
 
 	LDY_ACTIVEVIEW				; Flag this as an Applesoft-created view
 	lda #VIEW_STYLE_APPLESOFT
 	ora WG_VIEWRECORDS+4,y
+	sta WG_VIEWRECORDS+4,y
 
 	lda WGAmpersandCommandBuffer+6	; Set the button text
 	sta PARAM0

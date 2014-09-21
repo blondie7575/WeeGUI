@@ -100,6 +100,36 @@
 .endmacro
 
 
+.macro PARAM16 addr
+	lda #<addr
+	sta PARAM0
+	lda #>addr
+	sta PARAM1
+.endmacro
+
+
+.macro CALL16 func,addr
+	PARAM16 addr
+	jsr func
+.endmacro
+
+
+.macro PARAMQUAD p0,p1,p2,p3
+	lda #p0
+	sta PARAM0
+	lda #p1
+	sta PARAM1
+	lda #p2
+	sta PARAM2
+	lda #p3
+	sta PARAM3
+.endmacro
+
+.macro CALLQUAD func,p0,p1,p2,p3
+	PARAMQUAD p0,p1,p2,p3
+	jsr func
+.endmacro
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Rendering macros
 ;

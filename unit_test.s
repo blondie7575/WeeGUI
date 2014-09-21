@@ -26,11 +26,7 @@ tortureTestPrint:
 	jsr WGScrollY
 
 tortureTestPrint_init:
-	lda	#<testPrintView
-	sta	PARAM0
-	lda	#>testPrintView
-	sta	PARAM1
-	jsr	WGCreateView
+	CALL16 WGCreateView,testPrintView
 
 	lda #0
 	jsr	WGSelectView
@@ -113,13 +109,9 @@ tortureTestPrint_print:
 	VBL_SYNC
 	jsr	WGEraseViewContents
 
-	lda	#<unitTestStr
-	sta	PARAM0
-	lda #>unitTestStr
-	sta PARAM1
+	CALL16 WGPrint,unitTestStr
 
-	jsr WGPrint
-	jsr WGPrint
+	jsr WGPrint	; Do it again
 
 ;	jmp tortureTestPrint_lock
 	jsr delayShort

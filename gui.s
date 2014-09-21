@@ -22,66 +22,23 @@ main:
 	jsr WGInit
 	jsr WG80
 
-;	lda #0
-;	lda #<testTitle1
-;	sta PARAM0
-;	lda #>testTitle1
-;	sta PARAM1
-;	jsr WGStoreStr
-
 	rts
 	;jmp	tortureTestPrint
 	;jmp	tortureTestRects
 
 	jsr WGDesktop
 
-	lda	#<testView
-	sta	PARAM0
-	lda	#>testView
-	sta	PARAM1
-	jsr	WGCreateView
+	CALL16 WGCreateView,testView
+	CALL16 WGViewSetTitle,testTitle0
 
-	lda #<testTitle0
-	sta PARAM0
-	lda #>testTitle0
-	sta PARAM1
-	jsr WGViewSetTitle
+	CALL16 WGCreateCheckbox,testCheck
 
-	lda	#<testCheck
-	sta	PARAM0
-	lda	#>testCheck
-	sta	PARAM1
-	jsr	WGCreateCheckbox
+	CALL16 WGCreateButton,testButton1
+	CALL16 WGViewSetTitle,testTitle1
+	CALL16 WGViewSetAction,testCallback
 
-	lda	#<testButton1
-	sta	PARAM0
-	lda	#>testButton1
-	sta	PARAM1
-	jsr	WGCreateButton
-
-	lda #<testTitle1
-	sta PARAM0
-	lda #>testTitle1
-	sta PARAM1
-	jsr WGViewSetTitle
-
-	lda #<testCallback
-	sta PARAM0
-	lda #>testCallback
-	sta PARAM1
-	jsr WGViewSetAction
-
-	lda	#<testButton2
-	sta	PARAM0
-	lda	#>testButton2
-	sta	PARAM1
-	jsr	WGCreateButton
-
-	lda #<testTitle2
-	sta PARAM0
-	lda #>testTitle2
-	sta PARAM1
-	jsr WGViewSetTitle
+	CALL16 WGCreateButton,testButton2
+	CALL16 WGViewSetTitle,testTitle2
 
 	jsr WGViewPaintAll
 ;	jsr testPaintContents
@@ -180,11 +137,7 @@ testPaintContents:
 	ldx #0
 	ldy #4
 	jsr WGSetCursor
-	lda #<testStr
-	sta PARAM0
-	lda #>testStr
-	sta PARAM1
-	jsr WGPrint
+	CALL16 WGPrint,testStr
 	bra testPaintContents_done
 ;;
 
@@ -199,11 +152,7 @@ testPaintContents_loop:
 	adc #'A'
 	sta testStr3
 
-	lda #<testStr3
-	sta PARAM0
-	lda #>testStr3
-	sta PARAM1
-	jsr WGPrint
+	CALL16 WGPrint,testStr3
 
 	iny
 	cpy #25

@@ -745,7 +745,7 @@ WGViewFocusAction_toggleCheckbox:
 WGViewFocusAction_buttonClick:
 	lda WG_VIEWRECORDS+4,y				; Are we an Applesoft button?
 	and #VIEW_STYLE_APPLESOFT
-	beq WGViewFocusAction_buttonClickApplesoft
+	bne WGViewFocusAction_buttonClickApplesoft
 
 	lda WG_VIEWRECORDS+10,y				; Do we have a callback?
 	beq WGViewFocusAction_done
