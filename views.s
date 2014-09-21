@@ -834,9 +834,9 @@ WGViewSetTitle:
 
 	LDY_ACTIVEVIEW
 	lda PARAM0
-	sta WG_VIEWRECORDS+13,y
-	lda PARAM1
 	sta WG_VIEWRECORDS+12,y
+	lda PARAM1
+	sta WG_VIEWRECORDS+13,y
 
 WGViewSetTitle_done:
 	RESTORE_AXY
@@ -854,9 +854,9 @@ WGViewSetAction:
 
 	LDY_ACTIVEVIEW
 	lda PARAM0
-	sta WG_VIEWRECORDS+11,y
-	lda PARAM1
 	sta WG_VIEWRECORDS+10,y
+	lda PARAM1
+	sta WG_VIEWRECORDS+11,y
 
 WGViewSetAction_done:
 	RESTORE_AY

@@ -221,7 +221,9 @@ WGAmpersandIntArgument:
 ; OUT Y : The argument (MSB)
 ; Side effects: Clobbers all registers
 WGAmpersandAddrArgument:
+	jsr CHRGOT
 	jsr LINGET
+
 	ldx LINNUML
 	ldy LINNUMH
 	rts
@@ -421,7 +423,7 @@ WGAmpersand_WINDOW:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_CHKBOX
 ; Create a checkbox
-; &CHKBOX(id,x,y)
+; &CHKBOX(id,x,y,"title")
 WGAmpersand_CHKBOX:
 	jsr WGAmpersandBeginArguments
 
@@ -459,7 +461,7 @@ WGAmpersand_CHKBOX:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_BUTTN
 ; Create a button
-; &BUTTN(id,x,y,width,"title")
+; &BUTTN(id,x,y,width,lineNum,"title")
 WGAmpersand_BUTTN:
 	jsr WGAmpersandBeginArguments
 
@@ -572,6 +574,42 @@ WGAmpersand_ACT:
 
 WGAmpersand_ACTGosub:
 	jmp WGGosub			; No coming back from an Applesoft GOSUB!
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_SETACT
+; Sets the callback for the selected view
+; &SETACT(lineNum)
+WGAmpersand_SETACT:
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandAddrArgument
+	stx	PARAM0
+	sty PARAM1
+	
+	jsr WGAmpersandEndArguments
+
+	jsr WGViewSetAction
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_TITLE
+; Sets the title for the selected view
+; &TITLE("title")
+WGAmpersand_TITLE:
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandStrArgument
+	stx	PARAM0
+	sty PARAM1
+
+	jsr WGAmpersandEndArguments
+
+	jsr WGViewSetTitle
+	jsr WGPaintView
+
+	rts
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -711,6 +749,12 @@ WGAmpersandCommandTable:
 
 .byte "ACT",0,0,0,0,0,0,0,0,0,0,0
 .addr WGAmpersand_ACT
+
+.byte "SETACT",0,0,0,0,0,0,0,0
+.addr WGAmpersand_SETACT
+
+.byte "TITLE",0,0,0,0,0,0,0,0,0
+.addr WGAmpersand_TITLE
 
 .byte TOKEN_GOSUB,0,0,0,0,0,0,0,0,0,0,0,0,0		; For internal testing of the procedural gosub
 .addr WGAmpersand_GOSUB
