@@ -435,6 +435,11 @@ WGAmpersand_CHKBOX:
 
 	jsr WGAmpersandIntArgument
 	sta WGAmpersandCommandBuffer+2
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandStrArgument
+	stx	WGAmpersandCommandBuffer+3
+	sty WGAmpersandCommandBuffer+4
 
 	jsr WGAmpersandEndArguments
 
@@ -492,12 +497,12 @@ WGAmpersand_BUTTN:
 	ora WG_VIEWRECORDS+4,y
 	sta WG_VIEWRECORDS+4,y
 
-	lda WGAmpersandCommandBuffer+6	; Set the button text
-	sta PARAM0
-	lda WGAmpersandCommandBuffer+7
-	sta PARAM1
-
-	jsr WGViewSetTitle
+;	lda WGAmpersandCommandBuffer+6	; Set the button text
+;	sta PARAM0
+;	lda WGAmpersandCommandBuffer+7
+;	sta PARAM1
+;
+;	jsr WGViewSetTitle
 
 	jsr WGPaintView
 	jsr WGBottomCursor

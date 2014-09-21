@@ -30,15 +30,9 @@ main:
 
 	CALL16 WGCreateView,testView
 	CALL16 WGViewSetTitle,testTitle0
-
 	CALL16 WGCreateCheckbox,testCheck
-
 	CALL16 WGCreateButton,testButton1
-	CALL16 WGViewSetTitle,testTitle1
-	CALL16 WGViewSetAction,testCallback
-
 	CALL16 WGCreateButton,testButton2
-	CALL16 WGViewSetTitle,testTitle2
 
 	jsr WGViewPaintAll
 ;	jsr testPaintContents
@@ -253,12 +247,17 @@ testView:
 
 testCheck:
 	.byte 1,16,4
+	.addr testTitle3
 
 testButton1:
 	.byte 2,35,10,15
+	.addr testCallback
+	.addr testTitle1
 
 testButton2:
 	.byte 3,35,13,15
+	.addr 0
+	.addr testTitle2
 
 testStr:
 ;	.byte "This is a test of the emergency broadcast system.",0; If this had been a real emergency, you would be dead now.",0	; 107 chars
@@ -274,6 +273,8 @@ testTitle1:
 	.byte "Okay",0
 testTitle2:
 	.byte "Cancel",0
+testTitle3:
+	.byte "More Magic",0
 
 
 

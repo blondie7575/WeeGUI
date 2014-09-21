@@ -113,6 +113,8 @@ WGCreateView_done:
 ; ID: View ID (0-f)
 ; XX: Screen X origin
 ; YY: Screen Y origin
+; SL: String pointer (LSB)
+; SH: String pointer (MSB)
 ;
 WGCreateCheckbox:
 	SAVE_AXY
@@ -166,6 +168,16 @@ WGCreateCheckbox:
 	sta	WG_VIEWRECORDS,x	; Initialize callback
 	inx
 	sta	WG_VIEWRECORDS,x
+	inx
+
+	iny
+	lda (PARAM0),y
+	sta	WG_VIEWRECORDS,x	; Title
+	inx
+	iny
+	lda (PARAM0),y
+	sta	WG_VIEWRECORDS,x
+	inx
 
 	pla
 	jsr WGSelectView		; Leave this as the active view
@@ -190,6 +202,8 @@ WGCreateCheckbox_done:
 ; BW: Button width
 ; PL: Action callback (LSB)
 ; PH: Action callback (MSB)
+; SL: Title string pointer (LSB)
+; SH: Title string pointer (MSB)
 WGCreateButton:
 	SAVE_AXY
 	SAVE_ZPS
@@ -252,10 +266,14 @@ WGCreateButton:
 	sta	WG_VIEWRECORDS,x
 	inx
 
-	lda	#0
-	sta	WG_VIEWRECORDS,x	; Initialize title
+	iny
+	lda (PARAM0),y
+	sta	WG_VIEWRECORDS,x	; Title
 	inx
-	sta	WG_VIEWRECORDS,x	; Initialize title
+	iny
+	lda (PARAM0),y
+	sta	WG_VIEWRECORDS,x
+	inx
 
 	pla
 	jsr WGSelectView		; Leave this as the active view
@@ -327,7 +345,7 @@ WGPaintView_done:
 ; paintCheck
 ; Paints the contents of a checkbox
 ; Y: Index into view records of checkbox to paint
-; Side effects: Clobbers A, S0
+; Side effects: Clobbers S0,P0,P1, all registers
 paintCheck:
 	lda WG_VIEWRECORDS+0,y		; Position cursor
 	sta	WG_CURSORX
@@ -362,6 +380,27 @@ paintCheck_selectedUnchecked:
 
 paintCheck_plot:				; Paint our state
 	jsr WGPlot
+
+	inc WG_CURSORX				; Prepare for title
+	inc WG_CURSORX
+	jsr WGNormal
+
+	lda WG_VIEWRECORDS+12,y
+	sta PARAM0
+	lda WG_VIEWRECORDS+13,y
+	sta PARAM1
+	ldy #0
+
+paintCheck_titleLoop:
+	lda (PARAM0),y
+	beq paintCheck_done
+	ora #$80
+	jsr WGPlot
+	inc WG_CURSORX
+	iny
+	bra paintCheck_titleLoop
+
+paintCheck_done:
 	rts
 
 
@@ -374,9 +413,9 @@ paintButton:
 	SAVE_AX
 	SAVE_ZPS
 
-	lda WG_VIEWRECORDS+13,y	; Prep the title string
+	lda WG_VIEWRECORDS+12,y	; Prep the title string
 	sta PARAM0
-	lda WG_VIEWRECORDS+12,y
+	lda WG_VIEWRECORDS+13,y
 	sta PARAM1
 
 	jsr WGStrLen			; Compute centering offset for title
@@ -747,10 +786,10 @@ WGViewFocusAction_buttonClick:
 	and #VIEW_STYLE_APPLESOFT
 	bne WGViewFocusAction_buttonClickApplesoft
 
-	lda WG_VIEWRECORDS+10,y				; Do we have a callback?
+	lda WG_VIEWRECORDS+11,y				; Do we have a callback?
 	beq WGViewFocusAction_done
 	sta WGViewFocusAction_userJSR+2		; Modify code below so we can JSR to user's code
-	lda WG_VIEWRECORDS+11,y
+	lda WG_VIEWRECORDS+10,y
 	sta WGViewFocusAction_userJSR+1
 
 WGViewFocusAction_userJSR:
