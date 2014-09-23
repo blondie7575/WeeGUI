@@ -184,7 +184,7 @@ WGPrint_skipToEndFirst:
 	sec
 	sbc WG_LOCALCURSORX
 	cmp	SCRATCH1
-	bcs	WGPrint_done
+	bcs	WGPrint_done		; EOL is past the end of the string, so we're done
 	tay
 
 	lda	WG_SCRATCHA			; Skip cursor ahead to EOL
@@ -195,6 +195,8 @@ WGPrint_skipToEnd:
 	tya						; Skip string index ahead by distance to EOL
 	clc
 	adc WG_SCRATCHA
+	cmp SCRATCH1
+	bcs WGPrint_done		; EOL is past the end of the string, so we're done
 	tay
 
 	lda	WG_SCRATCHA			; Skip cursor ahead to EOL
@@ -318,5 +320,4 @@ WGInverse:
 	sta INVERSE
 	pla
 	rts
-
 

@@ -486,9 +486,9 @@ paintWindowTitle:
 	SAVE_AX
 	SAVE_ZPS
 
-	lda WG_VIEWRECORDS+13,y	; Prep the title string
+	lda WG_VIEWRECORDS+12,y	; Prep the title string
 	sta PARAM0
-	lda WG_VIEWRECORDS+12,y
+	lda WG_VIEWRECORDS+13,y
 	sta PARAM1
 	bne paintWindowTitle_compute
 

@@ -19,25 +19,31 @@ CHRGOT = $00b7			; Returns character at text pointer in A
 TXTPTRL = $00b8			; Current location in BASIC listing (LSB)
 TXTPTRH = $00b9			; Current location in BASIC listing (MSB)
 
+FAC = $009d				; Floating point accumulator
+
 AMPVECTOR = $03f5		; Ampersand entry vector
 ERROR = $d412			; Reports error in X
 NEWSTT = $d7d2			; Advance to next Applesoft statement
 GOTO = $d93e			; Entry point of Applesoft GOTO
 LINGET = $da0c			; Read a line number (16-bit integer) into LINNUM
+FRMNUM = $dd67			; Evaluate an expression as a number and store in FAC
 CHKCOM = $debe			; Validates current character is a ',', then gets it
 SYNCHR = $dec0			; Validates current character is what's in A
+AYINT = $e10c			; Convert FAC to 8-bit signed integer
 GETBYT = $e6f8			; Gets an integer at text pointer, stores in X
 GETNUM = $e746			; Gets an 8-bit, stores it X, skips past a comma
 
 TOKEN_GOSUB = $b0		; Applesoft's token for GOSUB
 TOKEN_HOME = $97		; Applesoft's token for HOME
+TOKEN_PRINT = $ba		; Applesoft's token for PRINT
+TOKEN_MINUS = $c9		; Applesoft's token for a minus sign
 
 ERR_UNDEFINEDFUNC = 224
 ERR_SYNTAX = 16
 ERR_ENDOFDATA = 5
 ERR_TOOLONG = 176
 
-MAXCMDLEN = 14
+MAXCMDLEN = 6
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -89,11 +95,11 @@ WGAmpersand_parseLoop:
 	tax
 
 	iny
-	cpy #MAXCMDLEN
+	cpy #MAXCMDLEN+1
 	bne WGAmpersand_parseLoop
 
 WGAmpersand_parseFail:
-	ldx #ERR_SYNTAX
+	ldx #ERR_UNDEFINEDFUNC
 	jsr ERROR
 	bra WGAmpersand_done
 
@@ -126,7 +132,6 @@ WGAmpersand_matchNext:
 	asl
 	asl
 	asl
-	asl
 	tax
 
 	cpx #WGAmpersandCommandTableEnd-WGAmpersandCommandTable
@@ -138,7 +143,6 @@ WGAmpersand_matchNext:
 WGAmpersand_matchFound:
 	pla							; This is now the matching command number
 	inc
-	asl
 	asl
 	asl
 	asl
@@ -209,8 +213,20 @@ WGAmpersandEndArguments:
 ; OUT A : The argument
 ; Side effects: Clobbers all registers
 WGAmpersandIntArgument:
+	jsr CHRGOT
+	cmp #TOKEN_MINUS
+	beq WGAmpersandIntArgument_signed
+
 	jsr GETBYT
 	txa
+	rts
+
+WGAmpersandIntArgument_signed:
+	jsr CHRGET
+	jsr GETBYT
+	txa
+	eor #$ff
+	inc
 	rts
 
 
@@ -231,7 +247,8 @@ WGAmpersandAddrArgument:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersandStrArgument
-; Reads a string argument for the current command in PARAM0/1
+; Reads a string argument for the current command in PARAM0/1.
+; This string is copied into privately allocated memory.
 ; OUT X : Pointer to a stored copy of the string (LSB)
 ; OUT Y : Pointer to a stored copy of the string (MSB)
 ; Side effects: Clobbers P0/P1 and all registers
@@ -247,7 +264,7 @@ WGAmpersandStrArgument:
 	jsr WGStoreStr
 
 WGAmpersandStrArgument_loop:
-	jsr CHRGET								; Consume the rest of the string
+	jsr CHRGET								; Consume the string for Applesoft
 	beq WGAmpersandStrArgument_done
 	cmp #'"'								; Check for closing quote
 	bne WGAmpersandStrArgument_loop
@@ -262,85 +279,44 @@ WGAmpersandStrArgument_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersandStructArgument
-; Buffers integer arguments for current command into a struct
-; TXTPTR: Start of argument list (after opening parenthesis)
-; OUT PARAM0/1 : Pointer to struct containing int values
-WGAmpersandStructArgument:
-	SAVE_AXY
+; WGAmpersandTempStrArgument
+; Reads a string argument for the current command in PARAM0/1.
+; This string is pointed to IN PLACE, and NOT copied.
+; OUT X : Pointer to a stored copy of the string (LSB)
+; OUT Y : Pointer to a stored copy of the string (MSB)
+; OUT A : String length
+; Side effects: Clobbers P0/P1 and all registers
+WGAmpersandTempStrArgument:
+	lda #'"'
+	jsr SYNCHR			; Expect opening quote
 
-	ldy #0
-	phy					; Can't rely on Applesoft routines to be register-safe
-
-	lda #'('
-	jsr SYNCHR			; Expect opening parenthesis
-
-WGAmpersandStructArguments_loop:
-	jsr CHRGOT
-	cmp #'"'			; Check for string pointer
-	beq WGAmpersandStructArguments_string
-
-	jsr GETBYT
-	txa
-	ply
-	sta WGAmpersandCommandBuffer,y
-	phy
-
-WGAmpersandStructArguments_nextParam:
-	jsr CHRGOT
-	cmp #')'			; All done!
-	beq WGAmpersandStructArguments_cleanup
-	jsr CHKCOM			; Verify parameter separator
-
-	ply
-	iny
-	phy
-	cpy #WGAmpersandCommandBufferEnd-WGAmpersandCommandBuffer	; Check for too many arguments
-	bne WGAmpersandStructArguments_loop
-
-WGAmpersandStructArguments_fail:
-	ldx #ERR_TOOLONG
-	jsr ERROR
-	bra WGAmpersandStructArguments_done
-
-WGAmpersandStructArguments_string:
-	jsr CHRGET								; Consume opening quote
-	lda TXTPTRL								; Allocate for, and copy the string at TXTPTR
+	lda TXTPTRL			; Grab current TXTPTR
 	sta PARAM0
 	lda TXTPTRH
 	sta PARAM1
-	lda #'"'								; Specify quote as our terminator
-	jsr WGStoreStr
 
-	ply										; Store returned string pointer in our struct
-	lda PARAM1
-	sta WGAmpersandCommandBuffer,y
-	iny
-	lda PARAM0
-	sta WGAmpersandCommandBuffer,y
-	iny
-	phy
-
-WGAmpersandStructArguments_stringLoop:
-	jsr CHRGET								; Consume the rest of the string
-	beq WGAmpersandStructArguments_stringLoopDone
+WGAmpersandTempStrArgument_loop:
+	jsr CHRGET								; Consume the string for Applesoft
+	beq WGAmpersandTempStrArgument_done
 	cmp #'"'								; Check for closing quote
-	beq WGAmpersandStructArguments_stringLoopDone
-	bra WGAmpersandStructArguments_stringLoop
+	bne WGAmpersandTempStrArgument_loop
 
-WGAmpersandStructArguments_stringLoopDone:
-	jsr CHRGET								; Consume closing quote
-	bra WGAmpersandStructArguments_nextParam
+WGAmpersandTempStrArgument_done:
+	lda #'"'
+	jsr SYNCHR			; Expect closing quote
 
-WGAmpersandStructArguments_cleanup:
-	jsr CHRGET								; Consume closing parenthesis
+	; Compute the 8-bit distance TXTPTR moved. Note that we can't simply
+	; count in the above loop, because CHRGET will skip ahead unpredictable
+	; amounts
+	sec
+	lda TXTPTRL
+	sbc PARAM0
+	dec
 
-WGAmpersandStructArguments_done:
-	ply
+	ldx PARAM0			; Return results
+	ldy PARAM1
+;	pla
 
-	PARAM16 WGAmpersandCommandBuffer
-
-	RESTORE_AXY
 	rts
 
 
@@ -372,10 +348,10 @@ WGAmpersand_DESK:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_WINDOW
+; WGAmpersand_WINDW
 ; Create a view
-; &WINDOW(id,style,x,y,width,height,canvas width,canvas height)
-WGAmpersand_WINDOW:
+; &WINDW(id,style,x,y,width,height,canvas width,canvas height)
+WGAmpersand_WINDW:
 	jsr WGAmpersandBeginArguments
 
 	jsr WGAmpersandIntArgument
@@ -421,10 +397,10 @@ WGAmpersand_WINDOW:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_CHKBOX
+; WGAmpersand_CHKBX
 ; Create a checkbox
-; &CHKBOX(id,x,y,"title")
-WGAmpersand_CHKBOX:
+; &CHKBX(id,x,y,"title")
+WGAmpersand_CHKBX:
 	jsr WGAmpersandBeginArguments
 
 	jsr WGAmpersandIntArgument
@@ -499,13 +475,6 @@ WGAmpersand_BUTTN:
 	ora WG_VIEWRECORDS+4,y
 	sta WG_VIEWRECORDS+4,y
 
-;	lda WGAmpersandCommandBuffer+6	; Set the button text
-;	sta PARAM0
-;	lda WGAmpersandCommandBuffer+7
-;	sta PARAM1
-;
-;	jsr WGViewSetTitle
-
 	jsr WGPaintView
 	jsr WGBottomCursor
 
@@ -514,10 +483,10 @@ WGAmpersand_BUTTN:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_SELECT
+; WGAmpersand_SEL
 ; Select a view
-; &SELECT(id)
-WGAmpersand_SELECT:
+; &SEL(id)
+WGAmpersand_SEL:
 	jsr WGAmpersandBeginArguments
 	jsr WGAmpersandIntArgument
 
@@ -529,10 +498,10 @@ WGAmpersand_SELECT:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_FOCUS
+; WGAmpersand_FOC
 ; Focuses selected view
-; &FOCUS
-WGAmpersand_FOCUS:
+; &FOC
+WGAmpersand_FOC:
 	jsr WGViewFocus
 	jsr WGBottomCursor
 	rts
@@ -540,10 +509,10 @@ WGAmpersand_FOCUS:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_FOCUSN
+; WGAmpersand_FOCN
 ; Focuses next view
-; &FOCUSN
-WGAmpersand_FOCUSN:
+; &FOCN
+WGAmpersand_FOCN:
 	jsr WGViewFocusNext
 	jsr WGBottomCursor
 	rts
@@ -551,10 +520,10 @@ WGAmpersand_FOCUSN:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_FOCUSP
+; WGAmpersand_FOCP
 ; Focuses previous view
-; &FOCUSN
-WGAmpersand_FOCUSP:
+; &FOCP
+WGAmpersand_FOCP:
 	jsr WGViewFocusPrev
 	jsr WGBottomCursor
 	rts
@@ -577,16 +546,16 @@ WGAmpersand_ACTGosub:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_SETACT
+; WGAmpersand_STACT
 ; Sets the callback for the selected view
-; &SETACT(lineNum)
-WGAmpersand_SETACT:
+; &STACT(lineNum)
+WGAmpersand_STACT:
 	jsr WGAmpersandBeginArguments
 
 	jsr WGAmpersandAddrArgument
 	stx	PARAM0
 	sty PARAM1
-	
+
 	jsr WGAmpersandEndArguments
 
 	jsr WGViewSetAction
@@ -613,6 +582,113 @@ WGAmpersand_TITLE:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_CURSR
+; Sets the cursor position in selected viewspace
+; &CURSR(x,y)
+WGAmpersand_CURSR:
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandIntArgument
+	pha
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	pha
+
+	jsr WGAmpersandEndArguments
+
+	ply
+	plx
+
+	jsr WGSetCursor
+
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_PRINT
+; Prints a string in the selected view at the local cursor
+; &PRINT("string")
+WGAmpersand_PRINT:
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandTempStrArgument
+	stx	PARAM0
+	sty PARAM1
+	pha
+
+	jsr WGAmpersandEndArguments
+
+	; We're pointing to the string directly in the Applesoft
+	; source, so we need to NULL-terminate it for printing. In
+	; order to avoid copying the whole thing, we'll do something
+	; kinda dirty here.
+	pla
+	tay
+	lda (PARAM0),y		; Cache the byte at the end of the string
+	pha
+
+	lda #0
+	sta (PARAM0),y		; Null-terminate the string in-place
+
+	jsr WGPrint
+
+	pla
+	sta (PARAM0),y		; Put original byte back
+
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_SCR
+; Sets scroll position of selected view
+; &SCR(x,y)
+WGAmpersand_SCR:
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandIntArgument
+	pha
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	pha
+
+	jsr WGAmpersandEndArguments
+
+	pla
+	jsr WGScrollY
+	pla
+	jsr WGScrollX
+
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_SCRBY
+; Adjusts scroll position of selected view by a delta
+; &SCRBY(x,y)
+WGAmpersand_SCRBY:
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandIntArgument
+	pha
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	pha
+
+	jsr WGAmpersandEndArguments
+
+	pla
+	jsr WGScrollYBy
+	pla
+	jsr WGScrollXBy
+
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_GOSUB
 ; A custom gosub, because we can. Only for testing at the moment
 ; &GOSUB
@@ -622,6 +698,17 @@ WGAmpersand_GOSUB:
 	lda #$03
 	sta PARAM1
 	jmp WGGosub
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_ERASE
+; Erases the contents of the selected view
+; &ERASE
+WGAmpersand_ERASE:
+	jsr WGEraseViewContents
+	jsr WGBottomCursor
+	rts
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -712,7 +799,7 @@ WG_STACKPTR:	; A place to save the stack pointer for tricky Applesoft manipulati
 
 
 ; Jump table for ampersand commands.
-; Each row is 16 bytes (14 for name, 2 for address)
+; Each row is 8 bytes (5 for name, NULL terminator, 2 for address)
 ;
 ; Note the strange byte values amidst some strings- this is because
 ; all text is tokenized before we receive it, so reserved words may
@@ -720,44 +807,59 @@ WG_STACKPTR:	; A place to save the stack pointer for tricky Applesoft manipulati
 ;
 WGAmpersandCommandTable:
 
-.byte TOKEN_HOME,0,0,0,0,0,0,0,0,0,0,0,0,0
+.byte TOKEN_HOME,0,0,0,0,0
 .addr WGAmpersand_HOME
 
-.byte "DESK",0,0,0,0,0,0,0,0,0,0
+.byte "DESK",0,0
 .addr WGAmpersand_DESK
 
-.byte "WINDOW",0,0,0,0,0,0,0,0
-.addr WGAmpersand_WINDOW
+.byte "WINDW",0
+.addr WGAmpersand_WINDW
 
-.byte "CHKBOX",0,0,0,0,0,0,0,0
-.addr WGAmpersand_CHKBOX
+.byte "CHKBX",0
+.addr WGAmpersand_CHKBX
 
-.byte "BUTTN",0,0,0,0,0,0,0,0,0
+.byte "BUTTN",0
 .addr WGAmpersand_BUTTN
 
-.byte "SELECT",0,0,0,0,0,0,0,0
-.addr WGAmpersand_SELECT
+.byte "SEL",0,0,0
+.addr WGAmpersand_SEL
 
-.byte "FOCUS",0,0,0,0,0,0,0,0,0
-.addr WGAmpersand_FOCUS
+.byte "FOC",0,0,0
+.addr WGAmpersand_FOC
 
-.byte "FOCUSN",0,0,0,0,0,0,0,0
-.addr WGAmpersand_FOCUSN
+.byte "FOCN",0,0
+.addr WGAmpersand_FOCN
 
-.byte "FOCUSP",0,0,0,0,0,0,0,0
-.addr WGAmpersand_FOCUSP
+.byte "FOCP",0,0
+.addr WGAmpersand_FOCP
 
-.byte "ACT",0,0,0,0,0,0,0,0,0,0,0
+.byte "ACT",0,0,0
 .addr WGAmpersand_ACT
 
-.byte "SETACT",0,0,0,0,0,0,0,0
-.addr WGAmpersand_SETACT
+.byte "STACT",0
+.addr WGAmpersand_STACT
 
-.byte "TITLE",0,0,0,0,0,0,0,0,0
+.byte "TITLE",0
 .addr WGAmpersand_TITLE
 
-.byte TOKEN_GOSUB,0,0,0,0,0,0,0,0,0,0,0,0,0		; For internal testing of the procedural gosub
-.addr WGAmpersand_GOSUB
+.byte "CURSR",0
+.addr WGAmpersand_CURSR
+
+.byte "SCR",0,0,0
+.addr WGAmpersand_SCR
+
+.byte "SCRBY",0
+.addr WGAmpersand_SCRBY
+
+.byte "ERASE",0
+.addr WGAmpersand_ERASE
+
+.byte TOKEN_PRINT,0,0,0,0,0
+.addr WGAmpersand_PRINT
+
+;.byte TOKEN_GOSUB,0,0,0,0,0,0,0,0,0,0,0,0,0		; For internal testing of the procedural gosub
+;.addr WGAmpersand_GOSUB
 
 
 WGAmpersandCommandTableEnd:

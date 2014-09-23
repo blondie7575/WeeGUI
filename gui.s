@@ -35,7 +35,9 @@ main:
 	CALL16 WGCreateButton,testButton2
 
 	jsr WGViewPaintAll
-;	jsr testPaintContents
+
+	lda #0
+	jsr WGSelectView
 
 ;	ldx	#5
 ;	ldy	#0
@@ -43,9 +45,11 @@ main:
 
 ;	lda	#0
 ;	jsr	WGScrollX
-;	lda	#-2
-;	jsr	WGScrollY
 
+	lda	#-17
+	jsr	WGScrollY
+
+	jsr testPaintContents
 
 keyLoop:
 	lda KBD
@@ -128,10 +132,11 @@ testPaintContents:
 
 ;;
 	jsr WGNormal
-	ldx #0
-	ldy #4
+	ldx #10
+	ldy #15
 	jsr WGSetCursor
 	CALL16 WGPrint,testStr
+
 	bra testPaintContents_done
 ;;
 
@@ -243,7 +248,7 @@ read80ColSwitch_40:
 
 
 testView:
-	.byte 0,1,7,3,62,18,80,25
+	.byte 0,1,7,3,62,18,62,40
 
 testCheck:
 	.byte 1,16,4
