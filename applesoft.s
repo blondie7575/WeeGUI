@@ -37,6 +37,7 @@ TOKEN_GOSUB = $b0		; Applesoft's token for GOSUB
 TOKEN_HOME = $97		; Applesoft's token for HOME
 TOKEN_PRINT = $ba		; Applesoft's token for PRINT
 TOKEN_MINUS = $c9		; Applesoft's token for a minus sign
+TOKEN_DRAW = $94		; Applesoft's token for DRAW
 
 ERR_UNDEFINEDFUNC = 224
 ERR_SYNTAX = 16
@@ -710,6 +711,121 @@ WGAmpersand_ERASE:
 	rts
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_NRML
+; Sets text mode to normal
+; &NRML
+WGAmpersand_NRML:
+	jsr WGNormal
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_IVER
+; Sets text mode to inverse
+; &INVR
+WGAmpersand_INVR:
+	jsr WGInverse
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_FILL
+; Fills a rectangle with a character
+; &FILL(x,y,width,height,char)
+WGAmpersand_FILL:
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandIntArgument
+	sta PARAM0
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta PARAM1
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta PARAM2
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta PARAM3
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	ora #$80					; Convert to Apple format
+	pha
+
+	jsr WGAmpersandEndArguments
+	plx
+
+	jsr WGFillRect
+	jsr WGBottomCursor
+
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_DRAW
+; Strokes a rectangle with a character
+; &DRAW(x,y,width,height)
+WGAmpersand_DRAW:
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandIntArgument
+	sta PARAM0
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta PARAM1
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta PARAM2
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta PARAM3
+
+	jsr WGAmpersandEndArguments
+
+	jsr WGStrokeRect
+	jsr WGBottomCursor
+
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_PNT
+; Repaints the selected view
+; &PNT
+WGAmpersand_PNT:
+	jsr WGPaintView
+	jsr WGBottomCursor
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_UNPNT
+; Erases the selected view
+; &UNPNT
+WGAmpersand_UNPNT:
+	jsr WGEraseView
+	jsr WGBottomCursor
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_PNTA
+; Repaints all views
+; &PNTA
+WGAmpersand_PNTA:
+	jsr WGViewPaintAll
+	jsr WGBottomCursor
+	rts
+
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGBottomCursor
@@ -801,7 +917,7 @@ WG_STACKPTR:	; A place to save the stack pointer for tricky Applesoft manipulati
 ; Jump table for ampersand commands.
 ; Each row is 8 bytes (5 for name, NULL terminator, 2 for address)
 ;
-; Note the strange byte values amidst some strings- this is because
+; Note the strange constants in place of some strings- this is because
 ; all text is tokenized before we receive it, so reserved words may
 ; be compressed
 ;
@@ -857,6 +973,28 @@ WGAmpersandCommandTable:
 
 .byte TOKEN_PRINT,0,0,0,0,0
 .addr WGAmpersand_PRINT
+
+.byte "NRML",0,0
+.addr WGAmpersand_NRML
+
+.byte "INVR",0,0
+.addr WGAmpersand_INVR
+
+.byte "FILL",0,0
+.addr WGAmpersand_FILL
+
+.byte TOKEN_DRAW,0,0,0,0,0
+.addr WGAmpersand_DRAW
+
+.byte "PNT",0,0,0
+.addr WGAmpersand_PNT
+
+.byte "UNPNT",0
+.addr WGAmpersand_UNPNT
+
+.byte "PNTA",0,0
+.addr WGAmpersand_PNTA
+
 
 ;.byte TOKEN_GOSUB,0,0,0,0,0,0,0,0,0,0,0,0,0		; For internal testing of the procedural gosub
 ;.addr WGAmpersand_GOSUB

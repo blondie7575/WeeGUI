@@ -14,7 +14,7 @@
 ; PARAM1: Top edge
 ; PARAM2: Width
 ; PARAM3: Height
-; X: Character to fill
+; X: Character to fill (Apple format)
 ; Side effects: Clobbers BASL,BASH
 ;
 WGFillRect:

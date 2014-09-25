@@ -535,20 +535,20 @@ WGEraseView:
 
 	LDY_ACTIVEVIEW
 
-	lda	WG_VIEWRECORDS,y	; Fetch the record
+	lda	WG_VIEWRECORDS+0,y
 	dec
 	sta PARAM0
-	iny
-	lda	WG_VIEWRECORDS,y
+
+	lda	WG_VIEWRECORDS+1,y
 	dec
 	sta PARAM1
-	iny
-	lda	WG_VIEWRECORDS,y
+
+	lda	WG_VIEWRECORDS+2,y
 	inc
 	inc
 	sta PARAM2
-	iny
-	lda	WG_VIEWRECORDS,y
+
+	lda	WG_VIEWRECORDS+3,y
 	inc
 	inc
 	sta PARAM3

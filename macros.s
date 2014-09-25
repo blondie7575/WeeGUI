@@ -166,10 +166,10 @@
 
 .macro VBL_SYNC				; Synchronize with vertical blanking
 	lda #$80
-macroWaitVBLToFinish:
-	bit	RDVBLBAR
-	bmi	macroWaitVBLToFinish
-macroWaitVBLToStart:
-	bit	RDVBLBAR
-	bpl	macroWaitVBLToStart
+;macroWaitVBLToFinish:
+;	bit	RDVBLBAR
+;	bmi	macroWaitVBLToFinish
+@macroWaitVBLToStart:
+;	bit	RDVBLBAR
+;	bpl	@macroWaitVBLToStart
 .endmacro
