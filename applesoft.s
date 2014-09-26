@@ -38,6 +38,7 @@ TOKEN_HOME = $97		; Applesoft's token for HOME
 TOKEN_PRINT = $ba		; Applesoft's token for PRINT
 TOKEN_MINUS = $c9		; Applesoft's token for a minus sign
 TOKEN_DRAW = $94		; Applesoft's token for DRAW
+TOKEN_PLOT = $8d		; Applesoft's token for PLOT
 
 ERR_UNDEFINEDFUNC = 224
 ERR_SYNTAX = 16
@@ -825,6 +826,33 @@ WGAmpersand_PNTA:
 	rts
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_PLOT
+; Plots a single character (in Apple format)
+; &PLOT(x,y,value)
+WGAmpersand_PLOT:
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandIntArgument
+	sta WG_CURSORX
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WG_CURSORY
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	pha
+
+	jsr WGAmpersandEndArguments
+
+	pla
+	jsr WGPlot
+	jsr WGBottomCursor
+
+	rts
+
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -994,6 +1022,9 @@ WGAmpersandCommandTable:
 
 .byte "PNTA",0,0
 .addr WGAmpersand_PNTA
+
+.byte TOKEN_PLOT,0,0,0,0,0
+.addr WGAmpersand_PLOT
 
 
 ;.byte TOKEN_GOSUB,0,0,0,0,0,0,0,0,0,0,0,0,0		; For internal testing of the procedural gosub
