@@ -849,7 +849,7 @@ WGAmpersand_PLOT:
 	pla
 	jsr WGPlot
 	jsr WGBottomCursor
-
+	
 	rts
 
 

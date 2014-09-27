@@ -155,6 +155,27 @@ CH_TOP = '_'+$80
 CH_BOTTOM = 'L'
 CH_LEFT = 'Z'
 CH_RIGHT = '_'
+CH_DOUBLE = '\'
+
+.macro PLOTHLINE
+	lda (BASL),y
+	cmp SCRATCH0
+	beq @PLOTHLINE_skip
+	cmp #CH_DOUBLE
+	beq @PLOTHLINE_skip
+	cmp #CH_BOTTOM
+	beq @PLOTHLINE_double
+	cmp #CH_TOP
+	beq @PLOTHLINE_double
+	lda SCRATCH0
+	bra @PLOTHLINE_plot
+@PLOTHLINE_double:
+	lda #CH_DOUBLE
+@PLOTHLINE_plot:
+	sta (BASL),y
+@PLOTHLINE_skip:
+.endmacro
+
 
 WGStrokeRect:
 
@@ -185,12 +206,16 @@ WGStrokeRect_horzEdge:
 
 	lda	PARAM0			; Left edge even?
 	and	#$01
-	bne	WGStrokeRect_horzLoopOdd
+	beq	WGStrokeRect_horzEdgeEven
+	jmp WGStrokeRect_horzLoopOdd
 
+WGStrokeRect_horzEdgeEven:
 	lda	PARAM2
 	cmp #1				; Width==1 is a special case
-	beq WGStrokeRect_horzLoopEvenAlignedOneWidth
+	bne WGStrokeRect_horzLoopEvenAlignedNormalWidth
+	jmp WGStrokeRect_horzLoopEvenAlignedOneWidth
 
+WGStrokeRect_horzLoopEvenAlignedNormalWidth:
 	; CASE 1: Left edge even-aligned, even width
 	SETSWITCH	PAGE2OFF
 	lda	PARAM2
@@ -200,8 +225,7 @@ WGStrokeRect_horzEdge:
 	phy					; We'll reuse this calculation for the odd columns
 
 WGStrokeRect_horzLoopEvenAligned0:	; Draw even columns
-	lda	SCRATCH0					; Plot the character
-	sta	(BASL),y
+	PLOTHLINE						; Plot the character
 	dey
 	bpl	WGStrokeRect_horzLoopEvenAligned0	; Loop for w/2
 
@@ -209,8 +233,7 @@ WGStrokeRect_horzLoopEvenAligned0:	; Draw even columns
 	ply								; Start at right edge again
 
 WGStrokeRect_horzLoopEvenAligned1:	; Draw odd columns
-	lda	SCRATCH0					; Plot the character
-	sta	(BASL),y
+	PLOTHLINE						; Plot the character
 	dey
 	bpl	WGStrokeRect_horzLoopEvenAligned1	; Loop for w/2
 
@@ -223,13 +246,15 @@ WGStrokeRect_horzLoopEvenAlignedOddWidth:
 	lda	PARAM2						; Fill in extra last column
 	lsr
 	tay
-	lda	SCRATCH0					; Plot the character
-	sta	(BASL),y
+	PLOTHLINE						; Plot the character
 
 WGStrokeRect_horzLoopEvenAlignedEvenWidth:
 	inx
 	cpx	PARAM1
-	bne WGStrokeRect_vertEdge
+	beq WGStrokeRect_horzLoopEvenAlignedEvenWidthBottom
+	jmp WGStrokeRect_vertEdge
+
+WGStrokeRect_horzLoopEvenAlignedEvenWidthBottom:
 	clc								; Prepare for bottom edge
 	lda PARAM1
 	adc PARAM3
@@ -256,8 +281,7 @@ WGStrokeRect_horzLoopOdd:
 	phy					; We'll reuse this calculation for the even columns
 
 WGStrokeRect_horzLoopOddAligned0:		; Draw even columns
-	lda	SCRATCH0					; Plot the character
-	sta	(BASL),y
+	PLOTHLINE						; Plot the character
 	dey
 	bne	WGStrokeRect_horzLoopOddAligned0	; Loop for w/2
 
@@ -266,8 +290,7 @@ WGStrokeRect_horzLoopOddAligned0:		; Draw even columns
 	dey
 
 WGStrokeRect_horzLoopOddAligned1:		; Draw even columns
-	lda	SCRATCH0					; Plot the character
-	sta	(BASL),y
+	PLOTHLINE						; Plot the character
 	dey
 	bpl	WGStrokeRect_horzLoopOddAligned1	; Loop for w/2
 
@@ -281,8 +304,7 @@ WGStrokeRect_horzLoopOddAlignedOddWidth:
 	dec
 	lsr
 	tay
-	lda	SCRATCH0					; Plot the character
-	sta	(BASL),y
+	PLOTHLINE						; Plot the character
 
 WGStrokeRect_horzLoopOddAlignedEvenWidth:
 	inx
