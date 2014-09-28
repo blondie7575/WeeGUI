@@ -77,6 +77,8 @@ keyLoop:
 	beq	keyLoop_upArrow
 	cmp #10
 	beq	keyLoop_downArrow
+	cmp #113
+	beq	keyLoop_quit
 
 	jmp keyLoop
 
@@ -122,7 +124,9 @@ keyLoop_focusOkay:
 	jsr WGViewFocus
 	jmp keyLoop
 
-	rts			; This seems to work for returning to BASIC.SYSTEM, but I don't think it's right
+keyLoop_quit:
+	jsr WGDisableMouse
+	rts			; This seems to work for returning to BASIC.SYSTEM, but I don't know if it's right
 
 testPaintContents:
 	SAVE_AXY

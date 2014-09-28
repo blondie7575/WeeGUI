@@ -8,6 +8,15 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ProDOS ROM entry points and constants
+;
+PRODOS_MLI = $bf00
+
+ALLOC_INTERRUPT = $40
+DEALLOC_INTERRUPT = $41
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Mouse firmware ROM entry points and constants
 ;
 SETMOUSE = $c412		; Indirect
@@ -30,7 +39,7 @@ MOUSE_CLAMPH = $05f8
 MOUSTAT_MASK_BUTTONINT = %00000100
 MOUSTAT_MASK_MOVEINT = %00000010
 MOUSTAT_MASK_DOWN = %10000000
-MOUSTAT_MASK_HELD = %01000000
+MOUSTAT_MASK_WASDOWN = %01000000
 MOUSTAT_MASK_MOVED = %00100000
 
 MOUSEMODE_OFF = $00		; Mouse off
@@ -40,22 +49,19 @@ MOUSEMODE_BUTINT = $05	; Interrupts on button
 MOUSEMODE_COMBINT = $07	; Interrupts on movement and button
 
 
-.macro CALLMOUSE name	; Mouse firmware is all indirectly called, because
-	pha
-	lda name			; it moved around a lot in different Apple ][ ROM
-	sta WG_MOUSE_JUMPL	; versions. This macro abstracts this for us.
+; Mouse firmware is all indirectly called, because
+; it moved around a lot in different Apple ][ ROM
+; versions. This macro abstracts this for us.
+; NOTE: Clobbers X and Y registers!
+.macro CALLMOUSE name
+	ldx name
+	stx WG_MOUSE_JUMPL
 
-	pla
 	php					; Note that mouse firmware is not re-entrant,
 	sei					; so we must disable interrupts inside them
 
-	phx
-	phy
 	jsr WGEnableMouse_CallFirmware
-	ply
-	plx
-
-	plp
+	plp					; Restore interrupts to previous state
 
 .endmacro
 
@@ -83,18 +89,18 @@ WGEnableMouse:
 	asl
 	sta WG_MOUSE_SLOTSHIFTED
 
-	; Install our interrupt handler
-	lda #<WGMouseInterruptHandler
-	sta IRQVECTORL
-	lda #>WGMouseInterruptHandler
-	sta IRQVECTORH
+	; Install our interrupt handler via ProDOS (play nice!)
+	jsr PRODOS_MLI
+	.byte ALLOC_INTERRUPT
+	.addr WG_PRODOS_ALLOC
+	bne WGEnableMouse_Error		; ProDOS will return here with Z clear on error
 
 	; Initialize the mouse
 	lda #0
 	sta WG_MOUSEPOS_X
 	sta WG_MOUSEPOS_Y
 	sta WG_MOUSEBG
-	
+
 	CALLMOUSE INITMOUSE
 	bcs WGEnableMouse_Error	; Firmware sets carry if mouse is not available
 
@@ -122,7 +128,7 @@ WGEnableMouse:
 	lda #1
 	sta WG_MOUSEACTIVE
 
-	cli
+	cli					; Once all setup is done, it's safe to enable interrupts
 	bra WGEnableMouse_done
 
 WGEnableMouse_Error:
@@ -152,6 +158,16 @@ WGDisableMouse:
 	lda #0
 	sta WG_MOUSEACTIVE
 
+	; Remove our interrupt handler via ProDOS (done playing nice!)
+	lda WG_PRODOS_ALLOC+1		; Copy interrupt ID that ProDOS gave us
+	sta WG_PRODOS_DEALLOC+1
+
+	jsr PRODOS_MLI
+	.byte DEALLOC_INTERRUPT
+	.addr WG_PRODOS_DEALLOC
+
+	jsr WGUndrawPointer			; Be nice if we're disabled during a program
+
 	pla
 	rts
 
@@ -160,19 +176,34 @@ WGDisableMouse:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGMouseInterruptHandler
 ; Handles interrupts that may be related to the mouse
+; This is a ProDOS-compliant interrupt handling routine, and
+; should be installed and removed via ProDOS as needed.
+; 
+; IMPORTANT: This routine is NOT MLI-reentrant, which means MLI
+; calls can NOT be made within this handler. See page 108 of the
+; ProDOS 8 Technical Reference Manual if this feature needs to be
+; added.
 ;
 WGMouseInterruptHandler:
+	cld						; ProDOS interrupt handlers must open with this
+
 	SAVE_AXY
 	SETSWITCH	PAGE2OFF	; Turn this off so we don't mess up page 4 screen holes!
 
 	CALLMOUSE SERVEMOUSE
 	bcs WGMouseInterruptHandler_disregard
 
-	CALLMOUSE READMOUSE
+	jsr WGUndrawPointer			; Erase the old mouse pointer
 
-	jsr WGUndrawPointer			; Prepare to move the pointer
+	; Read the mouse state. We can't use the macro here, because
+	; interrupts need to remain off until after the data is copied
+	lda READMOUSE
+	sta WG_MOUSE_JUMPL
+	php
+	sei
+	jsr WGEnableMouse_CallFirmware
 
-	; Read mouse position and divide by 16 to get into our screen space
+	; Read mouse position and transform it into screen space
 	ldx WG_MOUSE_SLOT
 	lsr MOUSE_XH,x
 	ror MOUSE_XL,x
@@ -198,22 +229,32 @@ WGMouseInterruptHandler:
 	lda MOUSE_YL,x
 	sta WG_MOUSEPOS_Y
 
-	lda MOUSTAT,x
-	and #MOUSTAT_MASK_DOWN
-	bne WGMouseInterruptHandler_button
+	lda MOUSTAT,x			; Read status bits first, because READMOUSE clears them
+	sta WG_MOUSE_STAT
 
-	bra WGMouseInterruptHandler_intDone
+	plp					; Once we've read all the state, we can re-enable interrupts
+
+	lda WG_MOUSE_STAT				; Check for rising edge of button state
+	and #MOUSTAT_MASK_DOWN
+	beq WGMouseInterruptHandler_intDone
+	and #MOUSTAT_MASK_WASDOWN
+	bne WGMouseInterruptHandler_intDone
 
 WGMouseInterruptHandler_button:
-	jsr BELL
+
 
 WGMouseInterruptHandler_intDone:
 	jsr WGDrawPointer				; Redraw the pointer
 
 	RESTORE_AXY
 
+	clc								; Notify ProDOS this was our interrupt
+	rts
+
 WGMouseInterruptHandler_disregard:
-	rti
+	; Carry will still be set here, to notify ProDOS that
+	; this interrupt was not ours
+	rts
 
 
 
@@ -337,6 +378,8 @@ WG_MOUSEPOS_X:
 .byte 39
 WG_MOUSEPOS_Y:
 .byte 11
+WG_MOUSE_STAT:
+.byte 0
 
 WG_MOUSEBG:
 .byte 0
@@ -349,3 +392,18 @@ WG_MOUSE_SLOT:
 .byte 0
 WG_MOUSE_SLOTSHIFTED:
 .byte 0
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ProDOS system call parameter blocks
+;
+WG_PRODOS_ALLOC:
+	.byte 2
+	.byte 0						; ProDOS returns an ID number for the interrupt here
+	.addr WGMouseInterruptHandler
+
+WG_PRODOS_DEALLOC:
+	.byte 1
+	.byte 0						; To be filled with ProDOS ID number
+
+
