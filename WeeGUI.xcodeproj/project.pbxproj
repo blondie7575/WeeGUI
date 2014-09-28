@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		70427F2219D648730031D960 /* mouse.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = mouse.s; sourceTree = "<group>"; };
 		70868EE019BD150C00E4B4CB /* rects.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = rects.s; sourceTree = "<group>"; };
 		70868EE119BD178F00E4B4CB /* zeropage.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = zeropage.s; sourceTree = "<group>"; };
 		709E88E319AC0A5F0069DB55 /* views.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = views.s; sourceTree = "<group>"; };
@@ -38,6 +39,7 @@
 				70868EE019BD150C00E4B4CB /* rects.s */,
 				709E88E319AC0A5F0069DB55 /* views.s */,
 				70A3A2C219BFE2C3006A2EC4 /* applesoft.s */,
+				70427F2219D648730031D960 /* mouse.s */,
 				70D435B219A013AF001BFD9B /* gui.s */,
 				709E88E419AC0DC20069DB55 /* unit_test.s */,
 				70D435B419A0141F001BFD9B /* guidemo.s */,

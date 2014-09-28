@@ -22,7 +22,7 @@ main:
 	jsr WGInit
 	jsr WG80
 
-	rts
+	;rts
 	;jmp	tortureTestPrint
 	;jmp	tortureTestRects
 
@@ -46,10 +46,12 @@ main:
 ;	lda	#0
 ;	jsr	WGScrollX
 
-	lda	#-17
-	jsr	WGScrollY
+;	lda	#-17
+;	jsr	WGScrollY
 
-	jsr testPaintContents
+;	jsr testPaintContents
+
+	jsr WGEnableMouse
 
 keyLoop:
 	lda KBD
@@ -242,6 +244,7 @@ read80ColSwitch_40:
 .include "painting.s"
 .include "rects.s"
 .include "views.s"
+.include "mouse.s"
 .include "applesoft.s"
 .include "unit_test.s"
 .include "memory.s"

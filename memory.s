@@ -22,6 +22,9 @@ VIEW_STYLE_TAKESFOCUS = $02	; Styles >= this one are selectable
 
 VIEW_STYLE_APPLESOFT = $80	; High nybble flag bit for views created from Applesoft
 
+IRQVECTORL = $03fe
+IRQVECTORH = $03ff
+
 
 ; ROM entry points
 
@@ -29,6 +32,7 @@ COUT			= $fded
 BASCALC			= $fbc1
 PRBYTE			= $fdda
 RDKEY			= $fd0c
+BELL			= $fbdd
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
