@@ -19,14 +19,17 @@ DEALLOC_INTERRUPT = $41
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Mouse firmware ROM entry points and constants
 ;
-SETMOUSE = $c412		; Indirect
-SERVEMOUSE = $c413		; Indirect
-READMOUSE = $c414		; Indirect
-CLEARMOUSE = $c415		; Indirect
-POSMOUSE = $c416		; Indirect
-CLAMPMOUSE = $c417		; Indirect
-HOMEMOUSE = $c418		; Indirect
-INITMOUSE = $c419		; Indirect
+
+; These mouse firmware entry points are offsets from the firmware
+; entry point of the slot, and also indirect.
+SETMOUSE = $12
+SERVEMOUSE = $13
+READMOUSE = $14
+CLEARMOUSE = $15
+POSMOUSE = $16
+CLAMPMOUSE = $17
+HOMEMOUSE = $18
+INITMOUSE = $19
 
 MOUSTAT = $0778			; + Slot Num
 MOUSE_XL = $0478		; + Slot Num
@@ -54,15 +57,8 @@ MOUSEMODE_COMBINT = $07	; Interrupts on movement and button
 ; versions. This macro abstracts this for us.
 ; NOTE: Clobbers X and Y registers!
 .macro CALLMOUSE name
-	ldx name
-	stx WG_MOUSE_JUMPL
-
-	php					; Note that mouse firmware is not re-entrant,
-	sei					; so we must disable interrupts inside them
-
-	jsr WGEnableMouse_CallFirmware
-	plp					; Restore interrupts to previous state
-
+	ldx #name
+	jsr WGCallMouse
 .endmacro
 
 
@@ -77,17 +73,8 @@ WGEnableMouse:
 	pha
 
 	; Find slot number and calculate the various indirections needed
-	lda #$4
-	sta WG_MOUSE_SLOT
-	lda #$c0
-	ora WG_MOUSE_SLOT
-	sta WG_MOUSE_JUMPH
-	lda WG_MOUSE_SLOT
-	asl
-	asl
-	asl
-	asl
-	sta WG_MOUSE_SLOTSHIFTED
+	jsr WGFindMouse
+	bcs WGEnableMouse_Error
 
 	; Install our interrupt handler via ProDOS (play nice!)
 	jsr PRODOS_MLI
@@ -139,11 +126,6 @@ WGEnableMouse_done:
 	pla
 	rts
 
-WGEnableMouse_CallFirmware:
-	ldx WG_MOUSE_JUMPH
-	ldy WG_MOUSE_SLOTSHIFTED
-	jmp (WG_MOUSE_JUMPL)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGDisableMouse
@@ -151,6 +133,9 @@ WGEnableMouse_CallFirmware:
 ;
 WGDisableMouse:
 	pha
+
+	lda WG_MOUSEACTIVE			; Never activated the mouse
+	beq WGDisableMouse_done
 
 	lda MOUSEMODE_OFF
 	CALLMOUSE SETMOUSE
@@ -168,9 +153,109 @@ WGDisableMouse:
 
 	jsr WGUndrawPointer			; Be nice if we're disabled during a program
 
+WGDisableMouse_done:
 	pla
 	rts
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGCallMouse
+; Calls a mouse firmware routine. Here's where we handle all
+; the layers of indirection needed to call mouse firmware. The
+; firmware moved in ROM several times over the life of the
+; Apple ][, so it's kind of a hassle to call it.
+; X: Name of routine (firmware offset constant)
+; Side effects: Clobbers all registers
+WGCallMouse:
+	stx WGCallMouse+4	; Use self-modifying code to smooth out some indirection
+
+	; This load address is overwritten by the above code, AND by the mouse set
+	; up code, to make sure we have the right slot entry point and firmware
+	; offset
+	ldx $c400			; Self-modifying code!
+	stx WG_MOUSE_JUMPL	; Get low byte of final jump from firmware
+
+	php					; Note that mouse firmware is not re-entrant,
+	sei					; so we must disable interrupts inside them
+
+	jsr WGCallMouse_redirect
+	plp					; Restore interrupts to previous state
+	rts
+
+WGCallMouse_redirect:
+	ldx WG_MOUSE_JUMPH
+	ldy WG_MOUSE_SLOTSHIFTED
+	jmp (WG_MOUSE_JUMPL)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGFindMouse
+; Figures out which slot (//e) or port (//c) the mouse is in.
+; It moved around a lot over the years. Sets it to 0 if no mouse
+; could be found
+; OUT C: Set if no mouse could be found
+WGFindMouse:
+	SAVE_AX
+
+	ldx #5
+
+WGFindMouse_loop:
+	txa							; Compute slot firmware locations for this loop
+	ora #$c0
+	sta WGFindMouse_loopModify+2		; Self-modifying code!
+	sta WGFindMouse_loopModify+9
+	sta WGFindMouse_loopModify+16
+	sta WGFindMouse_loopModify+23
+	sta WGFindMouse_loopModify+30
+
+WGFindMouse_loopModify:
+	; Check for the magic 5-byte pattern that gives away the mouse card
+	lda $c005					; These addresses are modified in place on
+	cmp #$38					; each loop iteration
+	bne WGFindMouse_nextSlot
+	lda $c007
+	cmp #$18
+	bne WGFindMouse_nextSlot
+	lda $c00b
+	cmp #$01
+	bne WGFindMouse_nextSlot
+	lda $c00c
+	cmp #$20
+	bne WGFindMouse_nextSlot
+	lda $c0fb
+	cmp #$d6
+	bne WGFindMouse_nextSlot
+	bra WGFindMouse_found
+
+WGFindMouse_nextSlot:
+	dex
+	bmi WGFindMouse_none
+	bra WGFindMouse_loop
+
+WGFindMouse_found:
+	; Found it! Now configure all our indirection lookups
+	stx WG_MOUSE_SLOT
+	lda #$c0
+	ora WG_MOUSE_SLOT
+	sta WG_MOUSE_JUMPH
+	sta WGCallMouse+5			; Self-modifying code!
+	txa
+	asl
+	asl
+	asl
+	asl
+	sta WG_MOUSE_SLOTSHIFTED
+	clc
+	bra WGFindMouse_done
+
+WGFindMouse_none:
+	lda #0
+	sta WG_MOUSE_SLOT
+	sec
+
+WGFindMouse_done:
+	RESTORE_AX
+	rts
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -195,13 +280,10 @@ WGMouseInterruptHandler:
 
 	jsr WGUndrawPointer			; Erase the old mouse pointer
 
-	; Read the mouse state. We can't use the macro here, because
-	; interrupts need to remain off until after the data is copied
-	lda READMOUSE
-	sta WG_MOUSE_JUMPL
-	php
+	; Read the mouse state. Note that interrupts need to remain
+	; off until after the data is copied.
 	sei
-	jsr WGEnableMouse_CallFirmware
+	CALLMOUSE READMOUSE
 
 	; Read mouse position and transform it into screen space
 	ldx WG_MOUSE_SLOT
@@ -232,7 +314,7 @@ WGMouseInterruptHandler:
 	lda MOUSTAT,x			; Read status bits first, because READMOUSE clears them
 	sta WG_MOUSE_STAT
 
-	plp					; Once we've read all the state, we can re-enable interrupts
+	cli						; Once we've read all the state, we can re-enable interrupts
 
 	lda WG_MOUSE_STAT				; Check for rising edge of button state
 	and #MOUSTAT_MASK_DOWN
