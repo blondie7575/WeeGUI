@@ -54,6 +54,9 @@ WG_ACTIVEVIEW:
 WG_FOCUSVIEW:
 .byte 0
 
+WG_PENDINGACTIONVIEW:
+.byte 0
+
 WG_VIEWCLIP:
 	; X0,Y0,X1,Y1. Edges of current window, in view space, right span
 .byte 0,0,0,0,0

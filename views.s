@@ -627,6 +627,9 @@ WGViewFocus:
 	lda WG_ACTIVEVIEW			; Stash current selection
 	pha
 
+	lda WG_FOCUSVIEW
+	bmi WGViewFocus_noCurrent
+
 	LDY_FOCUSVIEW				; Unfocus current view
 	lda WG_VIEWRECORDS+9,y
 	and #%01111111
@@ -636,6 +639,7 @@ WGViewFocus:
 	jsr WGSelectView
 	jsr WGPaintView
 
+WGViewFocus_noCurrent:
 	pla
 	sta WG_FOCUSVIEW			; Focus on our original selection
 	jsr WGSelectView
@@ -653,12 +657,43 @@ WGViewFocus:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGViewUnfocus
+; Unfocuses all views
+; Side effects: Changes selected view, repaints some views
+;
+WGViewUnfocus:
+	pha
+
+	lda WG_FOCUSVIEW
+	bmi WGViewUnfocus_done
+
+	LDY_FOCUSVIEW				; Unfocus current view
+	lda WG_VIEWRECORDS+9,y
+	and #%01111111
+	sta WG_VIEWRECORDS+9,y
+
+	lda WG_FOCUSVIEW
+	jsr WGSelectView
+	jsr WGPaintView
+
+	lda #$ff
+	sta WG_FOCUSVIEW
+
+WGViewUnfocus_done:
+	pla
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGViewFocusNext
 ; Shifts focus to the next view
 ; Side effects: Changes selected view, repaints some views
 ;
 WGViewFocusNext:
 	SAVE_AY
+
+	lda WG_FOCUSVIEW
+	bmi WGViewFocusNext_loop
 
 	LDY_FOCUSVIEW				; Unfocus current view
 	lda WG_VIEWRECORDS+9,y
@@ -706,6 +741,9 @@ WGViewFocusNext_focus:
 WGViewFocusPrev:
 	SAVE_AXY
 
+	lda WG_FOCUSVIEW
+	bmi WGViewFocusPrev_hadNone
+
 	LDY_FOCUSVIEW				; Unfocus current view
 	lda WG_VIEWRECORDS+9,y
 	and #%01111111
@@ -719,6 +757,7 @@ WGViewFocusPrev_loop:
 	dec	WG_FOCUSVIEW			; Decrement and wrap
 	bpl WGViewFocusPrev_wantFocus
 
+WGViewFocusPrev_hadNone:
 	ldx #$f
 WGViewFocusPrev_findEndLoop:
 	stx WG_FOCUSVIEW
@@ -759,6 +798,9 @@ WGViewFocusPrev_focus:
 ;
 WGViewFocusAction:
 	SAVE_AY
+
+	lda WG_FOCUSVIEW
+	bmi WGViewFocusAction_done
 
 	LDY_FOCUSVIEW
 	lda WG_VIEWRECORDS+4,y		; What kind of view is it?
@@ -821,6 +863,46 @@ WGViewFocusAction_mightBeZero:
 WGViewFocusAction_done:
 	RESTORE_AY
 WGViewFocusAction_knownRTS:
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGPendingViewAction
+; Performs the action of the pending view, if any
+; OUT V : Set if the caller should perform an Applesoft GOSUB
+; Side effects: Changes selected view, Repaints some views
+;
+WGPendingViewAction:
+	pha
+
+	lda WG_PENDINGACTIONVIEW
+	bmi WGPendingViewAction_done
+
+	jsr WGUndrawPointer
+	
+	jsr WGSelectView
+	jsr WGViewFocus
+	jsr WGViewFocusAction
+	jsr WGViewUnfocus
+
+	jsr WGDrawPointer		; Leave pointer hidden, but ensure
+	jsr WGUndrawPointer		; Background is correct when it moves next
+
+	lda #$ff
+	sta WG_PENDINGACTIONVIEW
+	
+WGPendingViewAction_done:
+	pla
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGPendingView
+; Returns the view that is currently pending
+; OUT A : Pending view ID, or $ff if none
+;
+WGPendingView:
+	lda WG_PENDINGACTIONVIEW
 	rts
 
 
@@ -1111,6 +1193,61 @@ WGViewPaintAll_loop:
 
 WGViewPaintAll_done:
 	RESTORE_AXY
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGViewFromPoint
+; Finds a view containing the given point
+; PARAM0:X
+; PARAM1:Y
+; OUT A: View ID (or $ff if no match)
+WGViewFromPoint:
+	SAVE_XY
+
+	ldx #$f		; Scan views backwards, because controls are usually at the end
+
+WGViewFromPoint_loop:
+	txa
+	LDY_AVIEW
+
+	lda WG_VIEWRECORDS+2,y
+	beq WGViewFromPoint_loopNext	; Not an allocated view
+
+	lda PARAM0						; Check left edge
+	cmp WG_VIEWRECORDS+0,y
+	bcc WGViewFromPoint_loopNext
+
+	lda PARAM1						; Check top edge
+	cmp WG_VIEWRECORDS+1,y
+	bcc WGViewFromPoint_loopNext
+
+	lda WG_VIEWRECORDS+0,y			; Check right edge
+	clc
+	adc WG_VIEWRECORDS+2,y
+	cmp PARAM0
+	bcc WGViewFromPoint_loopNext
+	beq WGViewFromPoint_loopNext
+
+	lda WG_VIEWRECORDS+1,y			; Check bottom edge
+	clc
+	adc WG_VIEWRECORDS+3,y
+	cmp PARAM1
+	bcc WGViewFromPoint_loopNext
+	beq WGViewFromPoint_loopNext
+
+	txa								; Found a match
+	RESTORE_XY
+	rts
+
+WGViewFromPoint_loopNext:
+	dex
+	bmi WGViewFromPoint_noMatch
+	bra WGViewFromPoint_loop
+
+WGViewFromPoint_noMatch:
+	lda #$ff
+	RESTORE_XY
 	rts
 
 

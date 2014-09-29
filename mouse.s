@@ -323,7 +323,15 @@ WGMouseInterruptHandler:
 	bne WGMouseInterruptHandler_intDone
 
 WGMouseInterruptHandler_button:
+	lda WG_MOUSEPOS_X
+	sta PARAM0
+	lda WG_MOUSEPOS_Y
+	sta PARAM1
+	jsr WGViewFromPoint
+	bmi WGMouseInterruptHandler_intDone
 
+	; Button was clicked in a view, so make a note of it
+	sta WG_PENDINGACTIONVIEW
 
 WGMouseInterruptHandler_intDone:
 	jsr WGDrawPointer				; Redraw the pointer
@@ -348,6 +356,8 @@ WGMouseInterruptHandler_disregard:
 WGUndrawPointer:
 	SAVE_AXY
 
+	lda WG_MOUSEACTIVE
+	beq WGUndrawPointer_done	; Mouse not enabled
 	lda WG_MOUSEBG
 	beq WGUndrawPointer_done	; Mouse pointer has never rendered
 
@@ -402,6 +412,9 @@ WGUndrawPointer_done:
 ;
 WGDrawPointer:
 	SAVE_AXY
+
+	lda WG_MOUSEACTIVE
+	beq WGDrawPointer_done	; Mouse not enabled
 
 	ldx	WG_MOUSEPOS_Y
 	cpx #24

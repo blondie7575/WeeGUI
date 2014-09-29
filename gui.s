@@ -54,6 +54,8 @@ main:
 	jsr WGEnableMouse
 
 keyLoop:
+	jsr WGPendingViewAction
+
 	lda KBD
 	bpl keyLoop
 	sta KBDSTRB
@@ -193,6 +195,10 @@ WGInit_clearMemLoop:
 	dey
 	bpl WGInit_clearMemLoop
 
+	lda #$ff
+	sta WG_PENDINGACTIONVIEW
+	sta WG_FOCUSVIEW
+	
 	RESTORE_AXY
 	rts
 

@@ -60,6 +60,18 @@
 .endmacro
 
 
+.macro SAVE_XY				; Saves X and Y index
+	phx
+	phy
+.endmacro
+
+
+.macro RESTORE_XY			; Restores X and Y index
+	ply
+	plx
+.endmacro
+
+
 .macro SAVE_ZPP				; Saves Zero Page locations we use for parameters
 	lda	PARAM0
 	pha
@@ -134,13 +146,19 @@
 ; Rendering macros
 ;
 
-.macro LDY_ACTIVEVIEW
-	lda WG_ACTIVEVIEW	; Find our new view record
-	asl
+
+.macro LDY_AVIEW
+	asl				; Find our new view record
 	asl
 	asl
 	asl				; Records are 16 bytes wide
 	tay
+.endmacro
+
+
+.macro LDY_ACTIVEVIEW
+	lda WG_ACTIVEVIEW	; Find our new view record
+	LDY_AVIEW
 .endmacro
 
 
@@ -156,11 +174,7 @@
 
 .macro LDY_FOCUSVIEW
 	lda WG_FOCUSVIEW	; Find our new view record
-	asl
-	asl
-	asl
-	asl				; Records are 16 bytes wide
-	tay
+	LDY_AVIEW
 .endmacro
 
 
