@@ -793,7 +793,7 @@ WGViewFocusPrev_focus:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGViewFocusAction
 ; Performs the action of the focused view
-; OUT V : Set if the caller should perform an Applesoft GOSUB
+; WG_GOSUB : Set if the caller should perform an Applesoft GOSUB
 ; Side effects: Changes selected view, Repaints some views
 ;
 WGViewFocusAction:
@@ -835,11 +835,12 @@ WGViewFocusAction_buttonClick:
 	sta WGViewFocusAction_userJSR+1
 
 WGViewFocusAction_userJSR:
-	jsr WGViewFocusAction_knownRTS		; Overwritten with user's function pointer
+	jsr WGViewFocusAction_done			; Overwritten with user's function pointer
 	bra WGViewFocusAction_done
 
 WGViewFocusAction_buttonClickApplesoft:
-	clv
+	lda #0
+	sta WG_GOSUB
 	lda WG_VIEWRECORDS+10,y				; Do we have a callback?
 	beq WGViewFocusAction_mightBeZero
 
@@ -850,8 +851,8 @@ WGViewFocusAction_buttonClickApplesoftNotZero:
 
 WGViewFocusAction_buttonClickApplesoftGosub:
 	; Caller needs to handle Applesoft Gosub, so signal with a flag and return
-	lda #%01000000
-	bit WGViewFocusAction_knownRTS	; Set V by BITting an RTS instruction
+	lda #1
+	sta WG_GOSUB
 	bra WGViewFocusAction_done
 
 WGViewFocusAction_mightBeZero:
@@ -874,7 +875,6 @@ WGViewFocusAction_knownRTS:
 ;
 WGPendingViewAction:
 	pha
-
 	lda WG_PENDINGACTIONVIEW
 	bmi WGPendingViewAction_done
 
@@ -883,6 +883,7 @@ WGPendingViewAction:
 	jsr WGSelectView
 	jsr WGViewFocus
 	jsr WGViewFocusAction
+	jsr delayShort
 	jsr WGViewUnfocus
 
 	jsr WGDrawPointer		; Leave pointer hidden, but ensure
@@ -890,7 +891,7 @@ WGPendingViewAction:
 
 	lda #$ff
 	sta WG_PENDINGACTIONVIEW
-	
+
 WGPendingViewAction_done:
 	pla
 	rts
