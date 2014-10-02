@@ -16,46 +16,38 @@
 
 .macro SAVE_AXY				; Saves all registers
 	pha
-	txa
-	pha
-	tya
-	pha
+	phx
+	phy
 .endmacro
 
 
 .macro RESTORE_AXY			; Restores all registers
-	pla
-	tay
-	pla
-	tax
+	ply
+	plx
 	pla
 .endmacro
 
 
 .macro SAVE_AY				; Saves accumulator and Y index
 	pha
-	tya
-	pha
+	phy
 .endmacro
 
 
 .macro RESTORE_AY			; Restores accumulator and Y index
-	pla
-	tay
+	ply
 	pla
 .endmacro
 
 
 .macro SAVE_AX				; Saves accumulator and X index
 	pha
-	txa
-	pha
+	phx
 .endmacro
 
 
 .macro RESTORE_AX			; Restores accumulator and X index
-	pla
-	tax
+	plx
 	pla
 .endmacro
 

@@ -6,7 +6,7 @@
 ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
 ;
 
-
+.if 0
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; delay
 ; Sleeps for ~1 second
@@ -32,6 +32,7 @@ delayInner:
 
 	RESTORE_AXY
 	rts
+.endif
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -60,7 +61,7 @@ delayShortInner:
 	RESTORE_AXY
 	rts
 
-
+.if 0
 ;;;;;;;;;;;;;;;;;;;;;;;
 ; scanHexDigit
 ; Scans a 4 bit hex value from an ASCII character
@@ -113,7 +114,7 @@ scanHex8:
 	ora		SCRATCH0
 	iny						; Be nice and advance Y to end
 	rts
-
+.endif
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGStrLen
