@@ -82,13 +82,13 @@ WGDesktop_charLoop:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGPlot
-; Plots a character at current cursor position (assumes 80 cols)
+; Plots a character at global cursor position (assumes 80 cols)
 ; A: Character to plot (Apple format)
 ; Side effects: Clobbers S0, BASL,BASH
 ;
 WGPlot:
 	sta SCRATCH0
-	SAVE_AXY
+	SAVE_XY
 
 	ldx	WG_CURSORY
 	lda TEXTLINES_L,x	; Compute video memory address of point
@@ -110,19 +110,17 @@ WGPlot:
 	bne	WGPlot_xOdd
 
 	SETSWITCH	PAGE2ON		; Plot the character
-	ldy	#$0
 	lda	SCRATCH0
-	sta	(BASL),y
+	sta	(BASL)
 	jmp WGPlot_done
 
 WGPlot_xOdd:
 	SETSWITCH	PAGE2OFF	; Plot the character
-	ldy	#$0
 	lda	SCRATCH0
-	sta	(BASL),y
+	sta	(BASL)
 
 WGPlot_done:
-	RESTORE_AXY
+	RESTORE_XY
 	rts
 
 
@@ -146,16 +144,8 @@ WGPrint:
 	sta	SCRATCH1
 
 	LDX_ACTIVEVIEW			; Cache view width for later
-	inx
-	inx
-	inx
-	inx
-	inx
-	inx
-	inx
-	lda WG_VIEWRECORDS,x
+	lda WG_VIEWRECORDS+7,x
 	sta WG_SCRATCHA
-	inx						; Leave X pointing at view height, for later quick access
 
 	ldy #0
 
@@ -168,10 +158,10 @@ WGPrint_lineLoopFirst:		; Calculating start of first line is slightly different
 	cmp WG_VIEWCLIP+0
 	bcs WGPrint_visibleChars
 
-	lda	WG_VIEWCLIP+0
-	sec						; Line begins before left clip plane
+	lda	WG_VIEWCLIP+0		; Line begins before left clip plane
+	sec						; Advance string index and advance cursor into clip box
 	sbc WG_LOCALCURSORX
-	tay						; Advance string index and advance cursor into clip box
+	tay
 	lda WG_VIEWCLIP+0
 	sta	WG_LOCALCURSORX
 	bra WGPrint_visibleChars
@@ -244,7 +234,7 @@ WGPrint_charLoopNormal:
 	beq	WGPrint_endVisible
 	bra WGPrint_charLoopNormal
 
-WGPrint_done:				; This is up here to keep local branches in range
+WGPrint_done:				; This is in the middle here to keep local branches in range
 	RESTORE_ZPS
 	RESTORE_AXY
 	rts
@@ -262,14 +252,14 @@ WGPrint_nextLine:
 	lda	WG_LOCALCURSORY
 	cmp	WG_VIEWCLIP+3			; Check for bottom clip plane
 	beq	WGPrint_done
-	cmp	WG_VIEWRECORDS,x		; Check for bottom of view
+	cmp	WG_VIEWRECORDS+8,x		; Check for bottom of view
 	beq	WGPrint_done
 	lda	(PARAM0),y				; Check for end string landing exactly at line end
 	beq	WGPrint_done
 	
 	lda #0						; Wrap to next line
 	sta	WG_LOCALCURSORX
-	jmp WGPrint_lineLoop
+	bra WGPrint_lineLoop
 
 WGPrint_charLoopInverse:
 	lda	(PARAM0),y			; Draw current character
@@ -282,7 +272,7 @@ WGPrint_charLoopInverse:
 WGPrint_charLoopInverseLow:
 	and #%00111111			; Normal inverse
 
-WGPrint_charLoopInversePlot:	; This is down here to keep local branches in range
+WGPrint_charLoopInversePlot:
 	jsr	WGPlot
 	iny
 
@@ -295,29 +285,4 @@ WGPrint_charLoopInversePlot:	; This is down here to keep local branches in range
 	cmp	WG_VIEWCLIP+2		; Check for right clip plane
 	beq	WGPrint_endVisible
 	bra WGPrint_charLoopInverse
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGNormal
-; Sets normal text rendering mode
-;
-WGNormal:
-	pha
-	lda #CHAR_NORMAL
-	sta INVERSE
-	pla
-	rts
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGInverse
-; Sets inverse text rendering mode
-;
-WGInverse:
-	pha
-	lda #CHAR_INVERSE
-	sta INVERSE
-	pla
-	rts
 

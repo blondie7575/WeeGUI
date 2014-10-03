@@ -595,16 +595,13 @@ WGAmpersand_CURSR:
 	jsr WGAmpersandBeginArguments
 
 	jsr WGAmpersandIntArgument
-	pha
+	sta PARAM0
 	jsr WGAmpersandNextArgument
 
 	jsr WGAmpersandIntArgument
-	pha
+	sta PARAM1
 
 	jsr WGAmpersandEndArguments
-
-	ply
-	plx
 
 	jsr WGSetCursor
 
@@ -721,7 +718,8 @@ WGAmpersand_ERASE:
 ; Sets text mode to normal
 ; &NRML
 WGAmpersand_NRML:
-	jsr WGNormal
+	lda #CHAR_NORMAL
+	sta INVERSE
 	rts
 
 
@@ -730,7 +728,8 @@ WGAmpersand_NRML:
 ; Sets text mode to inverse
 ; &INVR
 WGAmpersand_INVR:
-	jsr WGInverse
+	lda #CHAR_INVERSE
+	sta INVERSE
 	rts
 
 
@@ -762,7 +761,7 @@ WGAmpersand_FILL:
 	pha
 
 	jsr WGAmpersandEndArguments
-	plx
+	ply
 
 	jsr WGFillRect
 	jsr WGBottomCursor

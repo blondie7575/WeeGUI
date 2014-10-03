@@ -14,14 +14,12 @@
 ; PARAM1: Top edge
 ; PARAM2: Width
 ; PARAM3: Height
-; X: Character to fill (Apple format)
-; Side effects: Clobbers BASL,BASH
+; Y: Character to fill (Apple format)
+; Side effects: Clobbers Y,S0,BASL,BASH
 ;
 WGFillRect:
-
-	SAVE_AXY
-	SAVE_ZPS
-	stx	SCRATCH0
+	SAVE_AX
+	sty	SCRATCH0
 
 	clc					; Compute bottom edge
 	lda	PARAM1
@@ -58,9 +56,9 @@ WGFillRect_vertLoop:
 	dey
 	phy					; We'll reuse this calculation for the odd columns
 
+	lda	SCRATCH0					; Prepare to plot
 WGFillRect_horzLoopEvenAligned0:	; Draw even columns
-	lda	SCRATCH0					; Plot the character
-	sta	(BASL),y
+	sta	(BASL),y					; Plot the character
 	dey
 	bpl	WGFillRect_horzLoopEvenAligned0	; Loop for w/2
 
@@ -68,8 +66,7 @@ WGFillRect_horzLoopEvenAligned0:	; Draw even columns
 	ply								; Iterate w/2 again
 
 WGFillRect_horzLoopEvenAligned1:	; Draw odd columns
-	lda	SCRATCH0					; Plot the character
-	sta	(BASL),y
+	sta	(BASL),y					; Plot the character
 	dey
 	bpl	WGFillRect_horzLoopEvenAligned1	; Loop for w/2
 
@@ -89,7 +86,7 @@ WGFillRect_horzLoopEvenAlignedEvenWidth:
 	dex
 	cpx	PARAM1
 	bcs	WGFillRect_vertLoop
-	jmp	WGFillRect_done
+	bra	WGFillRect_done
 
 WGFillRect_horzLoopOdd:
 	; CASE 2: Left edge odd-aligned, even width
@@ -99,9 +96,9 @@ WGFillRect_horzLoopOdd:
 	tay					; Iterate w/2
 	phy					; We'll reuse this calculation for the even columns
 
+	lda	SCRATCH0					; Prepare to plot
 WGFillRect_horzLoopOddAligned0:		; Draw even columns
-	lda	SCRATCH0					; Plot the character
-	sta	(BASL),y
+	sta	(BASL),y					; Plot the character
 	dey
 	bne	WGFillRect_horzLoopOddAligned0	; Loop for w/2
 
@@ -110,8 +107,7 @@ WGFillRect_horzLoopOddAligned0:		; Draw even columns
 	dey
 
 WGFillRect_horzLoopOddAligned1:		; Draw even columns
-	lda	SCRATCH0					; Plot the character
-	sta	(BASL),y
+	sta	(BASL),y					; Plot the character
 	dey
 	bpl	WGFillRect_horzLoopOddAligned1	; Loop for w/2
 
@@ -130,14 +126,10 @@ WGFillRect_horzLoopOddAlignedEvenWidth:
 	plx								; Prepare for next row
 	dex
 	cpx	PARAM1
-	bcs	WGFillRect_vertLoopJmp
-	jmp WGFillRect_done
-WGFillRect_vertLoopJmp:
-	jmp	WGFillRect_vertLoop
+	bcs WGFillRect_vertLoop
 
 WGFillRect_done:
-	RESTORE_ZPS
-	RESTORE_AXY
+	RESTORE_AX
 	rts
 
 
@@ -178,7 +170,6 @@ CH_DOUBLE = '\'
 
 
 WGStrokeRect:
-
 	SAVE_AXY
 	SAVE_ZPS
 

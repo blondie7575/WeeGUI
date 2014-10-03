@@ -118,22 +118,6 @@
 .endmacro
 
 
-.macro PARAMQUAD p0,p1,p2,p3
-	lda #p0
-	sta PARAM0
-	lda #p1
-	sta PARAM1
-	lda #p2
-	sta PARAM2
-	lda #p3
-	sta PARAM3
-.endmacro
-
-.macro CALLQUAD func,p0,p1,p2,p3
-	PARAMQUAD p0,p1,p2,p3
-	jsr func
-.endmacro
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Rendering macros
 ;

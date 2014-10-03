@@ -9,19 +9,40 @@
 
 .org $4000
 
-
 ; Common definitions
 
 .include "zeropage.s"
 .include "switches.s"
 .include "macros.s"
 
-; Main
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Main entry point. BRUN will land here.
 main:
 	jsr WGInit
-	jsr WG80
-	rts
+	rts				; Don't add any bytes here!
+
+
+; This is the non-negotiable entry point used by applications Don't move it!
+; $4004
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGDispatch
+; The dispatcher for calling the assembly-language API from assembly programs
+; X: API call number
+; P0-3,Y: Parameters to call, as needed
+WGDispatch:
+	jmp (WGEntryPointTable,x)
+
+; Entry point jump table
+WGEntryPointTable:
+.addr WGClearScreen
+.addr WGDesktop
+.addr WGPlot
+.addr WGSetCursor
+.addr WGSetGlobalCursor
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -30,6 +51,7 @@ main:
 WGInit:
 	SAVE_AXY
 
+	jsr WG80
 	jsr WGInitApplesoft
 
 	ldy #15			; Clear our block allocators
@@ -59,9 +81,6 @@ WGInit_clearMemLoop:
 WG80:
 	pha
 
-;	lda #3
-;	jsr $fe95
-
 	lda	#$a0
 	jsr	$c300
 	
@@ -74,31 +93,6 @@ WG80:
 	rts
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; waitForKey
-; Spinlocks until a key is pressed
-waitForKey:
-	lda	KBDSTRB
-	bpl waitForKey
-	rts
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; read80ColSwitch
-; Returns value of the 80 col switch on //c and //c+ machines
-; OUT A: Switch state (non-zero=80 cols)
-; NOTE: Untested
-read80ColSwitch:
-	lda $c060
-	bpl read80ColSwitch_40
-	lda #$1
-	rts
-
-read80ColSwitch_40:
-	lda #$0
-	rts
-
-
 ; Code modules
 .include "utility.s"
 .include "painting.s"
@@ -108,7 +102,6 @@ read80ColSwitch_40:
 .include "applesoft.s"
 ;.include "unit_test.s"
 .include "memory.s"
-
 
 
 

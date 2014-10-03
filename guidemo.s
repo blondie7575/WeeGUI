@@ -10,23 +10,44 @@
 .org $6000
 
 ; Reserved locations
-
-
-; Constants
-
-
-; ROM entry points
+PARAM0			= $06
+PARAM1			= $07
+PARAM2			= $08
+PARAM3			= $09
 
 
 ; WeeGUI entry points
+WeeGUI = $4004
 
-GUI_MAIN = $4000
+WGClearScreen = 0
+WGDesktop = 2
+WGPlot = 4
+WGSetCursor = 6
+WGSetGlobalCursor = 8
 
 
-; Main
-
+; Sample code
 main:
+	ldx #WGClearScreen
+	jsr WeeGUI
 
+	ldx #WGDesktop
+	jsr WeeGUI
+
+	lda #40
+	sta PARAM0
+	lda #12
+	sta PARAM1
+	ldx #WGSetGlobalCursor
+	jsr WeeGUI
+
+	lda #'Q'+$80
+	ldx #WGPlot
+	jsr WeeGUI
+
+	rts
+
+.if 0
 	;jmp	tortureTestPrint
 	;jmp	tortureTestRects
 
@@ -144,8 +165,10 @@ testPaintContents:
 
 ;;
 	jsr WGNormal
-	ldx #10
-	ldy #15
+	lda #10
+	sta PARAM0
+	lda #15
+	sta PARAM1
 	jsr WGSetCursor
 	CALL16 WGPrint,testStr
 
@@ -156,6 +179,8 @@ testPaintContents:
 	ldy #0
 testPaintContents_loop:
 	ldx #0
+	stx PARAM0
+	sty PARAM1
 	jsr WGSetCursor
 
 	tya
@@ -217,7 +242,7 @@ testTitle2:
 testTitle3:
 	.byte "More Magic",0
 
-
+.endif
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 

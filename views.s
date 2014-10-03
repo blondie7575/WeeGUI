@@ -383,7 +383,8 @@ paintCheck_plot:				; Paint our state
 
 	inc WG_CURSORX				; Prepare for title
 	inc WG_CURSORX
-	jsr WGNormal
+	lda #CHAR_NORMAL
+	sta INVERSE
 
 	lda WG_VIEWRECORDS+12,y
 	sta PARAM0
@@ -436,12 +437,14 @@ paintButton:
 	lda WG_VIEWRECORDS+9,y	; Is button highlighted?
 	and #$80
 	bne paintButton_titleSelected
-	jsr WGNormal
+	lda #CHAR_NORMAL
+	sta INVERSE
 	lda #' '+$80
 	bra paintButton_titleMarginLeft
 
 paintButton_titleSelected:
-	jsr WGInverse
+	lda #CHAR_INVERSE
+	sta INVERSE
 	lda #' '
 
 paintButton_titleMarginLeft:
@@ -553,7 +556,7 @@ WGEraseView:
 	inc
 	sta PARAM3
 
-	ldx	#' '+$80
+	ldy	#' '+$80
 	jsr WGFillRect
 
 WGEraseView_done:
@@ -585,7 +588,7 @@ WGEraseViewContents:
 	lda	WG_VIEWRECORDS,y
 	sta PARAM3
 
-	ldx	#' '+$80
+	ldy	#' '+$80
 	jsr WGFillRect
 
 WGEraseViewContents_done:
@@ -950,14 +953,39 @@ WGViewSetAction_done:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGSetCursor
 ; Sets the current local view cursor
-; X: X
-; Y: Y
+; PARAM0: X
+; PARAM1: Y
 ;
 WGSetCursor:
-	stx	WG_LOCALCURSORX
-	sty	WG_LOCALCURSORY
+	pha
+
+	lda PARAM0
+	sta	WG_LOCALCURSORX
+	lda PARAM1
+	sta	WG_LOCALCURSORY
+
+	pla
 	rts
 	
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGSetGlobalCursor
+; Sets the current global cursor
+; PARAM0: X
+; PARAM1: Y
+;
+WGSetGlobalCursor:
+	pha
+
+	lda PARAM0
+	sta	WG_CURSORX
+	lda PARAM1
+	sta	WG_CURSORY
+
+	pla
+	rts
+	
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGSyncGlobalCursor

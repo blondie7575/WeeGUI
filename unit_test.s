@@ -44,8 +44,9 @@ tortureTestPrint_init:
 
 tortureTestPrint_loop:
 	phx
-	ldx	#0			; Initialize
-	ldy	#0
+	lda	#0			; Initialize
+	sta PARAM0
+	sta PARAM1
 	jsr	WGSetCursor
 	plx
 
@@ -187,7 +188,7 @@ tortureTestRectsEvenLoop:
 	dec
 	sta	$0100,x
 
-	ldx	#'Q'+$80
+	ldy	#'Q'+$80
 	jsr	WGFillRect
 	jsr	WGStrokeRect
 
@@ -252,7 +253,7 @@ tortureTestRectsOddLoop:
 	dec
 	sta	$0100,x
 
-	ldx	#'Q'+$80
+	ldy	#'Q'+$80
 	jsr	WGFillRect
 	jsr	WGStrokeRect
 

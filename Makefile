@@ -17,8 +17,8 @@ ADDRDEMO=6000
 PGM=gui
 DEMO=guidemo
 
-#all: $(DEMO) $(PGM)
-all: $(PGM)
+all: $(DEMO) $(PGM)
+#all: $(PGM)
 
 $(DEMO):
 	@PATH=$(PATH):/usr/local/bin; $(CL65) -t apple2enh --start-addr $(ADDRDEMO) -l$(DEMO).lst $(DEMO).s
@@ -31,7 +31,7 @@ $(PGM):
 	@PATH=$(PATH):/usr/local/bin; $(CL65) -t apple2enh --start-addr $(ADDR) -l$(PGM).lst $(PGM).s
 	java -jar $(AC) -d $(DEMO).dsk $(PGM)
 	java -jar $(AC) -p $(DEMO).dsk $(PGM) BIN 0x$(ADDR) < $(PGM)
-#	rm -f $(PGM)
+	rm -f $(PGM)
 	rm -f $(PGM).o
 	osascript V2Make.scpt $(PROJECT_DIR) $(DEMO) $(PGM)
 
