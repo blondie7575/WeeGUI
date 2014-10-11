@@ -873,7 +873,7 @@ WGViewFocusAction_knownRTS:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGPendingViewAction
 ; Performs the action of the pending view, if any
-; OUT V : Set if the caller should perform an Applesoft GOSUB
+; Global flag set if the caller should perform an Applesoft GOSUB
 ; Side effects: Changes selected view, Repaints some views
 ;
 WGPendingViewAction:

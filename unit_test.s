@@ -8,7 +8,7 @@
 ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
 ;
 
-
+.if 0
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; tortureTestPrint
 ; Prints strings in a range of positions and scrolling offsets
@@ -126,6 +126,7 @@ tortureTestPrint_reset:
 tortureTestPrint_lock:
 	jmp tortureTestPrint_lock
 
+.endif
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; tortureTestRects
@@ -137,7 +138,8 @@ tortureTestPrint_lock:
 	; Curr Width
 	; Curr Height
 tortureTestRects:
-	jsr WGClearScreen
+	ldx #WGClearScreen
+	jsr WeeGUI
 
 tortureTestRectsEven:
 
@@ -151,7 +153,11 @@ tortureTestRectsEven:
 	pha
 
 tortureTestRectsEvenLoop:
-	jsr WGClearScreen
+@0:	lda $C019		; Sync to VBL
+	bmi @0
+
+	ldx #WGClearScreen
+	jsr WeeGUI
 
 	tsx
 	inx
@@ -189,8 +195,10 @@ tortureTestRectsEvenLoop:
 	sta	$0100,x
 
 	ldy	#'Q'+$80
-	jsr	WGFillRect
-	jsr	WGStrokeRect
+	ldx	#WGFillRect
+	jsr WeeGUI
+	ldx #WGStrokeRect
+	jsr WeeGUI
 
 	jsr delayShort
 	jsr delayShort
@@ -216,7 +224,8 @@ tortureTestRectsOdd:
 	pha
 
 tortureTestRectsOddLoop:
-	jsr WGClearScreen
+	ldx #WGClearScreen
+	jsr WeeGUI
 
 	tsx
 	inx
@@ -254,8 +263,10 @@ tortureTestRectsOddLoop:
 	sta	$0100,x
 
 	ldy	#'Q'+$80
-	jsr	WGFillRect
-	jsr	WGStrokeRect
+	ldx	#WGFillRect
+	jsr WeeGUI
+	ldx #WGStrokeRect
+	jsr WeeGUI
 
 	jsr delayShort
 	jsr delayShort
@@ -270,6 +281,34 @@ tortureTestRectsOddDone:
 	pla
 
 	jmp	tortureTestRectsEven
+
+
+
+delayShort:
+	pha
+	phx
+	phy
+
+	ldy		#$06	; Loop a bit
+delayShortOuter:
+	ldx		#$ff
+delayShortInner:
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	dex
+	bne		delayShortInner
+	dey
+	bne		delayShortOuter
+
+	ply
+	plx
+	pla
+	rts
 
 
 

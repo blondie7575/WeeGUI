@@ -1,51 +1,200 @@
 ;
 ;  guidemo.s
-;  AssemblyTest
+;  WeeGUI sample application
 ;
 ;  Created by Quinn Dunki on 8/15/14.
 ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
 ;
 
 
+.include "WeeGUI_MLI.s"
+
+
 .org $6000
 
-; Reserved locations
-PARAM0			= $06
-PARAM1			= $07
-PARAM2			= $08
-PARAM3			= $09
+INBUF			= $0200
+DOSCMD			= $be03
+KBD				= $c000
+KBDSTRB			= $c010
 
 
-; WeeGUI entry points
-WeeGUI = $4004
-
-WGClearScreen = 0
-WGDesktop = 2
-WGPlot = 4
-WGSetCursor = 6
-WGSetGlobalCursor = 8
+.macro WGCALL16 func,addr
+	lda #<addr
+	sta PARAM0
+	lda #>addr
+	sta PARAM1
+	ldx #func
+	jsr WeeGUI
+.endmacro
 
 
 ; Sample code
 main:
+
+	; BLOAD the GUI library
+	ldx #0
+	ldy #0
+@0:	lda bloadCmdLine,x
+	beq @1
+	sta INBUF,y
+	inx
+	iny
+	bra @0
+@1:	jsr DOSCMD
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Show off some WeeGUI features
+
+
 	ldx #WGClearScreen
 	jsr WeeGUI
 
 	ldx #WGDesktop
 	jsr WeeGUI
 
-	lda #40
-	sta PARAM0
-	lda #12
-	sta PARAM1
-	ldx #WGSetGlobalCursor
+	WGCALL16 WGCreateView,testView
+	WGCALL16 WGViewSetTitle,testTitle0
+	WGCALL16 WGCreateCheckbox,testCheck
+	WGCALL16 WGCreateButton,testButton1
+	WGCALL16 WGCreateButton,testButton2
+
+	ldx #WGViewPaintAll
 	jsr WeeGUI
 
-	lda #'Q'+$80
-	ldx #WGPlot
+	lda #0
+	ldx #WGSelectView
 	jsr WeeGUI
 
+	ldx #WGEnableMouse
+	jsr WeeGUI
+
+keyLoop:
+	ldx #WGPendingViewAction
+	jsr WeeGUI
+
+	lda KBD
+	bpl keyLoop
+	sta KBDSTRB
+
+	and #%01111111
+	cmp #9
+	beq keyLoop_focusNext
+	cmp #27
+	beq keyLoop_focusPrev
+	cmp #13
+	beq keyLoop_toggle
+	cmp #32
+	beq keyLoop_toggle
+	cmp #'o'
+	beq	keyLoop_focusOkay
+	cmp #8
+	beq	keyLoop_leftArrow
+	cmp #21
+	beq	keyLoop_rightArrow
+	cmp #11
+	beq	keyLoop_upArrow
+	cmp #10
+	beq	keyLoop_downArrow
+	cmp #113
+	beq	keyLoop_quit
+
+	jmp keyLoop
+
+keyLoop_focusNext:
+	ldx #WGViewFocusNext
+	jsr WeeGUI
+	jmp keyLoop
+
+keyLoop_focusPrev:
+	ldx #WGViewFocusPrev
+	jsr WeeGUI
+	jmp keyLoop
+
+keyLoop_toggle:
+	ldx #WGViewFocusAction
+	jsr WeeGUI
+	jmp keyLoop
+
+keyLoop_leftArrow:
+	lda #1
+	ldx #WGScrollXBy
+	jsr WeeGUI
+	jsr testPaintContents
+	jmp keyLoop
+
+keyLoop_rightArrow:
+	lda #-1
+	ldx #WGScrollXBy
+	jsr WeeGUI
+	jsr testPaintContents
+	jmp keyLoop
+
+keyLoop_upArrow:
+	lda #1
+	ldx #WGScrollYBy
+	jsr WeeGUI
+	jsr testPaintContents
+	jmp keyLoop
+
+keyLoop_downArrow:
+	lda #-1
+	ldx #WGScrollYBy
+	jsr WeeGUI
+	jsr testPaintContents
+	jmp keyLoop
+
+keyLoop_focusOkay:
+	lda #2
+	ldx #WGSelectView
+	jsr WeeGUI
+	ldx #WGViewFocus
+	jsr WeeGUI
+	jmp keyLoop
+
+keyLoop_quit:
+	ldx #WGDisableMouse
+	jsr WeeGUI
 	rts
+
+testPaintContents:
+	lda #0
+	ldx #WGSelectView
+	jsr WeeGUI
+	ldx #WGEraseViewContents
+	jsr WeeGUI
+
+	ldy #0
+testPaintContents_loop:
+	ldx #0
+	stx PARAM0
+	sty PARAM1
+	ldx #WGSetCursor
+	jsr WeeGUI
+
+	tya
+	clc
+	adc #'A'
+	sta testStr3
+
+	WGCALL16 WGPrint,testStr3
+
+	iny
+	cpy #25
+	bne testPaintContents_loop
+
+testPaintContents_done:
+	rts
+
+
+
+testCallback:
+	jsr $ff3a		; boop!
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .if 0
 	;jmp	tortureTestPrint
@@ -78,90 +227,6 @@ main:
 
 	jsr WGEnableMouse
 
-keyLoop:
-	jsr WGPendingViewAction
-
-	lda KBD
-	bpl keyLoop
-	sta KBDSTRB
-
-	and #%01111111
-	cmp #9
-	beq keyLoop_focusNext
-	cmp #27
-	beq keyLoop_focusPrev
-	cmp #13
-	beq keyLoop_toggle
-	cmp #32
-	beq keyLoop_toggle
-	cmp #'o'
-	beq	keyLoop_focusOkay
-	cmp #8
-	beq	keyLoop_leftArrow
-	cmp #21
-	beq	keyLoop_rightArrow
-	cmp #11
-	beq	keyLoop_upArrow
-	cmp #10
-	beq	keyLoop_downArrow
-	cmp #113
-	beq	keyLoop_quit
-
-	jmp keyLoop
-
-keyLoop_focusNext:
-	jsr WGViewFocusNext
-	jmp keyLoop
-
-keyLoop_focusPrev:
-	jsr WGViewFocusPrev
-	jmp keyLoop
-
-keyLoop_toggle:
-	jsr WGViewFocusAction
-	jmp keyLoop
-
-keyLoop_leftArrow:
-	lda #1
-	jsr WGScrollXBy
-	jsr testPaintContents
-	jmp keyLoop
-
-keyLoop_rightArrow:
-	lda #-1
-	jsr WGScrollXBy
-	jsr testPaintContents
-	jmp keyLoop
-
-keyLoop_upArrow:
-	lda #1
-	jsr WGScrollYBy
-	jsr testPaintContents
-	jmp keyLoop
-
-keyLoop_downArrow:
-	lda #-1
-	jsr WGScrollYBy
-	jsr testPaintContents
-	jmp keyLoop
-
-keyLoop_focusOkay:
-	lda #2
-	jsr WGSelectView
-	jsr WGViewFocus
-	jmp keyLoop
-
-keyLoop_quit:
-	jsr WGDisableMouse
-	rts			; This seems to work for returning to BASIC.SYSTEM, but I don't know if it's right
-
-testPaintContents:
-	SAVE_AXY
-
-	lda #0
-	jsr WGSelectView
-	jsr WGEraseViewContents
-
 
 ;;
 	jsr WGNormal
@@ -176,37 +241,18 @@ testPaintContents:
 ;;
 
 
-	ldy #0
-testPaintContents_loop:
-	ldx #0
-	stx PARAM0
-	sty PARAM1
-	jsr WGSetCursor
-
-	tya
-	clc
-	adc #'A'
-	sta testStr3
-
-	CALL16 WGPrint,testStr3
-
-	iny
-	cpy #25
-	bne testPaintContents_loop
-
-testPaintContents_done:
-	RESTORE_AXY
-	rts
-
 testCallback:
 	jsr $ff3a
 	rts
 
 	rts
 
-
+.endif
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+bloadCmdLine:
+	.byte "BRUN gui",$8d,0
 
 testView:
 	.byte 0,1,7,3,62,18,62,40
@@ -242,8 +288,12 @@ testTitle2:
 testTitle3:
 	.byte "More Magic",0
 
-.endif
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+.include "unit_test.s"
+
 
 
 ; Suppress some linker warnings - Must be the last thing in the file

@@ -22,6 +22,7 @@
 		70F1DB4B19A56D6300321637 /* switches.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = switches.s; sourceTree = "<group>"; };
 		70F1DB5619A6B02900321637 /* painting.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = painting.s; sourceTree = "<group>"; };
 		70F1DB5D19A7FF8700321637 /* memory.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = memory.s; sourceTree = "<group>"; };
+		70FB05F119DF5B0900573690 /* WeeGUI_MLI.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = WeeGUI_MLI.s; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -39,6 +40,7 @@
 				70868EE019BD150C00E4B4CB /* rects.s */,
 				709E88E319AC0A5F0069DB55 /* views.s */,
 				70A3A2C219BFE2C3006A2EC4 /* applesoft.s */,
+				70FB05F119DF5B0900573690 /* WeeGUI_MLI.s */,
 				70427F2219D648730031D960 /* mouse.s */,
 				70D435B219A013AF001BFD9B /* gui.s */,
 				709E88E419AC0DC20069DB55 /* unit_test.s */,

@@ -40,9 +40,38 @@ WGDispatch:
 WGEntryPointTable:
 .addr WGClearScreen
 .addr WGDesktop
-.addr WGPlot
 .addr WGSetCursor
 .addr WGSetGlobalCursor
+.addr WGSyncGlobalCursor
+.addr WGPlot
+.addr WGPrint
+.addr WGFillRect
+.addr WGStrokeRect
+.addr WGFancyRect
+.addr WGPaintView
+.addr WGViewPaintAll
+.addr WGEraseView
+.addr WGEraseViewContents
+.addr WGCreateView
+.addr WGCreateCheckbox
+.addr WGCreateButton
+.addr WGViewSetTitle
+.addr WGViewSetAction
+.addr WGSelectView
+.addr WGViewFromPoint
+.addr WGViewFocus
+.addr WGViewUnfocus
+.addr WGViewFocusNext
+.addr WGViewFocusPrev
+.addr WGViewFocusAction
+.addr WGPendingViewAction
+.addr WGPendingView
+.addr WGScrollX
+.addr WGScrollXBy
+.addr WGScrollY
+.addr WGScrollYBy
+.addr WGEnableMouse
+.addr WGDisableMouse
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -100,7 +129,6 @@ WG80:
 .include "views.s"
 .include "mouse.s"
 .include "applesoft.s"
-;.include "unit_test.s"
 .include "memory.s"
 
 
