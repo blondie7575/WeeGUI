@@ -8,7 +8,7 @@
 ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
 ;
 
-.if 0
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; tortureTestPrint
 ; Prints strings in a range of positions and scrolling offsets
@@ -19,18 +19,25 @@
 	; Delta X
 	; Delta Y
 tortureTestPrint:
-	jsr WGClearScreen
+	ldx #WGClearScreen
+	jsr WeeGUI
 
 	lda	#0			; Initialize
-	jsr WGScrollX
-	jsr WGScrollY
+	ldx #WGScrollX
+	jsr WeeGUI
+
+	ldx #WGScrollY
+	jsr WeeGUI
 
 tortureTestPrint_init:
-	CALL16 WGCreateView,testPrintView
+	WGCALL16 WGCreateView,testPrintView
 
 	lda #0
-	jsr	WGSelectView
-	jsr	WGPaintView
+	ldx #WGSelectView
+	jsr WeeGUI
+
+	ldx #WGPaintView
+	jsr WeeGUI
 
 	lda #0
 	pha
@@ -47,7 +54,8 @@ tortureTestPrint_loop:
 	lda	#0			; Initialize
 	sta PARAM0
 	sta PARAM1
-	jsr	WGSetCursor
+	ldx #WGSetCursor
+	jsr WeeGUI
 	plx
 
 	inx				; Grab current delta X
@@ -73,8 +81,11 @@ tortureTestPrint_flipDeltaX:
 	inx
 
 tortureTestPrint_continueX:
+	phx
 	lda	$0100,x
-	jsr	WGScrollX	; Apply current X scroll
+	ldx #WGScrollX	; Apply current X scroll
+	jsr WeeGUI
+	plx
 	dex
 	dex
 	dex
@@ -101,21 +112,29 @@ tortureTestPrint_flipDeltaY:
 	inx
 
 tortureTestPrint_continueY:
+	phx
 	lda	$0100,x
-	jsr	WGScrollY
+	ldx #WGScrollY
+	jsr WeeGUI
+	plx
 	dex
 	dex
 
 tortureTestPrint_print:
-	VBL_SYNC
-	jsr	WGEraseViewContents
+;	VBL_SYNC
+	phx
+	ldx #WGEraseViewContents
+	jsr WeeGUI
 
-	CALL16 WGPrint,unitTestStr
+	WGCALL16 WGPrint,unitTestStr
 
-	jsr WGPrint	; Do it again
+	ldx #WGPrint	; Do it again
+	jsr WeeGUI
 
 ;	jmp tortureTestPrint_lock
-	jsr delayShort
+	jsr delay
+
+	plx
 	jmp tortureTestPrint_loop
 
 tortureTestPrint_reset:
@@ -126,7 +145,7 @@ tortureTestPrint_reset:
 tortureTestPrint_lock:
 	jmp tortureTestPrint_lock
 
-.endif
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; tortureTestRects
@@ -284,7 +303,7 @@ tortureTestRectsOddDone:
 
 
 
-delayShort:
+delayShort:		; ~1/30 sec
 	pha
 	phx
 	phy
@@ -312,8 +331,38 @@ delayShortInner:
 
 
 
+
+delay:			; ~1 sec
+	pha
+	phx
+	phy
+
+	ldy		#$ce	; Loop a bunch
+delayOuter:
+	ldx		#$ff
+delayInner:
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	dex
+	bne		delayInner
+	dey
+	bne		delayOuter
+
+	ply
+	plx
+	pla
+	rts
+
+
+
+
 testPrintView:
-	.byte "000F061E0A287E"	; 0, 7,3,62,19,75,126
+	.byte 0,0,15,6,30,10,40,126
 
 unitTestStr:
 	.byte "This is a test of the emergency broadcast system. If this had been a real emergency, you would be dead now. Amusingly, it can be noted that if this had been a real emergency, and you were now a steaming pile of ash, there would of course be nobody.",0; to read this message. That begs any number",0; of extistential questions about this very text.",0

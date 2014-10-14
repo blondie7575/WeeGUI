@@ -84,11 +84,11 @@ WGDesktop_charLoop:
 ; WGPlot
 ; Plots a character at global cursor position (assumes 80 cols)
 ; A: Character to plot (Apple format)
-; Side effects: Clobbers S0, BASL,BASH
+; Side effects: Clobbers BASL,BASH
 ;
 WGPlot:
-	sta SCRATCH0
 	SAVE_XY
+	pha
 
 	ldx	WG_CURSORY
 	lda TEXTLINES_L,x	; Compute video memory address of point
@@ -110,13 +110,13 @@ WGPlot:
 	bne	WGPlot_xOdd
 
 	SETSWITCH	PAGE2ON		; Plot the character
-	lda	SCRATCH0
+	pla
 	sta	(BASL)
 	jmp WGPlot_done
 
 WGPlot_xOdd:
 	SETSWITCH	PAGE2OFF	; Plot the character
-	lda	SCRATCH0
+	pla
 	sta	(BASL)
 
 WGPlot_done:

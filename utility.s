@@ -6,34 +6,6 @@
 ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
 ;
 
-.if 0
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; delay
-; Sleeps for ~1 second
-;
-delay:
-	SAVE_AXY
-
-	ldy		#$ce	; Loop a bunch
-delayOuter:
-	ldx		#$ff
-delayInner:
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	dex
-	bne		delayInner
-	dey
-	bne		delayOuter
-
-	RESTORE_AXY
-	rts
-.endif
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; delayShort

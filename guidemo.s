@@ -46,6 +46,8 @@ main:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Show off some WeeGUI features
 
+	;jmp	tortureTestPrint
+	;jmp	tortureTestRects
 
 	ldx #WGClearScreen
 	jsr WeeGUI
@@ -193,61 +195,6 @@ testCallback:
 	rts
 
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-.if 0
-	;jmp	tortureTestPrint
-	;jmp	tortureTestRects
-
-	jsr WGDesktop
-
-	CALL16 WGCreateView,testView
-	CALL16 WGViewSetTitle,testTitle0
-	CALL16 WGCreateCheckbox,testCheck
-	CALL16 WGCreateButton,testButton1
-	CALL16 WGCreateButton,testButton2
-
-	jsr WGViewPaintAll
-
-	lda #0
-	jsr WGSelectView
-
-;	ldx	#5
-;	ldy	#0
-;	jsr	WGSetCursor
-
-;	lda	#0
-;	jsr	WGScrollX
-
-;	lda	#-17
-;	jsr	WGScrollY
-
-;	jsr testPaintContents
-
-	jsr WGEnableMouse
-
-
-;;
-	jsr WGNormal
-	lda #10
-	sta PARAM0
-	lda #15
-	sta PARAM1
-	jsr WGSetCursor
-	CALL16 WGPrint,testStr
-
-	bra testPaintContents_done
-;;
-
-
-testCallback:
-	jsr $ff3a
-	rts
-
-	rts
-
-.endif
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
