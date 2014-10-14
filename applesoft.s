@@ -74,16 +74,13 @@ WGInitApplesoft:
 ; The entry point from Applesoft. Applesoft text pointer
 ; will be positioned two after the '&', and accumulator will
 ; contain first character after the '&'
-; Side effects: Clobbers S0
+; Side effects: Clobbers All registers,S0
 ;
 WGAmpersand:
-
 	tsx					; Start by caching a valid stack state to return to Applesoft,
 	stx WG_STACKPTR		; in case we need to do so in a hurry
 
 	sta SCRATCH0
-	SAVE_AXY
-	SAVE_ZPP
 
 	ldy #0
 	ldx SCRATCH0
@@ -168,8 +165,6 @@ WGAmpersand_matchFail:
 	jsr ERROR
 
 WGAmpersand_done:
-	RESTORE_ZPP
-	RESTORE_AXY
 	rts
 
 

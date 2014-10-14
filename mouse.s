@@ -54,8 +54,7 @@ MOUSEMODE_COMBINT = $07	; Interrupts on movement and button
 
 ; Mouse firmware is all indirectly called, because
 ; it moved around a lot in different Apple ][ ROM
-; versions. This macro abstracts this for us.
-; NOTE: Clobbers X and Y registers!
+; versions. This macro helps abstracts this for us.
 .macro CALLMOUSE name
 	ldx #name
 	jsr WGCallMouse
@@ -83,20 +82,19 @@ WGEnableMouse:
 	bne WGEnableMouse_Error		; ProDOS will return here with Z clear on error
 
 	; Initialize the mouse
-	lda #0
-	sta WG_MOUSEPOS_X
-	sta WG_MOUSEPOS_Y
-	sta WG_MOUSEBG
+	stz WG_MOUSEPOS_X
+	stz WG_MOUSEPOS_Y
+	stz WG_MOUSEBG
 
 	CALLMOUSE INITMOUSE
 	bcs WGEnableMouse_Error	; Firmware sets carry if mouse is not available
 
 	CALLMOUSE CLEARMOUSE
 
-	lda #MOUSEMODE_COMBINT
+	lda #MOUSEMODE_COMBINT		; Enable combination interrupt mode
 	CALLMOUSE SETMOUSE
 
-	; Scale the mouse's range into something ease to do math with,
+	; Scale the mouse's range into something easy to do math with,
 	; while retaining as much range of motion and precision as possible
 	lda #$80			; 640 horizontally
 	sta MOUSE_CLAMPL
@@ -119,8 +117,7 @@ WGEnableMouse:
 	bra WGEnableMouse_done
 
 WGEnableMouse_Error:
-	lda #0
-	sta WG_MOUSEACTIVE
+	stz WG_MOUSEACTIVE
 
 WGEnableMouse_done:
 	pla
@@ -140,8 +137,7 @@ WGDisableMouse:
 	lda MOUSEMODE_OFF
 	CALLMOUSE SETMOUSE
 
-	lda #0
-	sta WG_MOUSEACTIVE
+	stz WG_MOUSEACTIVE
 
 	; Remove our interrupt handler via ProDOS (done playing nice!)
 	lda WG_PRODOS_ALLOC+1		; Copy interrupt ID that ProDOS gave us
@@ -249,8 +245,7 @@ WGFindMouse_found:
 	bra WGFindMouse_done
 
 WGFindMouse_none:
-	lda #0
-	sta WG_MOUSE_SLOT
+	stz WG_MOUSE_SLOT
 	sec
 
 WGFindMouse_done:
@@ -273,7 +268,7 @@ WGMouseInterruptHandler:
 	cld						; ProDOS interrupt handlers must open with this
 
 	SAVE_AXY
-	SETSWITCH	PAGE2OFF	; Turn this off so we don't mess up page 4 screen holes!
+	SETSWITCH	PAGE2OFF	; Make sure we don't mess up page 4 screen holes!
 
 	CALLMOUSE SERVEMOUSE
 	bcs WGMouseInterruptHandler_disregard
@@ -330,7 +325,7 @@ WGMouseInterruptHandler_button:
 	jsr WGViewFromPoint
 	bmi WGMouseInterruptHandler_intDone
 
-	; Button was clicked in a view, so make a note of it
+	; Button was clicked in a view, so make a note of it for later
 	sta WG_PENDINGACTIONVIEW
 
 WGMouseInterruptHandler_intDone:
