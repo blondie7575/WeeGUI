@@ -648,11 +648,19 @@ focusCurrent:
 	jsr WGSelectView
 
 	LDY_ACTIVEVIEW
+
+	lda WG_VIEWRECORDS+4,y
+	and #$f						; Mask off flag bits
+	cmp #VIEW_STYLE_TAKESFOCUS
+	bcc focusCurrent_done
+
 	lda WG_VIEWRECORDS+9,y
 	ora #%10000000
 	sta WG_VIEWRECORDS+9,y
 
 	jsr WGPaintView
+
+focusCurrent_done:
 	rts
 
 
