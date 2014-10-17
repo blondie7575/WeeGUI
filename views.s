@@ -647,6 +647,7 @@ focusCurrent:
 	lda	WG_FOCUSVIEW
 	jsr WGSelectView
 
+	LDY_ACTIVEVIEW
 	lda WG_VIEWRECORDS+9,y
 	ora #%10000000
 	sta WG_VIEWRECORDS+9,y
@@ -743,16 +744,13 @@ WGPendingViewAction:
 	lda WG_PENDINGACTIONVIEW
 	bmi WGPendingViewAction_done
 
-	jsr WGUndrawPointer
-	
 	jsr WGSelectView
 	jsr WGViewFocus
 	jsr WGViewFocusAction
 	jsr delayShort
 	jsr WGViewUnfocus
 
-	jsr WGDrawPointer		; Leave pointer hidden, but ensure
-	jsr WGUndrawPointer		; Background is correct when it moves next
+	jsr WGPointerDirty		; If we redrew anything, the pointer BG will be stale
 
 	lda #$ff
 	sta WG_PENDINGACTIONVIEW

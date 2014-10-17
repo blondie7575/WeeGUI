@@ -193,7 +193,7 @@ WGCallMouse_redirect:
 WGFindMouse:
 	SAVE_AX
 
-	ldx #5
+	ldx #7
 
 WGFindMouse_loop:
 	txa							; Compute slot firmware locations for this loop
@@ -268,20 +268,32 @@ WGMouseInterruptHandler:
 	cld						; ProDOS interrupt handlers must open with this
 
 	SAVE_AXY
-	SETSWITCH	PAGE2OFF	; Make sure we don't mess up page 4 screen holes!
 
 	CALLMOUSE SERVEMOUSE
 	bcs WGMouseInterruptHandler_disregard
+
+	sei
+
+	lda PAGE2			; Need to preserve text bank, because we may interrupt rendering
+	pha
+	SETSWITCH	PAGE2OFF
+
+	ldx WG_MOUSE_SLOT
+	lda MOUSTAT,x			; Check interrupt status bits first, because READMOUSE clears them
+	and #MOUSTAT_MASK_BUTTONINT
+	bne WGMouseInterruptHandler_button
 
 	jsr WGUndrawPointer			; Erase the old mouse pointer
 
 	; Read the mouse state. Note that interrupts need to remain
 	; off until after the data is copied.
-	sei
 	CALLMOUSE READMOUSE
 
-	; Read mouse position and transform it into screen space
 	ldx WG_MOUSE_SLOT
+	lda MOUSTAT,x			; Movement/button status bits are now valid
+	sta WG_MOUSE_STAT
+
+	; Read mouse position and transform it into screen space
 	lsr MOUSE_XH,x
 	ror MOUSE_XL,x
 	lsr MOUSE_XH,x
@@ -306,19 +318,27 @@ WGMouseInterruptHandler:
 	lda MOUSE_YL,x
 	sta WG_MOUSEPOS_Y
 
-	lda MOUSTAT,x			; Read status bits first, because READMOUSE clears them
-	sta WG_MOUSE_STAT
+	jsr WGDrawPointer				; Redraw the pointer
+	bra WGMouseInterruptHandler_intDone
 
-	cli						; Once we've read all the state, we can re-enable interrupts
-
-	lda WG_MOUSE_STAT				; Check for rising edge of button state
-	and #MOUSTAT_MASK_DOWN
-	beq WGMouseInterruptHandler_intDone
-	and #MOUSTAT_MASK_WASDOWN
-	bne WGMouseInterruptHandler_intDone
+WGMouseInterruptHandler_disregard:
+	; Carry will still be set here, to notify ProDOS that
+	; this interrupt was not ours
+	RESTORE_AXY
+	rts
 
 WGMouseInterruptHandler_button:
-	lda WG_MOUSEPOS_X
+
+	CALLMOUSE READMOUSE
+	ldx WG_MOUSE_SLOT
+	lda MOUSTAT,x			; Movement/button status bits are now valid
+	sta WG_MOUSE_STAT
+
+	bit WG_MOUSE_STAT			; Check for rising edge of button state
+	bpl WGMouseInterruptHandler_intDone
+	bvs WGMouseInterruptHandler_intDone
+
+	lda WG_MOUSEPOS_X		; Where did we click?
 	sta PARAM0
 	lda WG_MOUSEPOS_Y
 	sta PARAM1
@@ -329,18 +349,20 @@ WGMouseInterruptHandler_button:
 	sta WG_PENDINGACTIONVIEW
 
 WGMouseInterruptHandler_intDone:
-	jsr WGDrawPointer				; Redraw the pointer
+	pla						; Restore text bank
+	bpl WGMouseInterruptHandler_intDoneBankOff
+	SETSWITCH	PAGE2ON
+	bra WGMouseInterruptHandler_done
 
+WGMouseInterruptHandler_intDoneBankOff:
+	SETSWITCH	PAGE2OFF
+
+WGMouseInterruptHandler_done:
 	RESTORE_AXY
 
+	cli
 	clc								; Notify ProDOS this was our interrupt
 	rts
-
-WGMouseInterruptHandler_disregard:
-	; Carry will still be set here, to notify ProDOS that
-	; this interrupt was not ours
-	rts
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -349,53 +371,10 @@ WGMouseInterruptHandler_disregard:
 ; Side effects: Clobbers BASL,BASH
 ;
 WGUndrawPointer:
-	SAVE_AXY
-
-	lda WG_MOUSEACTIVE
-	beq WGUndrawPointer_done	; Mouse not enabled
-	lda WG_MOUSEBG
-	beq WGUndrawPointer_done	; Mouse pointer has never rendered
-
-	ldx	WG_MOUSEPOS_Y
-	cpx #24
-	bcs WGUndrawPointer_done
-
-	lda TEXTLINES_L,x	; Compute video memory address of point
-	sta BASL
-	lda TEXTLINES_H,x
-	sta BASH
-
-	lda	WG_MOUSEPOS_X
-	cmp #80
-	bcs WGUndrawPointer_done
-
-	lsr
-	clc
-	adc	BASL
-	sta BASL
-	lda	#$0
-	adc BASH
-	sta BASH
-
-	lda	WG_MOUSEPOS_X		; X even?
-	and	#$01
-	bne	WGUndrawPointer_xOdd
-
-	SETSWITCH	PAGE2ON		; Restore the background
-	ldy	#$0
-	lda	WG_MOUSEBG
-	sta	(BASL),y
-	bra WGUndrawPointer_done
-
-WGUndrawPointer_xOdd:
-	SETSWITCH	PAGE2OFF	; Restore the background
-	ldy	#$0
-	lda	WG_MOUSEBG
-	sta	(BASL),y
-
-WGUndrawPointer_done:
-	SETSWITCH	PAGE2OFF	; Turn this off so we don't mess up page 4 screen holes!
-	RESTORE_AXY
+	pha
+	lda #$80
+	jsr renderPointer
+	pla
 	rts
 
 
@@ -403,17 +382,50 @@ WGUndrawPointer_done:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGDrawPointer
 ; Plots the mouse pointer at current location
-; Side effects: Clobbers BASL,BASH
 ;
 WGDrawPointer:
+	pha
+	lda #0
+	jsr renderPointer
+	pla
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGPointerDirty
+; Updates the background behind the mouse pointer without
+; modifying it's current render state. Assumes pointer is not
+; currently visible
+;
+WGPointerDirty:
+	pha
+	lda #%11000000
+	jsr renderPointer
+	pla
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; renderPointer
+; Performs mouse-pointer-related rendering
+; A: 0=draw, %10000000=undraw, %11000000=recapture background
+;
+renderPointer:
 	SAVE_AXY
+	sta renderPointerMode
+	lda BASL			; Need to preserve BAS, because we may interrupt rendering
+	pha
+	lda BASH
+	pha
+	lda PAGE2			; Need to preserve text bank, because we may interrupt rendering
+	pha
 
 	lda WG_MOUSEACTIVE
-	beq WGDrawPointer_done	; Mouse not enabled
+	beq renderPointer_done	; Mouse not enabled
 
 	ldx	WG_MOUSEPOS_Y
 	cpx #24
-	bcs WGDrawPointer_done
+	bcs renderPointer_done	; Mouse out of range (vertically)
 
 	lda TEXTLINES_L,x	; Compute video memory address of point
 	sta BASL
@@ -422,40 +434,87 @@ WGDrawPointer:
 
 	lda	WG_MOUSEPOS_X
 	cmp #80
-	bcs WGDrawPointer_done
+	bcs renderPointer_done	; Mouse out of range (horizontally)
 
 	lsr
 	clc
 	adc	BASL
 	sta BASL
-	lda	#$0
+	lda	#0
 	adc BASH
 	sta BASH
 
 	lda	WG_MOUSEPOS_X		; X even?
 	and	#$01
-	bne	WGDrawPointer_xOdd
+	bne	renderPointer_xOdd
 
 	SETSWITCH	PAGE2ON
-	ldy	#$0
-	lda (BASL),y			; Save background
-	sta WG_MOUSEBG
-	lda	#CH_MOUSEPOINTER	; Draw the pointer
-	sta	(BASL),y
-	bra WGDrawPointer_done
 
-WGDrawPointer_xOdd:
+	bit renderPointerMode	; Draw or undraw?
+	bpl renderPointer_draw
+	bvc renderPointer_undraw
+
+renderPointer_draw:
+	lda (BASL)				; Save background
+	cmp #CH_MOUSEPOINTER	; Make sure we never capture ourselves and leave a "stamp"
+	beq renderPointer_drawSaved
+	sta WG_MOUSEBG
+
+renderPointer_drawSaved:
+	bit renderPointerMode	; Recapture or draw?
+	bvs renderPointer_done
+
+	lda	#CH_MOUSEPOINTER	; Draw the pointer
+	sta	(BASL)
+	bra renderPointer_done
+
+renderPointer_undraw:
+	lda	WG_MOUSEBG
+	beq	renderPointer_done	; No saved background yet
+	sta	(BASL)
+	bra renderPointer_done
+
+renderPointer_xOdd:
 	SETSWITCH	PAGE2OFF
-	ldy	#$0
-	lda (BASL),y			; Save background
-	sta WG_MOUSEBG
-	lda	#CH_MOUSEPOINTER	; Draw the pointer
-	sta	(BASL),y
 
-WGDrawPointer_done:
-	SETSWITCH	PAGE2OFF	; Turn this off so we don't mess up page 4 screen holes!
+	bit renderPointerMode	; Draw or undraw?
+	bpl renderPointer_drawOdd
+	bvc renderPointer_undraw
+
+renderPointer_drawOdd:
+	lda (BASL)				; Save background
+	cmp #CH_MOUSEPOINTER	; Make sure we never capture ourselves and leave a "stamp"
+	beq renderPointer_drawOddSaved
+	sta WG_MOUSEBG
+
+renderPointer_drawOddSaved:
+	bit renderPointerMode	; Recapture or draw?
+	bvs renderPointer_done
+
+	lda	#CH_MOUSEPOINTER	; Draw the pointer
+	sta	(BASL)
+	bra renderPointer_done
+
+renderPointer_done:
+	pla						; Restore text bank
+	bpl renderPointer_doneBankOff
+	SETSWITCH	PAGE2ON
+	bra renderPointer_doneBAS
+
+renderPointer_doneBankOff:
+	SETSWITCH	PAGE2OFF
+
+renderPointer_doneBAS:
+	pla						; Restore BAS
+	sta BASH
+	pla
+	sta BASL
+
 	RESTORE_AXY
 	rts
+
+renderPointerMode:
+	.byte 0
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -470,7 +529,6 @@ WG_MOUSEPOS_Y:
 .byte 11
 WG_MOUSE_STAT:
 .byte 0
-
 WG_MOUSEBG:
 .byte 0
 

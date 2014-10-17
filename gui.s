@@ -80,7 +80,7 @@ WGInit:
 	SAVE_AXY
 
 	jsr WG80
-;	jsr WGInitApplesoft
+	jsr WGInitApplesoft
 
 	ldy #15			; Clear our block allocators
 WGInit_clearMemLoop:
@@ -127,7 +127,7 @@ WG80:
 .include "rects.s"
 .include "views.s"
 .include "mouse.s"
-;.include "applesoft.s"
+.include "applesoft.s"
 .include "memory.s"
 
 
