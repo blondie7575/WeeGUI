@@ -78,7 +78,8 @@ WGDesktop_charLoop:
 	RESTORE_AXY
 	rts
 
-
+WGTest:
+rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGPlot
@@ -120,6 +121,7 @@ WGPlot_xOdd:
 	sta	(BASL)
 
 WGPlot_done:
+	SETSWITCH	PAGE2OFF
 	RESTORE_XY
 	rts
 

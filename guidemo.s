@@ -56,10 +56,11 @@ main:
 	jsr WeeGUI
 
 	WGCALL16 WGCreateView,testView
-	WGCALL16 WGViewSetTitle,testTitle0
-	WGCALL16 WGCreateCheckbox,testCheck
-	WGCALL16 WGCreateButton,testButton1
-	WGCALL16 WGCreateButton,testButton2
+	WGCALL16 WGViewSetAction,testPaintContentsClick
+;	WGCALL16 WGViewSetTitle,testTitle0
+;	WGCALL16 WGCreateCheckbox,testCheck
+;	WGCALL16 WGCreateButton,testButton1
+;	WGCALL16 WGCreateButton,testButton2
 
 	ldx #WGViewPaintAll
 	jsr WeeGUI
@@ -70,6 +71,8 @@ main:
 
 	ldx #WGEnableMouse
 	jsr WeeGUI
+
+	jsr testPaintContents
 
 keyLoop:
 	ldx #WGPendingViewAction
@@ -158,6 +161,9 @@ keyLoop_quit:
 	ldx #WGDisableMouse
 	jsr WeeGUI
 	rts
+
+testPaintContentsClick:
+;	brk
 
 testPaintContents:
 	lda #0

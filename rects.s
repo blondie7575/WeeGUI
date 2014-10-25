@@ -129,6 +129,7 @@ WGFillRect_horzLoopOddAlignedEvenWidth:
 	bcs WGFillRect_vertLoop
 
 WGFillRect_done:
+	SETSWITCH	PAGE2OFF
 	RESTORE_AX
 	rts
 
@@ -433,6 +434,7 @@ WGStrokeRect_vertLoopJmp:
 	jmp WGStrokeRect_vertLoop
 	
 WGStrokeRect_done:
+	SETSWITCH	PAGE2OFF
 	RESTORE_ZPS
 	RESTORE_AXY
 	rts
@@ -752,6 +754,7 @@ WGFancyRect_corners:
 	jsr WGPlot
 
 WGFancyRect_done:
+	SETSWITCH	PAGE2OFF
 	RESTORE_ZPS
 	RESTORE_AXY
 	rts

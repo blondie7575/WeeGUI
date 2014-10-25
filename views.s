@@ -7,6 +7,11 @@
 ;
 
 
+WG_FEATURE_UP = %00010000
+WG_FEATURE_DN = %00100000
+WG_FEATURE_LF = %00110000
+WG_FEATURE_RT = %01000000
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGCreateView
@@ -682,10 +687,7 @@ WGViewFocusAction:
 
 	cmp #VIEW_STYLE_CHECK
 	beq WGViewFocusAction_toggleCheckbox
-	cmp #VIEW_STYLE_BUTTON
-	beq WGViewFocusAction_buttonClick
-
-	bra WGViewFocusAction_done
+	bra WGViewFocusAction_buttonClick	; Everything else treated like a button
 
 WGViewFocusAction_toggleCheckbox:
 	lda WG_VIEWRECORDS+9,y		; Change the checkbox's state and redraw
@@ -748,24 +750,86 @@ WGViewFocusAction_knownRTS:
 ; Side effects: Changes selected view, Repaints some views
 ;
 WGPendingViewAction:
-	pha
+	SAVE_AY
+
 	lda WG_PENDINGACTIONVIEW
 	bmi WGPendingViewAction_done
 
+	and #$f					; Select view in question
 	jsr WGSelectView
+	LDY_ACTIVEVIEW
+
+	lda WG_VIEWRECORDS+4,y
+	and #$f
+	cmp #VIEW_STYLE_FANCY				; Filter out fancy views with high-nybble of 0
+	bne WGPendingViewAction_chkCallback	; This prevents unnecessary redraws when clicking
+	lda WG_PENDINGACTIONVIEW			; in the content area
+	and #$f0
+	beq WGPendingViewAction_done
+
+WGPendingViewAction_chkCallback:
+	lda WG_VIEWRECORDS+10,y			; Optimization- only process things that can be clicked
+	bne WGPendingViewAction_hasCallback
+	lda WG_VIEWRECORDS+11,y
+	beq WGPendingViewAction_done
+
+WGPendingViewAction_hasCallback:
+	lda WG_PENDINGACTIONVIEW
+	and #$f0				; Check for window features
+	beq WGPendingViewAction_content
+
+	cmp #WG_FEATURE_UP
+	beq WGPendingViewAction_up
+	cmp #WG_FEATURE_DN
+	beq WGPendingViewAction_down
+	cmp #WG_FEATURE_LF
+	beq WGPendingViewAction_left
+	cmp #WG_FEATURE_RT
+	bne WGPendingViewAction_done
+
+	lda #-1					; Right arrow
+	jsr WGScrollXBy
+	jsr WGViewFocus
+	jsr WGViewFocusAction	; Trigger application to redraw contents
+
+WGPendingViewAction_done:		; Centralized for branch range
+	lda #$ff
+	sta WG_PENDINGACTIONVIEW
+
+	RESTORE_AY
+	rts
+
+WGPendingViewAction_up:
+	lda #1					; Up arrow
+	jsr WGScrollYBy
+	jsr WGViewFocus
+	jsr WGViewFocusAction	; Trigger application to redraw contents
+	bra WGPendingViewAction_done
+
+WGPendingViewAction_down:
+	lda #-1					; Down arrow
+	jsr WGScrollYBy
+	jsr WGViewFocus
+	jsr WGViewFocusAction	; Trigger application to redraw contents
+	bra WGPendingViewAction_done
+
+WGPendingViewAction_left:
+	lda #1					; Left arrow
+	jsr WGScrollXBy
+	jsr WGViewFocus
+	jsr WGViewFocusAction	; Trigger application to redraw contents
+	bra WGPendingViewAction_done
+
+WGPendingViewAction_content:
 	jsr WGViewFocus
 	jsr WGViewFocusAction
 	jsr delayShort
 	jsr WGViewUnfocus
 
 	jsr WGPointerDirty		; If we redrew anything, the pointer BG will be stale
+	bra WGPendingViewAction_done
 
-	lda #$ff
-	sta WG_PENDINGACTIONVIEW
 
-WGPendingViewAction_done:
-	pla
-	rts
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1063,9 +1127,16 @@ WGViewPaintAll_done:
 ; Finds a view containing the given point
 ; PARAM0:X
 ; PARAM1:Y
-; OUT A: View ID (or $ff if no match)
+; OUT A: View ID (or high bit set if no match)
+; For Fancy Views, Upper nibble returned indicates feature hit:
+; 0000 : Content region
+; 0001 : Scroll arrow up
+; 0010 : Scroll arrow down
+; 0011 : Scroll arrow left
+; 0100 : Scroll arrow right
 WGViewFromPoint:
 	SAVE_XY
+	SAVE_ZPS
 
 	ldx #$f		; Scan views backwards, because controls are usually at the end
 
@@ -1076,6 +1147,26 @@ WGViewFromPoint_loop:
 	lda WG_VIEWRECORDS+2,y
 	beq WGViewFromPoint_loopNext	; Not an allocated view
 
+	lda WG_VIEWRECORDS+4,y			; Fancy views are handled differently
+	and #$f
+	cmp #VIEW_STYLE_FANCY
+	beq WGViewFromPoint_loopFancy
+
+	lda WG_VIEWRECORDS+2,y
+	sta SCRATCH0
+	lda WG_VIEWRECORDS+3,y
+	sta SCRATCH1
+	bra WGViewFromPoint_loopCheckBounds
+	
+WGViewFromPoint_loopFancy:
+	lda WG_VIEWRECORDS+2,y			; Include scrollbars
+	inc
+	sta SCRATCH0
+	lda WG_VIEWRECORDS+3,y
+	inc
+	sta SCRATCH1
+
+WGViewFromPoint_loopCheckBounds:
 	lda PARAM0						; Check left edge
 	cmp WG_VIEWRECORDS+0,y
 	bcc WGViewFromPoint_loopNext
@@ -1086,28 +1177,92 @@ WGViewFromPoint_loop:
 
 	lda WG_VIEWRECORDS+0,y			; Check right edge
 	clc
-	adc WG_VIEWRECORDS+2,y
+	adc SCRATCH0
 	cmp PARAM0
 	bcc WGViewFromPoint_loopNext
 	beq WGViewFromPoint_loopNext
 
 	lda WG_VIEWRECORDS+1,y			; Check bottom edge
 	clc
-	adc WG_VIEWRECORDS+3,y
+	adc SCRATCH1
 	cmp PARAM1
 	bcc WGViewFromPoint_loopNext
 	beq WGViewFromPoint_loopNext
 
-	txa								; Found a match
-	RESTORE_XY
-	rts
+	; Found a match (in X)
+	lda WG_VIEWRECORDS+4,y
+	and #$f							; Mask off flag bits
+	cmp #VIEW_STYLE_FANCY
+	bne WGViewFromPoint_matchDone
 
-WGViewFromPoint_loopNext:
+	; For fancy views, check scrollbars as well
+	lda WG_VIEWRECORDS+0,y			; Right scroll bar?
+	clc
+	adc SCRATCH0
+	dec
+	cmp PARAM0
+	bne WGViewFromPoint_checkBottomScroll
+
+	lda PARAM1						; Up arrow?
+	cmp WG_VIEWRECORDS+1,y
+	bne WGViewFromPoint_checkDownArrow
+	txa
+	ora #WG_FEATURE_UP
+	bra WGViewFromPoint_matchFancyDone
+
+WGViewFromPoint_loopNext:			; Inserted here for branch range
 	dex
 	bmi WGViewFromPoint_noMatch
 	bra WGViewFromPoint_loop
 
+WGViewFromPoint_checkDownArrow:
+	lda WG_VIEWRECORDS+1,y			; Down arrow?
+	clc
+	adc SCRATCH1
+	dec
+	dec
+	cmp PARAM1
+	bne WGViewFromPoint_matchDone
+	txa
+	ora #WG_FEATURE_DN
+	bra WGViewFromPoint_matchFancyDone
+
+WGViewFromPoint_checkBottomScroll:
+	lda WG_VIEWRECORDS+1,y			; Bottom scroll bar?
+	clc
+	adc SCRATCH1
+	dec
+	cmp PARAM1
+	bne WGViewFromPoint_matchDone
+	lda PARAM0						; Left arrow?
+	cmp WG_VIEWRECORDS+0,y
+	bne WGViewFromPoint_checkRightArrow
+	txa
+	ora #WG_FEATURE_LF
+	bra WGViewFromPoint_matchFancyDone
+
+WGViewFromPoint_checkRightArrow:
+	lda WG_VIEWRECORDS+0,y			; Right arrow?
+	clc
+	adc SCRATCH0
+	dec
+	dec
+	cmp PARAM0
+	bne WGViewFromPoint_matchDone
+	txa
+	ora #WG_FEATURE_RT
+
+WGViewFromPoint_matchFancyDone:
+	tax
+
+WGViewFromPoint_matchDone:
+	RESTORE_ZPS
+	txa
+	RESTORE_XY
+	rts
+
 WGViewFromPoint_noMatch:
+	RESTORE_ZPS
 	lda #$ff
 	RESTORE_XY
 	rts

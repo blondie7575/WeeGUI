@@ -71,6 +71,8 @@ CH_MOUSEPOINTER = 'B'
 WGEnableMouse:
 	pha
 
+	SETSWITCH PAGE2OFF
+
 	; Find slot number and calculate the various indirections needed
 	jsr WGFindMouse
 	bcs WGEnableMouse_Error
@@ -130,6 +132,8 @@ WGEnableMouse_done:
 ;
 WGDisableMouse:
 	pha
+
+	SETSWITCH PAGE2OFF
 
 	lda WG_MOUSEACTIVE			; Never activated the mouse
 	beq WGDisableMouse_done
