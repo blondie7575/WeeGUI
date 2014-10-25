@@ -270,7 +270,6 @@ WGFindMouse_done:
 ;
 WGMouseInterruptHandler:
 	cld						; ProDOS interrupt handlers must open with this
-
 	SAVE_AXY
 
 	CALLMOUSE SERVEMOUSE
@@ -332,7 +331,6 @@ WGMouseInterruptHandler_disregard:
 	rts
 
 WGMouseInterruptHandler_button:
-
 	CALLMOUSE READMOUSE
 	ldx WG_MOUSE_SLOT
 	lda MOUSTAT,x			; Movement/button status bits are now valid
@@ -340,7 +338,6 @@ WGMouseInterruptHandler_button:
 
 	bit WG_MOUSE_STAT			; Check for rising edge of button state
 	bpl WGMouseInterruptHandler_intDone
-	bvs WGMouseInterruptHandler_intDone
 
 	lda WG_MOUSEPOS_X		; Where did we click?
 	sta PARAM0
