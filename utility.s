@@ -125,6 +125,9 @@ WGStoreStr:
 	sta WG_SCRATCHA
 	SAVE_AXY
 
+	ldx #15		; Cache the string (and whatever is near it) in a scratch area
+	jsr cacheParamBlock
+
 	ldx #0
 	ldy #0
 
@@ -139,16 +142,15 @@ WGStoreStr_findEmptyLoop:
 	bra WGStoreStr_findEmptyLoop
 
 WGStoreStr_noRoom:
-	lda #0
-	sta PARAM0
-	sta PARAM1
+	stz PARAM0
+	stz PARAM1
 	bra WGStoreStr_done
 
 WGStoreStr_copy:
 	phx			; Remember the start of our string
 
 WGStoreStr_copyLoop:
-	lda	(PARAM0),y
+	lda	WG_AUXPARAM,y
 	cmp WG_SCRATCHA
 	beq WGStoreStr_terminate
 	sta WG_STRINGS,x
@@ -172,3 +174,44 @@ WGStoreStr_terminate:
 WGStoreStr_done:
 	RESTORE_AXY
 	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; cacheParamBlock
+; Copies a parameter block pointed to by P0/P1 into AUX
+; memory.
+; X: Number of bytes to copy
+;
+cacheParamBlock:
+	pha
+	SAVE_ZPS
+
+	stx SCRATCH0
+
+	lda PARAM0
+	sta A1L
+	lda PARAM1
+	sta A1H
+
+	clc
+	lda PARAM0
+	adc SCRATCH0
+	sta A2L
+
+	lda PARAM1
+	adc #0
+	sta A2H
+
+	lda #<WG_AUXPARAM
+	sta A4L
+	lda #>WG_AUXPARAM
+	sta A4H
+	sec
+	jsr AUXMOVE
+
+	RESTORE_ZPS
+	pla
+	rts
+
+
+

@@ -846,19 +846,19 @@ WGAmpersand_PLOT:
 ; Enable or disable the mouse
 ; &MOUSE(enable)
 WGAmpersand_MOUSE:
-	jsr WGAmpersandBeginArguments
-	jsr WGAmpersandIntArgument
+;	jsr WGAmpersandBeginArguments
+;	jsr WGAmpersandIntArgument
 
-	pha
-	jsr WGAmpersandEndArguments
+;	pha
+;	jsr WGAmpersandEndArguments
 
-	pla
-	beq WGAmpersand_MOUSEoff
-	jsr WGEnableMouse
-	rts
+;	pla
+;	beq WGAmpersand_MOUSEoff
+;	jsr WGEnableMouse
+;	rts
 
-WGAmpersand_MOUSEoff:
-	jsr WGDisableMouse
+;WGAmpersand_MOUSEoff:
+;	jsr WGDisableMouse
 	rts
 
 
@@ -868,7 +868,7 @@ WGAmpersand_MOUSEoff:
 ; Performs any pending view action
 ; &PDACT
 WGAmpersand_PDACT:
-	lda WG_PENDINGACTIONVIEW
+	lda WG_PENDINGACTIONCLICKX
 	bmi WGAmpersand_PDACTdone
 
 	jsr WGPendingViewAction

@@ -30,3 +30,10 @@ RDVBLBAR		= $C019	; Read bit 7 (active low)
 
 OURCH			= $057b ; 80 col cursor position (H)
 OURCV			= $05fb ; 80 col cursor position (V)
+
+RAMRDOFF		= $c002 ; Write (Read from main RAM)
+RAMRDON			= $c003 ; Write (Read from aux RAM)
+TRAMRD			= $c013 ; Read bit 7 (state of RAMRD)
+RAMWRTOFF		= $c004 ; Write (Write to main RAM)
+RAMWRTON		= $c005 ; Write (Write to aux RAM)
+TRAMWRT			= $c014 ; Read bit 7 (state of RAMWRT)

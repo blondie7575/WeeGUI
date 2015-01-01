@@ -20,7 +20,7 @@ PARAM3					= $09
 ; WeeGUI entry point
 ; Set up your call, then do a JSR to this address.
 ;
-WeeGUI					= $4004
+WeeGUI					= $300
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -55,10 +55,10 @@ WGViewFocusNext			= 44
 WGViewFocusPrev			= 46
 WGViewFocusAction		= 48
 WGPendingViewAction		= 50
-WGPendingView			= 52
 WGScrollX				= 54
 WGScrollXBy				= 56
 WGScrollY				= 58
 WGScrollYBy				= 60
 WGEnableMouse			= 62
 WGDisableMouse			= 64
+WGPointerDirty			= 66

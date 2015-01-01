@@ -1,19 +1,18 @@
 ;
 ;  mouse.s
-;  Routines for handling the mouse
+;  Standalone mouse driver for WeeGUI. Copied in to the top
+;  of main memory
 ;
 ;  Created by Quinn Dunki on 8/15/14.
 ;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
 ;
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; ProDOS ROM entry points and constants
-;
-PRODOS_MLI = $bf00
+.org $9344
 
-ALLOC_INTERRUPT = $40
-DEALLOC_INTERRUPT = $41
+.include "macros.s"
+.include "zeropage.s"
+.include "switches.s"
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -22,34 +21,34 @@ DEALLOC_INTERRUPT = $41
 
 ; These mouse firmware entry points are offsets from the firmware
 ; entry point of the slot, and also indirect.
-SETMOUSE = $12
-SERVEMOUSE = $13
-READMOUSE = $14
-CLEARMOUSE = $15
-POSMOUSE = $16
-CLAMPMOUSE = $17
-HOMEMOUSE = $18
-INITMOUSE = $19
+SETMOUSE	= $12
+SERVEMOUSE	= $13
+READMOUSE	= $14
+CLEARMOUSE	= $15
+POSMOUSE	= $16
+CLAMPMOUSE	= $17
+HOMEMOUSE	= $18
+INITMOUSE	= $19
 
-MOUSTAT = $0778			; + Slot Num
-MOUSE_XL = $0478		; + Slot Num
-MOUSE_XH = $0578		; + Slot Num
-MOUSE_YL = $04f8		; + Slot Num
-MOUSE_YH = $05f8		; + Slot Num
-MOUSE_CLAMPL = $04f8
-MOUSE_CLAMPH = $05f8
+MOUSTAT			= $0778		; + Slot Num
+MOUSE_XL		= $0478		; + Slot Num
+MOUSE_XH		= $0578		; + Slot Num
+MOUSE_YL		= $04f8		; + Slot Num
+MOUSE_YH		= $05f8		; + Slot Num
+MOUSE_CLAMPL	= $04f8
+MOUSE_CLAMPH	= $05f8
 
-MOUSTAT_MASK_BUTTONINT = %00000100
-MOUSTAT_MASK_MOVEINT = %00000010
-MOUSTAT_MASK_DOWN = %10000000
-MOUSTAT_MASK_WASDOWN = %01000000
-MOUSTAT_MASK_MOVED = %00100000
+MOUSTAT_MASK_BUTTONINT	= %00000100
+MOUSTAT_MASK_MOVEINT	= %00000010
+MOUSTAT_MASK_DOWN		= %10000000
+MOUSTAT_MASK_WASDOWN	= %01000000
+MOUSTAT_MASK_MOVED		= %00100000
 
-MOUSEMODE_OFF = $00		; Mouse off
-MOUSEMODE_PASSIVE = $01	; Passive mode (polling only)
-MOUSEMODE_MOVEINT = $03	; Interrupts on movement
-MOUSEMODE_BUTINT = $05	; Interrupts on button
-MOUSEMODE_COMBINT = $07	; Interrupts on movement and button
+MOUSEMODE_OFF		= $00	; Mouse off
+MOUSEMODE_PASSIVE	= $01	; Passive mode (polling only)
+MOUSEMODE_MOVEINT	= $03	; Interrupts on movement
+MOUSEMODE_BUTINT	= $05	; Interrupts on button
+MOUSEMODE_COMBINT	= $07	; Interrupts on movement and button
 
 
 ; Mouse firmware is all indirectly called, because
@@ -62,6 +61,34 @@ MOUSEMODE_COMBINT = $07	; Interrupts on movement and button
 
 
 CH_MOUSEPOINTER = 'B'
+
+
+; WeeGUI constants
+WeeGUI					= $300
+WGViewFromPointDispatch = 38
+
+
+; ProDOS Constants
+ALLOC_INTERRUPT		= $40
+DEALLOC_INTERRUPT	= $41
+
+PRODOS_MLI			= $bf00
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGMouseDispatch
+; The dispatcher for calling mouse routines from assembly programs.
+; X: API call number
+; P0-3,Y: Parameters to call, as needed
+;
+WGMouseDispatch:
+	jmp (WGMouseEntryPointTable,x)
+
+; Entry point jump table - WGDISPATCH points here after this is copied to $300
+WGMouseEntryPointTable:
+.addr WGEnableMouse
+.addr WGDisableMouse
+.addr WGPointerDirty
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -89,7 +116,7 @@ WGEnableMouse:
 	stz WG_MOUSEBG
 
 	CALLMOUSE INITMOUSE
-	bcs WGEnableMouse_Error	; Firmware sets carry if mouse is not available
+	bcs WGEnableMouse_Error		; Firmware sets carry if mouse is not available
 
 	CALLMOUSE CLEARMOUSE
 
@@ -269,7 +296,6 @@ WGFindMouse_done:
 ; added.
 ;
 WGMouseInterruptHandler:
-	cld						; ProDOS interrupt handlers must open with this
 	SAVE_AXY
 
 	CALLMOUSE SERVEMOUSE
@@ -336,18 +362,13 @@ WGMouseInterruptHandler_button:
 	lda MOUSTAT,x			; Movement/button status bits are now valid
 	sta WG_MOUSE_STAT
 
-	bit WG_MOUSE_STAT			; Check for rising edge of button state
+	bit WG_MOUSE_STAT		; Check for rising edge of button state
 	bpl WGMouseInterruptHandler_intDone
 
-	lda WG_MOUSEPOS_X		; Where did we click?
-	sta PARAM0
+	lda WG_MOUSEPOS_X		; Store click location for handler
+    sta WG_PENDINGACTIONCLICKX
 	lda WG_MOUSEPOS_Y
-	sta PARAM1
-	jsr WGViewFromPoint
-	bmi WGMouseInterruptHandler_intDone
-
-	; Button was clicked in a view, so make a note of it for later
-	sta WG_PENDINGACTIONVIEW
+    sta WG_PENDINGACTIONCLICKY
 
 WGMouseInterruptHandler_intDone:
 	pla						; Restore text bank
@@ -555,4 +576,62 @@ WG_PRODOS_DEALLOC:
 	.byte 1
 	.byte 0						; To be filled with ProDOS ID number
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Lookup tables
+;
+
+; Video memory
+TEXTLINES_H:
+.byte	$04	;0
+.byte	$04	;1
+.byte	$05	;2
+.byte	$05	;3
+.byte	$06	;4
+.byte	$06	;5
+.byte	$07	;6
+.byte	$07	;7
+.byte	$04	;8
+.byte	$04	;9
+.byte	$05	;10
+.byte	$05	;11
+.byte	$06	;12
+.byte	$06	;13
+.byte	$07	;14
+.byte	$07	;15
+.byte	$04	;16
+.byte	$04	;17
+.byte	$05	;18
+.byte	$05	;19
+.byte	$06	;20
+.byte	$06	;21
+.byte	$07	;22
+.byte	$07	;23
+
+TEXTLINES_L:
+.byte	$00	;0
+.byte	$80	;1
+.byte	$00	;2
+.byte	$80	;3
+.byte	$00	;4
+.byte	$80	;5
+.byte	$00	;6
+.byte	$80	;7
+.byte	$28	;8
+.byte	$a8	;9
+.byte	$28	;10
+.byte	$a8	;11
+.byte	$28	;12
+.byte	$a8	;13
+.byte	$28	;14
+.byte	$a8	;15
+.byte	$50	;16
+.byte	$d0	;17
+.byte	$50	;18
+.byte	$d0	;19
+.byte	$50	;20
+.byte	$d0	;21
+.byte	$50	;22
+.byte	$d0	;23
 

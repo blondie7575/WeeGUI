@@ -30,50 +30,40 @@ WG_FEATURE_RT = %01000000
 ; VH: View Height
 ;
 WGCreateView:
-	SAVE_AXY
+	SAVE_AX
 
-	ldy #0
-	lda (PARAM0),y	; Find our new view record
-	pha				; Cache view ID so we can select when we're done
+	ldx #8			; Copy caller's struct into AUX memory
+	jsr cacheParamBlock
 
+	lda WG_AUXPARAM+0	; Find our new view record
 	asl
 	asl
 	asl
 	asl				; Records are 8 bytes wide
 	tax
 
-	iny
-	lda (PARAM0),y
-	pha				; Cache style byte for later
-
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+2
 	sta	WG_VIEWRECORDS+0,x	; Screen X
 
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+3
 	sta	WG_VIEWRECORDS+1,x	; Screen Y
 
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+4
 	sta	WG_VIEWRECORDS+2,x	; Screen Width
 
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+5
 	sta	WG_VIEWRECORDS+3,x	; Screen Height
 
-	pla
+	lda WG_AUXPARAM+1
 	sta	WG_VIEWRECORDS+4,x	; Style
 
 	stz	WG_VIEWRECORDS+5,x	; Initialize scrolling
 	stz	WG_VIEWRECORDS+6,x
 
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+6
 	sta	WG_VIEWRECORDS+7,x	; View Width
 
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+7
 	sta	WG_VIEWRECORDS+8,x	; View Height
 
 	stz WG_VIEWRECORDS+9,x	; Initialize state
@@ -82,11 +72,11 @@ WGCreateView:
 	stz WG_VIEWRECORDS+12,x	; Initialize title
 	stz WG_VIEWRECORDS+13,x
 
-	pla
+	lda WG_AUXPARAM+0
 	jsr WGSelectView		; Leave this as the active view
 
 WGCreateView_done:
-	RESTORE_AXY
+	RESTORE_AX
 	rts
 
 
@@ -105,24 +95,23 @@ WGCreateView_done:
 ; SH: String pointer (MSB)
 ;
 WGCreateCheckbox:
-	SAVE_AXY
+	SAVE_AX
+	SAVE_ZPP
 
-	ldy #0
-	lda (PARAM0),y	; Find our new view record
-	pha				; Cache view ID so we can select when we're done
+	ldx #5			; Copy caller's struct into AUX memory
+	jsr cacheParamBlock
 
+	lda WG_AUXPARAM+0	; Find our new view record
 	asl
 	asl
 	asl
 	asl				; Records are 16 bytes wide
 	tax
 
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+1
 	sta	WG_VIEWRECORDS+0,x	; Screen X
 
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+2
 	sta	WG_VIEWRECORDS+1,x	; Screen Y
 
 	lda	#1
@@ -141,18 +130,24 @@ WGCreateCheckbox:
 	stz WG_VIEWRECORDS+10,x	; Initialize callback
 	stz WG_VIEWRECORDS+11,x
 
-	iny
-	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+12,x	; Title
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+3		; Copy title into aux memory
+	sta PARAM0
+	lda WG_AUXPARAM+4
+	sta PARAM1
+	lda #0
+	jsr WGStoreStr
+
+	lda PARAM0				; Store allocated pointer to title
+	sta	WG_VIEWRECORDS+12,x
+	lda PARAM1
 	sta	WG_VIEWRECORDS+13,x
 
-	pla
+	lda WG_AUXPARAM+0
 	jsr WGSelectView		; Leave this as the active view
 
 WGCreateCheckbox_done:
-	RESTORE_AXY
+	RESTORE_ZPP
+	RESTORE_AX
 	rts
 
 
@@ -173,28 +168,26 @@ WGCreateCheckbox_done:
 ; SL: Title string pointer (LSB)
 ; SH: Title string pointer (MSB)
 WGCreateButton:
-	SAVE_AXY
+	SAVE_AX
+	SAVE_ZPP
 
-	ldy #0
-	lda (PARAM0),y	; Find our new view record
-	pha				; Cache view ID so we can select when we're done
+	ldx #8			; Copy caller's struct into AUX memory
+	jsr cacheParamBlock
 
+	lda WG_AUXPARAM+0	; Find our new view record
 	asl
 	asl
 	asl
 	asl				; Records are 16 bytes wide
 	tax
 
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+1
 	sta	WG_VIEWRECORDS+0,x	; Screen X
 
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+2
 	sta	WG_VIEWRECORDS+1,x	; Screen Y
 
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+3
 	sta	WG_VIEWRECORDS+2,x	; Screen width
 	sta	WG_VIEWRECORDS+7,x	; View width
 
@@ -209,25 +202,29 @@ WGCreateButton:
 	stz	WG_VIEWRECORDS+6,x
 	stz WG_VIEWRECORDS+9,x	; Initialize state
 
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+4
 	sta	WG_VIEWRECORDS+10,x	; Callback
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+5
 	sta	WG_VIEWRECORDS+11,x
 
-	iny
-	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+12,x	; Title
-	iny
-	lda (PARAM0),y
+	lda WG_AUXPARAM+6		; Copy title into aux memory
+	sta PARAM0
+	lda WG_AUXPARAM+7
+	sta PARAM1
+	lda #0
+	jsr WGStoreStr
+
+	lda PARAM0				; Store allocated pointer to title
+	sta	WG_VIEWRECORDS+12,x
+	lda PARAM1
 	sta	WG_VIEWRECORDS+13,x
 
-	pla
+	lda WG_AUXPARAM+0
 	jsr WGSelectView		; Leave this as the active view
 
 WGCreateButton_done:
-	RESTORE_AXY
+	RESTORE_ZPP
+	RESTORE_AX
 	rts
 
 
@@ -698,20 +695,19 @@ WGViewFocusAction_toggleCheckbox:
 	jsr WGPaintView
 	; Fall through so checkboxes can have callbacks too
 
-	; NOTE: Self-modifying code ahead!
 WGViewFocusAction_buttonClick:
 	lda WG_VIEWRECORDS+4,y				; Are we an Applesoft button?
 	and #VIEW_STYLE_APPLESOFT
 	bne WGViewFocusAction_buttonClickApplesoft
 
+	; Call user's routine in MAIN memory
 	lda WG_VIEWRECORDS+11,y				; Do we have a callback?
 	beq WGViewFocusAction_done
-	sta WGViewFocusAction_userJSR+2		; Modify code below so we can JSR to user's code
+	sta XFERH
 	lda WG_VIEWRECORDS+10,y
-	sta WGViewFocusAction_userJSR+1
+	sta XFERL
+	jsr WGCallback
 
-WGViewFocusAction_userJSR:
-	jsr WGViewFocusAction_done			; Overwritten with user's function pointer
 	bra WGViewFocusAction_done
 
 WGViewFocusAction_buttonClickApplesoft:
@@ -751,9 +747,21 @@ WGViewFocusAction_knownRTS:
 ;
 WGPendingViewAction:
 	SAVE_AY
+    SAVE_ZPP
+    SAVE_ZPS
 
-	lda WG_PENDINGACTIONVIEW
+	lda WG_PENDINGACTIONCLICKX
 	bmi WGPendingViewAction_done
+
+	sta PARAM0             ; Where did we click?
+	lda WG_PENDINGACTIONCLICKY
+	sta PARAM1
+
+	jsr WGViewFromPoint
+    cmp #0
+    bmi WGPendingViewAction_done
+    sta SCRATCH0            ; Stash view for later
+
 
 	and #$f					; Select view in question
 	jsr WGSelectView
@@ -761,20 +769,21 @@ WGPendingViewAction:
 
 	lda WG_VIEWRECORDS+4,y
 	and #$f
+
 	cmp #VIEW_STYLE_FANCY				; Filter out fancy views with high-nybble of 0
 	bne WGPendingViewAction_chkCallback	; This prevents unnecessary redraws when clicking
-	lda WG_PENDINGACTIONVIEW			; in the content area
+	lda SCRATCH0                        ; in the content area
 	and #$f0
 	beq WGPendingViewAction_done
 
 WGPendingViewAction_chkCallback:
-	lda WG_VIEWRECORDS+10,y			; Optimization- only process things that can be clicked
-	bne WGPendingViewAction_hasCallback
-	lda WG_VIEWRECORDS+11,y
-	beq WGPendingViewAction_done
+;	lda WG_VIEWRECORDS+10,y			; Optimization- only process things that can be clicked
+;	bne WGPendingViewAction_hasCallback
+;	lda WG_VIEWRECORDS+11,y
+;	beq WGPendingViewAction_done
 
 WGPendingViewAction_hasCallback:
-	lda WG_PENDINGACTIONVIEW
+	lda SCRATCH0
 	and #$f0				; Check for window features
 	beq WGPendingViewAction_content
 
@@ -794,8 +803,10 @@ WGPendingViewAction_hasCallback:
 
 WGPendingViewAction_done:		; Centralized for branch range
 	lda #$ff
-	sta WG_PENDINGACTIONVIEW
+	sta WG_PENDINGACTIONCLICKX
 
+    RESTORE_ZPS
+    RESTORE_ZPP
 	RESTORE_AY
 	rts
 
@@ -826,20 +837,12 @@ WGPendingViewAction_content:
 	jsr delayShort
 	jsr WGViewUnfocus
 
-	jsr WGPointerDirty		; If we redrew anything, the pointer BG will be stale
+	; If we redrew anything, the pointer BG will be stale
+	ldx #WGPointerDirtyDispatch
+	jsr WeeGUI
 	bra WGPendingViewAction_done
 
 
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGPendingView
-; Returns the view that is currently pending
-; OUT A : Pending view ID, or $ff if none
-;
-WGPendingView:
-	lda WG_PENDINGACTIONVIEW
-	rts
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -849,6 +852,10 @@ WGPendingView:
 ; PARAM1: Null-terminated string pointer (MSB)
 WGViewSetTitle:
 	SAVE_AY
+	SAVE_ZPP
+
+	lda #0				; Copy the string into our aux memory buffer
+	jsr WGStoreStr
 
 	LDY_ACTIVEVIEW
 	lda PARAM0
@@ -857,6 +864,7 @@ WGViewSetTitle:
 	sta WG_VIEWRECORDS+13,y
 
 WGViewSetTitle_done:
+	RESTORE_ZPP
 	RESTORE_AY
 	rts
 

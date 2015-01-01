@@ -42,14 +42,17 @@ main:
 	bra @0
 @1:	jsr DOSCMD
 
+	jsr $7a00		; HACK: Temp, until we figure out to BRUN from here
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Show off some WeeGUI features
 
 	;jmp	tortureTestPrint
 	;jmp	tortureTestRects
-
 	ldx #WGClearScreen
+	jsr WeeGUI
+
+	ldx #WGEnableMouse
 	jsr WeeGUI
 
 	ldx #WGDesktop
@@ -57,10 +60,10 @@ main:
 
 	WGCALL16 WGCreateView,testView
 	WGCALL16 WGViewSetAction,testPaintContentsClick
-;	WGCALL16 WGViewSetTitle,testTitle0
-;	WGCALL16 WGCreateCheckbox,testCheck
-;	WGCALL16 WGCreateButton,testButton1
-;	WGCALL16 WGCreateButton,testButton2
+	WGCALL16 WGViewSetTitle,testTitle0
+	WGCALL16 WGCreateCheckbox,testCheck
+	WGCALL16 WGCreateButton,testButton1
+	WGCALL16 WGCreateButton,testButton2
 
 	ldx #WGViewPaintAll
 	jsr WeeGUI
@@ -69,10 +72,7 @@ main:
 	ldx #WGSelectView
 	jsr WeeGUI
 
-	ldx #WGEnableMouse
-	jsr WeeGUI
-
-	jsr testPaintContents
+;	jsr testPaintContents
 
 keyLoop:
 	ldx #WGPendingViewAction

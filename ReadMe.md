@@ -8,9 +8,10 @@ Known issues
 - Mashing a button with mouse in Applesoft will cause Undefined Statement error
 - Repainting a view while the mouse cursor is on it will cause artifacts when mouse moves
 - Quitting sometimes leaves BASIC in inverted text mode
-
+- Quitting with button highlighted leaves us in inverted text mode
 
 To Do:
 ------
 
 - Make WGFillRect support 1 height and 1 width
+- If called in inverse mode, clear screen clears inverse
