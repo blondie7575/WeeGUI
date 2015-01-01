@@ -1,13 +1,9 @@
 /WeeGUI.xcodeproj/project.xcworkspace/xcuserdata/
-
 /WeeGUI.xcodeproj/xcuserdata/
-
 /gui.lst
-
 /guidemo.lst
-
 /gui
-
 /guidemo
-
 /guidemo.o
+.DS_Store
+mouse.lst

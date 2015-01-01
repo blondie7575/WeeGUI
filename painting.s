@@ -78,8 +78,6 @@ WGDesktop_charLoop:
 	RESTORE_AXY
 	rts
 
-WGTest:
-rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGPlot

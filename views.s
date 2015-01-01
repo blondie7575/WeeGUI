@@ -768,10 +768,10 @@ WGPendingViewAction:
 	beq WGPendingViewAction_done
 
 WGPendingViewAction_chkCallback:
-	lda WG_VIEWRECORDS+10,y			; Optimization- only process things that can be clicked
-	bne WGPendingViewAction_hasCallback
-	lda WG_VIEWRECORDS+11,y
-	beq WGPendingViewAction_done
+;	lda WG_VIEWRECORDS+10,y			; Optimization- only process things that can be clicked
+;	bne WGPendingViewAction_hasCallback
+;	lda WG_VIEWRECORDS+11,y
+;	beq WGPendingViewAction_done
 
 WGPendingViewAction_hasCallback:
 	lda WG_PENDINGACTIONVIEW
