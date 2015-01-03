@@ -709,26 +709,6 @@ WGAmpersand_ERASE:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_NRML
-; Sets text mode to normal
-; &NRML
-WGAmpersand_NRML:
-	lda #CHAR_NORMAL
-	sta INVERSE
-	rts
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_IVER
-; Sets text mode to inverse
-; &INVR
-WGAmpersand_INVR:
-	lda #CHAR_INVERSE
-	sta INVERSE
-	rts
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_FILL
 ; Fills a rectangle with a character
 ; &FILL(x,y,width,height,char)
@@ -1073,12 +1053,6 @@ WGAmpersandCommandTable:
 
 .byte TOKEN_PRINT,0,0,0,0,0
 .addr WGAmpersand_PRINT
-
-.byte "NRML",0,0
-.addr WGAmpersand_NRML
-
-.byte "INVR",0,0
-.addr WGAmpersand_INVR
 
 .byte "FILL",0,0
 .addr WGAmpersand_FILL

@@ -25,6 +25,7 @@ VIEW_STYLE_APPLESOFT = $80	; High nybble flag bit for views created from Appleso
 IRQVECTORL = $03fe
 IRQVECTORH = $03ff
 
+MEMBITMAP = $bf58	;	ProDOS 8 system memory allocation bitmap
 
 ; ROM entry points
 

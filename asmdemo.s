@@ -31,7 +31,7 @@ KBDSTRB			= $c010
 ; Sample code
 main:
 
-	; BLOAD the GUI library
+	; BRUN the GUI library
 	ldx #0
 	ldy #0
 @0:	lda bloadCmdLine,x
@@ -42,7 +42,6 @@ main:
 	bra @0
 @1:	jsr DOSCMD
 
-	jsr $7a00		; HACK: Temp, until we figure out to BRUN from here
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Show off some WeeGUI features
@@ -205,7 +204,7 @@ testCallback:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 bloadCmdLine:
-	.byte "BRUN gui",$8d,0
+	.byte "BRUN weegui",$8d,0
 
 testView:
 	.byte 0,1,7,3,62,18,62,40

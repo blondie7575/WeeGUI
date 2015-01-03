@@ -7,7 +7,7 @@
 ;
 
 
-.org $4000
+.org $7e00
 
 ; Common definitions
 
@@ -24,7 +24,7 @@ main:
 
 
 ; This is the non-negotiable entry point used by applications Don't move it!
-; $4004
+; $7e04
 
 
 
@@ -79,8 +79,34 @@ WGEntryPointTable:
 WGInit:
 	SAVE_AXY
 
-	jsr WG80
-	jsr WGInitApplesoft
+    ; Reserve our memory in the ProDOS allocator bitmap
+	;
+	; See section 5.1.4 in the ProDOS 8 Technical Reference Manual
+	; for an explanation of these values. We're reserving memory
+	; pages $7e-$95 so that ProDOS won't use our memory for file
+	; buffers, or allow Applesoft to step on us
+	;
+	; Byte in System Bitmap : Bit within byte
+	;   0f:001
+	;   0f:000
+	;   10:111 .. 10:000
+	;   11:111 .. 11:000
+	;   12:111
+	;	12:110
+	;	12:101
+	;	12:100
+	;	12:011
+	;	12:010
+	lda #%00000011
+	tsb	MEMBITMAP + $0f
+	lda #$ff
+	tsb	MEMBITMAP + $10
+	tsb	MEMBITMAP + $11
+	lda #%11111100
+	tsb	MEMBITMAP + $12
+
+	jsr WG80				; Enter 80-col text mode
+	jsr WGInitApplesoft		; Set up Applesoft API
 
 	ldy #15			; Clear our block allocators
 WGInit_clearMemLoop:
