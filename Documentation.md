@@ -35,7 +35,7 @@ Installation
 
 Place the WeeGUI library in the same ProDOS folder as your program. Then, at the top of your program, simply load it into memory as follows:
 
-	1  PRINT  CHR$ (4)"BRUN WEEGUI"
+	10  PRINT  CHR$ (4)"BRUN WEEGUI"
 
 That's it! WeeGUI will load itself at address $7E00 of main memory, just below ProDOS.
 
@@ -113,21 +113,23 @@ For more complex calls, there are 4 reserved parameter-passing locations in the 
 
 For example, the call to create a view uses the zero page to pass a pointer (as specified in the API documentation):
 
-	lda #<addr			; 'Addr' is a 16-bit pointer we'd like to pass in
+	lda #<addr			; 'addr' is a 16-bit pointer we'd like to pass in
 	sta PARAM0			; PARAMn are reserved zeropage locations
 	lda #>addr
 	sta PARAM1
 	ldx #WGCreateView	; Now we can make our typical WeeGUI call
 	jsr WeeGUI
 		
+See the section *Callbacks*, below, for more information on how 16-bit values are passed in to WeeGUI.
 
 
 <br>
+
 	
 Program Structure for WeeGUI
 ----------------------------
 
-Graphical user interfaces generally have a concept of a *run loop*. This is important because the program flow is driven by the user's actions, rather than command-line programs, which enforce flow with specific moments of waiting for input. Most GUI libraries impose this run loop structure on your program. WeeGUI does not. Rather, it provides tools for you to set up a run loop if you wish, or you may simply call into WeeGUI in whatever way is most useful for your program. However, for a proper structured GUI program design, you should build a run loop using the techniques described below.
+Graphical user interfaces generally have a concept of a *run loop*. This is important because the program flow is driven asynchronously by the user's actions. Compare this to command-line programs, which enforce flow with specific moments of being blocked waiting for input. Most GUI libraries impose this run loop structure on your program. WeeGUI does not. Rather, it provides tools for you to set up a run loop if you wish, or you may simply call into WeeGUI in whatever way is most useful for your program. However, for a properly structured GUI program, you should build a run loop using the techniques described below.
 
 
 ###Assembly Language
@@ -143,7 +145,7 @@ A typical assembly language run loop simply waits for keypresses and responds to
 
 		jmp runLoop
 
-If you want to support the mouse, WeeGUI can help. You need to add one piece to your run loop:
+If you want to support the mouse, WeeGUI has you covered. You just need to add one piece to your run loop:
 
 	runLoop:
 		ldx #WGPendingViewAction
@@ -157,27 +159,29 @@ If you want to support the mouse, WeeGUI can help. You need to add one piece to 
 
 		jmp runLoop
 
-Note the call to *WGPendingViewAction* on each pass through the loop. For the mouse, WeeGUI will make note of actions taken by the user. It is up to your program to poll *WGPendingViewAction* to allow WeeGUI to handle these events. When you create a GUI element, you provide a pointer into your program. WeeGUI will perform a JSR to this pointer when the user clicks on your GUI element.
+Note the call to *WGPendingViewAction* on each pass through the loop. For the mouse, WeeGUI will make note of actions taken by the user, but won't act until you say so. It is up to your program to call *WGPendingViewAction* periodically to allow WeeGUI to handle these events.
 
-Most WeeGUI calls from assembly language will clobber the BASL and BASH values in the zeropage (typically used by text rendering in Applesoft and other programs). Unless otherwise noted, all registers except parameters passed in can be assumed to be preserved by all API calls.
+WeeGUI calls are relatively free of side effects. Most calls will clobber the BASL and BASH values in the zeropage (typically used by text rendering in Applesoft and other programs). Unless otherwise noted, all registers except parameters passed in can be assumed to be preserved by all API calls, and the system can be assumed to be in the same state you left it when you made the WeeGUI call.
 
-The API documentation below indicates which registers and/or PARAM locations are used for parameter passing, and what the value of the X register should be (in terms of constants supplied by *WeeGUI_MLI.s*)
+The API documentation below indicates which registers and/or PARAM locations are used for parameter passing in each call, and what the value of the X register should be (in terms of constants supplied by *WeeGUI_MLI.s*)
 
 
 ###Applesoft
 
-Normally, Applesoft is not intended to be used in a run-loop-style of programming. It is a simple procedural language with basic branches and such. To use a run-loop, there needs to be a non-blocking form of user-input. WeeGUI provides this for you with the &GET function. Calling &GET will retrieve keyboard input if any is pending, and store it in the variable you provide. If no keypresses are pending, execution proceeds to the next line.
+Normally, Applesoft is not intended to be used in a run-loop style of programming. To use a run-loop, there needs to be a non-blocking form of user-input. WeeGUI provides this for you with the &GET function. Calling &GET will retrieve keyboard input if any is pending, and store it in the variable you provide. If no keypresses are pending, execution proceeds to the next line.
 
-Similarly to the Assembly Language run loop, your program also needs to allow WeeGUI to process mouse events that the user is creating outside your program's control. This is done with the &PDACT (pending command) function. When you create GUI elements, you provide WeeGUI with a line number to be GOSUBed to when that element is clicked on. WeeGUI will GOSUB to that routine for you as needed.
+Similar to the Assembly Language run loop, your Applesoft program also needs to allow WeeGUI to process mouse events that the user is creating outside your program's control. This is done with the &PDACT (pending action) function.
 
 Here's a sample Applesoft run loop using these techniques:
 
-	1  PRINT  CHR$ (4)"brun gui"
+	1  PRINT  CHR$ (4)"brun weegui"
 	70 REM Run Loop
 	80  &PDACT
-	85  &GET (A$)
+	85  &GET(A$)
 	90  IF A$ = "q" THEN END
 	100  GOTO 80
+
+You can omit &PDACT if you have no desire to support the mouse.
 
 
 Callbacks
@@ -193,9 +197,9 @@ In assembly language, callbacks are a 16-bit address (a function pointer, of sor
 Mouse Control
 -------------
 
-If you wish to use the mouse with your WeeGUI program, you'll need to take some extra steps. The mouse is enabled and disabled using calls to WeeGUI. Once enabled, the mouse is processed automatically for you (including rendering the pointer as needed). When the user clicks on an interactive GUI element, WeeGUI will invoke a callback in your program. For assembly language, this will be a function pointer to which a JSR is performed. Make sure to end this callback with an RTS! For Applesoft, you provide a line number as the callback. WeeGUI will perform a GOSUB to this line number in response to the mouse event. Make sure to end this subroutine with a RETURN!
+Adding mouse support to your WeeGUI program is very easy. The mouse is enabled and disabled using API calls. Once enabled, the mouse is processed automatically for you (including rendering the pointer as needed). When the user clicks on an interactive GUI element, WeeGUI will invoke a callback in your program, using the methods detailed above, under *Callbacks*.
 
-As explained above, these callbacks are performed (if needed) when you invoke WGPendingViewAction from assembly language, or &PDACT from Applesoft. Make sure to make this call frequently inside your run loop.
+As explained earlier, these callbacks are performed (if needed) when you invoke WGPendingViewAction from assembly language, or &PDACT from Applesoft. Make sure to perform this call frequently inside your run loop.
 
 Here's sample code for setting up a button that can be clicked, and providing the callback for that button, in both languages.
 
@@ -230,21 +234,21 @@ Here's sample code for setting up a button that can be clicked, and providing th
 
 ####Applesoft
 
-	REM Create Button with give position and size.
-	REM Note line-number (1000) provided for callback
-	40  &BUTTN(2,35,10,15,1000,"Okay")	
+	10 REM Create Button with given position and size.
+	20 REM Note line-number (1000) provided for callback
+	30  &BUTTN(2,35,10,15,1000,"Okay")	
 	
 	...
 	
 	1000 PRINT "Button Clicked"
 	1010 RETURN
 	
-	
+<br>	
 	
 Character Types
 ---------------
 
-A quick note on use of characters and strings in WeeGUI. The Apple II ROM tends to want the high bit set when otherwise-normal ASCII character values are provided. Similarly, characters given to programs by the ROM often have the high bit set. WeeGUI refers to this as the "Apple" format for characters. Normal "ASCII" format refers to characters whereby the high bit is not used in this artificial fashion. If not specified, you can assume WeeGUI expects normal ASCII characters.
+A quick note on use of characters and strings in WeeGUI. The Apple II ROM tends to want the high bit set when otherwise-normal ASCII character values are provided. Similarly, characters given to programs by the ROM often have the high bit set. WeeGUI refers to this as the "Apple" format for characters. Normal "ASCII" format refers to characters whereby the high bit is not used in this artificial fashion. Unless otherwise specified, you can assume WeeGUI expects normal ASCII characters.
 
 
 Views
@@ -252,9 +256,11 @@ Views
 
 The basic "unit" of WeeGUI operations is the *View*. Your program can have up to 16 views at one time, and views are identified with a 4-bit ID number. Buttons and checkboxes are also views, and require their own view ID. So, for example, if you have four buttons, you have room for twelve other views of any type.
 
-A View in a rectangle inside which content is displayed. Content exists in a special coordinate system local to the view it is displayed in. This content can be larger than the view is onscreen. When drawn, content is clipped to the edges of the view. Content can also be scrolled in any direction, thus creating a larger virtual space that view shows a small piece of any one time.
+A View is a rectangle inside which content is displayed. Content exists in a special coordinate system local to the view it is displayed in. This content can be larger than the view is onscreen. When drawn, content is clipped to the edges of the view. Content can also be scrolled in any direction, thus creating a larger virtual space that the view shows a small piece of at any one time.
 
 Many API calls rely on the concept of a "selected" view. One view at a time can be "selected", and subsequent view-related operations will apply to that view. There is no visual effect to "selecting" a view. It's simply a way to tell WeeGUI which view you are currently interested in.
+
+'IMPORTANT:' The visual border around a view (usually a simply 1-pixel outline) is drawn *outside* the bounds of the view. This means you need to allow room you views. Don't attempt to place a view in columns 0 or 79, or rows 0 or 23. In order to maximize rendering speed, WeeGUI takes only minimal precautions to prevent rendering outside the visible screen area. 
 
 
 Cursors

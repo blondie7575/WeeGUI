@@ -676,7 +676,7 @@ focusCurrent_done:
 ; Side effects: Changes selected view, Repaints some views
 ;
 WGViewFocusAction:
-	SAVE_AY
+	SAVE_AXY
 
 	lda WG_FOCUSVIEW
 	bmi WGViewFocusAction_done
@@ -738,7 +738,7 @@ WGViewFocusAction_mightBeZero:
 	bra WGViewFocusAction_buttonClickApplesoftNotZero
 
 WGViewFocusAction_done:
-	RESTORE_AY
+	RESTORE_AXY
 WGViewFocusAction_knownRTS:
 	rts
 
