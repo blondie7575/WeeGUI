@@ -298,6 +298,7 @@ View Routines
 
 These routines are used for creating, modifying, and working with views.
 
+---
 
 ####WGCreateView
 Creates a new WeeGUI view. Up to 16 are allowed in one program. If a view is created with the same ID as a previous view, the previous view is destroyed. Views are not shown when created. Call *WGPaintView* to display it.
@@ -328,6 +329,7 @@ Configuration block consists of eight bytes:
 		Content height)
 </pre></td></tr></table>
 
+---	
 
 ####WGCreateCheckbox
 Creates a new WeeGUI checkbox view. This is a specialized version of WGCreateView, and its parameters are similar.
@@ -390,7 +392,7 @@ A:		View ID
 
 
 ####WGPendingViewAction
-Processes any pending view actions that the user has initiated with the mouse. This should be called once each time through your run loop. If no mouse actions are pending, this call will do nothing, and quietly return to your program.
+Processes any pending view actions that the user has initiated with the mouse. This should be called once each time through your run loop. If no mouse actions are pending, this call will do nothing, and quietly return to your program. If you do not wish to support the mouse, you do not need to call this.
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGPendingViewAction
@@ -412,7 +414,7 @@ Not available
 
 
 ####WGViewFocus
-Focus is shifted to the currently selected view. This will highlight the view visually, as needed.
+Focus is shifted to the currently selected view. This will highlight the view visually, as needed, and any affected views are redrawn as needed.
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewFocus
