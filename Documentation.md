@@ -250,6 +250,7 @@ Character Types
 
 A quick note on use of characters and strings in WeeGUI. The Apple II ROM tends to want the high bit set when otherwise-normal ASCII character values are provided. Similarly, characters given to programs by the ROM often have the high bit set. WeeGUI refers to this as the "Apple" format for characters. Normal "ASCII" format refers to characters whereby the high bit is not used in this artificial fashion. Unless otherwise specified, you can assume WeeGUI expects normal ASCII characters.
 
+<br>
 
 Views
 -----
@@ -260,21 +261,22 @@ A View is a rectangle inside which content is displayed. Content exists in a spe
 
 Many API calls rely on the concept of a "selected" view. One view at a time can be "selected", and subsequent view-related operations will apply to that view. There is no visual effect to "selecting" a view. It's simply a way to tell WeeGUI which view you are currently interested in.
 
-'IMPORTANT:' The visual border around a view (usually a simply 1-pixel outline) is drawn *outside* the bounds of the view. This means you need to allow room you views. Don't attempt to place a view in columns 0 or 79, or rows 0 or 23. In order to maximize rendering speed, WeeGUI takes only minimal precautions to prevent rendering outside the visible screen area. 
+**IMPORTANT:** The visual border around a view (a one-character-thick outline) is drawn *outside* the bounds of the view. This means *you need to allow room around your views*. Don't attempt to place a view in columns 0 or 79, or in rows 0 or 23. *In order to maximize rendering speed, WeeGUI takes only minimal precautions to prevent rendering outside the visible screen area.*
 
 
 Cursors
 -------
 
-WeeGUI has multiple cursors. There is always a global cursor, which maps to the Apple II's normal cursor. You will very rarely need to know or use this cursor. Each View also has its own local cursor, which moves in that View's coordinate space. These local view cursors are independent of each other, and are the ones you will use for most operations.
+WeeGUI has multiple cursors. There is always a global cursor, which maps to the Apple II's normal cursor. You will very rarely need to know about or use this cursor. Each View also has its own local cursor, which moves in that View's coordinate space. These local view cursors are independent of each other, and are the ones you will use for most operations.
+
 
 
 Focus
 -----
 
-In order to support keyboard control of GUIs, WeeGUI includes the concept of "view focus". The currently "focused" view will be visibly highlighted in some way to the user, and taking "action" will affect the currently selected view. It's up to your program to provide a way to shift focus (such as with the Tab key). Your program also specifies when the currently focused view should take action (usually via Return, Space, or similar keypress).
+In order to support keyboard control of GUIs, WeeGUI includes the concept of "view focus". The currently "focused" view will be visibly highlighted in some way to the user, and taking "action" will affect the currently selected view. It's up to your program to provide a way to shift focus (such as with the Tab key). Your program also specifies when the currently focused view should take action (usually via Return, Space, or similar keypress). WeeGUI handles rendering the highlighted element in a distinct way. Your program only needs to specify when to shift focus.
 
-There is also a construct called the *focus chain*. This is an implied list of views which can become the focused one. Any time you request the "next" or "previous" focus view, WeeGUI finds the next (or previous) view in the chain which is eligible for focus. This focus chain is created in the order you create your views. Views that cannot receive focus are automatically left out of the chain. As you add and remove views, WeeGUI tracks the focus chain for you.
+There is also a construct called the *focus chain*. This is an implied list of views, and of which can become the focused one. Any time you request the "next" or "previous" focus view, WeeGUI finds the next (or previous) view in the chain which is eligible for focus. This focus chain is created in the order you create your views. Views that cannot receive focus are automatically left out of the chain. As you add and remove views, WeeGUI updates the focus chain for you.
 
 Focusing is not relevant to mouse control, since the user can take action on any view at any time.
 
@@ -283,11 +285,11 @@ Focusing is not relevant to mouse control, since the user can take action on any
 WeeGUI API Reference
 ====================
 
-The following is a complete list of the Application Program Interface calls you can make. Both languages are shown when available, but not all API calls have an Applesoft version. The Applesoft API is more streamlined, and intended for simpler use cases.
+The following is a complete list of the Application Program Interface calls you can make. Both languages are shown when available, but not all API calls have both an Applesoft and assembly version.
 
 For assembly, each call indicates which registers and/or PARAM locations are used for parameter passing, and what the value of the X register should be (in terms of constants supplied by *WeeGUI_MLI.s*)
 
-Applesoft calls are sometimes shown over multiple lines for clarity, but of course they need to be all on one line in practice.
+Applesoft calls are sometimes shown over multiple lines for visual clarity, but of course they need to be all on one line in practice.
 
 
 
@@ -298,7 +300,8 @@ These routines are used for creating, modifying, and working with views.
 
 
 ####WGCreateView
-Creates a new WeeGUI view. Up to 16 are allowed in one program. If a view is created with the same ID as a previous view, the previous view is destroyed. Views are not shown when created. Rendering a view you've created is done separately.
+Creates a new WeeGUI view. Up to 16 are allowed in one program. If a view is created with the same ID as a previous view, the previous view is destroyed. Views are not shown when created. Call *WGPaintView* to display it.
+
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGCreateView
@@ -319,6 +322,8 @@ Configuration block consists of eight bytes:
 		Style (0 for plain, 1 for fancy),
 		Left edge,
 		Top edge,
+		View width,
+		View height,
 		Content width,
 		Content height)
 </pre></td></tr></table>
