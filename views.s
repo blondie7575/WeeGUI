@@ -973,6 +973,10 @@ WGScrollX:
 
 	LDY_ACTIVEVIEW
 	pla
+	bmi WGScrollX_Store
+	lda #0					; Prevent positive scroll values
+
+WGScrollX_Store:
 	sta	WG_VIEWRECORDS+5,y
 	jsr	cacheClipPlanes		; Scroll offset changed, so clipping cache is stale
 
@@ -1043,6 +1047,10 @@ WGScrollY:
 
 	LDY_ACTIVEVIEW
 	pla
+	bmi WGScrollY_Store
+	lda #0					; Prevent positive scroll values
+
+WGScrollY_Store:
 	sta	WG_VIEWRECORDS+6,y
 	jsr	cacheClipPlanes		; Scroll offset changed, so clipping cache is stale
 
