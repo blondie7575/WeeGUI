@@ -90,13 +90,15 @@ Also note that you can call WeeGUI interactively from the Applesoft prompt. No l
 
 ###Assembly Language
 
+*Note:* All assembly language samples are written in the style of the **ca65** assembler (which is also what WeeGUI is written in). However, the code is easily adaptable to your assembler of choice.
+
 From assembly, a Machine Language Interface is provided, similar to ProDOS. WeeGUI is called by setting a function name in the X register, and calling the WeeGUI entry point. For example:
 
 	main:
 		ldx #WGDesktop
 		jsr WeeGUI
 
-The value of *WGDesktop* is provided to your program by the *WeeGUI_MLI.s* file. Be sure to include this file in your assembly language project. If a call requires parameters, these will be passed in a couple of ways, as shown below.
+The constant *WGDesktop* is provided to your program by the *WeeGUI_MLI.s* file (part of the WeeGUI package). Be sure to include this file in your assembly language project. If a call requires parameters, these will be passed in a couple of ways, as shown below.
 
 #####Register Passing:
 
@@ -252,6 +254,15 @@ A quick note on use of characters and strings in WeeGUI. The Apple II ROM tends 
 
 <br>
 
+Coordinate Systems
+------------------
+
+Since WeeGUI operates on the 80 column text screen, the global coordinate system ranges from 0-79 horizontally, and 0-23 vertically. When specifying the location of a window, for example, you will use this global coordinate system.
+
+Each View (see below) also has its own coordinate space, starting with (0,0) in the upper left. This coordinate space is the size of the content region of the view, so it may be larger than the view itself. When a view scrolls, the local coordinate system moves, such that (0,0) in view space may map to a different point in global space. Of course, view content is also clipped, so if the view is scrolled, the (0,0) will not actually be visible.
+
+<br>
+
 Views
 -----
 
@@ -263,12 +274,15 @@ Many API calls rely on the concept of a "selected" view. One view at a time can 
 
 **IMPORTANT:** The visual border around a view (a one-character-thick outline) is drawn *outside* the bounds of the view. This means *you need to allow room around your views*. Don't attempt to place a view in columns 0 or 79, or in rows 0 or 23. *In order to maximize rendering speed, WeeGUI takes only minimal precautions to prevent rendering outside the visible screen area.*
 
+<br>
 
+	
 Cursors
 -------
 
 WeeGUI has multiple cursors. There is always a global cursor, which maps to the Apple II's normal cursor. You will very rarely need to know about or use this cursor. Each View also has its own local cursor, which moves in that View's coordinate space. These local view cursors are independent of each other, and are the ones you will use for most operations.
 
+<br>
 
 
 Focus
@@ -280,7 +294,7 @@ There is also a construct called the *focus chain*. This is an implied list of v
 
 Focusing is not relevant to mouse control, since the user can take action on any view at any time.
 
-
+<br>
 
 WeeGUI API Reference
 ====================
@@ -291,14 +305,13 @@ For assembly, each call indicates which registers and/or PARAM locations are use
 
 Applesoft calls are sometimes shown over multiple lines for visual clarity, but of course they need to be all on one line in practice.
 
-
+<br>
 
 View Routines
 -------------
 
 These routines are used for creating, modifying, and working with views.
 
----
 
 ####WGCreateView
 Creates a new WeeGUI view. Up to 16 are allowed in one program. If a view is created with the same ID as a previous view, the previous view is destroyed. Views are not shown when created. Call *WGPaintView* to display it.
@@ -329,7 +342,6 @@ Configuration block consists of eight bytes:
 		Content height)
 </pre></td></tr></table>
 
----	
 
 ####WGCreateCheckbox
 Creates a new WeeGUI checkbox view. This is a specialized version of WGCreateView, and its parameters are similar.
@@ -484,7 +496,7 @@ X:		WGViewPaintAll
 
 
 ####WGViewSetTitle
-Changes the title of the selected view. Titles are only visible in the "fancy" style of view border.
+Changes the title of the selected view. Titles are only visible in the "fancy" style of view border. In Applesoft, the view is automatically redrawn to reflect the change. In assembly, you must call WGPaintView manually to see the change.
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewSetTitle
@@ -508,12 +520,15 @@ PARAM1:	Function pointer (MSB)
 
 
 ####WGViewFromPoint
-Returns the innermost view that contains the given point. For fancy views, the upper nybble of the result indicates which window feature was found:
-0000 : Content region
-0001 : Scroll arrow up
-0010 : Scroll arrow down
-0011 : Scroll arrow left
-0100 : Scroll arrow right
+Returns the innermost view that contains the given point (in the lower nybble). For fancy views, the upper nybble of the result indicates which window feature was found:
+
+<table width=100%><tr><th>Upper nybble</th><th>Window feature</th></tr>
+<tr><td>0000</td><td>Content region</td></tr>
+<tr><td>0001</td><td>Scroll arrow up</td></tr>
+<tr><td>0010</td><td>Scroll arrow down</td></tr>
+<tr><td>0011</td><td>Scroll arrow left</td></tr>
+<tr><td>0100</td><td>Scroll arrow right</td></tr>
+</td></tr></table>
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewFromPoint
@@ -525,12 +540,12 @@ Not available
 </td></tr></table>
 
 
-
+<br>
 
 Cursor Routines
 ---------------
 
-These routines are used for manipulating the various cursors in WeeGUI.
+These routines are used for manipulating the various cursors in WeeGUI. As explained above, each view has its own local cursor, which is what you will normally interact with. The system global cursor is generally reserved for use by WeeGUI.
 
 
 ####WGSetCursor
@@ -546,7 +561,7 @@ PARAM1:	New Y position
 
 
 ####WGSetGlobalCursor
-Changes the position of the global system cursor. Most programs should not normally need to do this, and it may have unpredictable results on WeeGUI or Applesoft's visual appearance.
+Changes the position of the global system cursor. Most programs should not normally need to do this, and it may have unpredictable effects on WeeGUI or Applesoft's visual appearance.
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGSetGlobalCursor
@@ -566,6 +581,7 @@ X:		WGSyncGlobalCursor
 Not available
 </td></tr></table>
 
+<br>
 
 Scrolling Routines
 ------------------
@@ -580,7 +596,7 @@ Scrolls the currently selected view's contents to the specified horizontal posit
 X:		WGScrollX
 A: 		New X scroll position
 </td><td>
-Not available
+Not available (see WGScroll)
 </td></tr></table>
 
 
@@ -591,7 +607,7 @@ Scrolls the currently selected view's contents to the specified vertical positio
 X:		WGScrollY
 A: 		New Y scroll position
 </td><td>
-Not available
+Not available (see WGScroll)
 </td></tr></table>
 
 
@@ -612,7 +628,7 @@ Scrolls the currently selected view's contents by a specified delta horizontally
 X:		WGScrollByX
 A: 		Offset to apply to X scroll position
 </td><td>
-Not available
+Not available (see WGScrollBy)
 </td></tr></table>
 
 
@@ -636,12 +652,12 @@ Not available
 &SCRBY(X offset, Y offset)
 </pre></td></tr></table>
 
-
+<br>
 
 Drawing Routines
 ----------------
 
-All drawing routines work on the 80-column text screen. Coordinates are 0-79 horizontally, and 0-23 vertically. You can use these drawing routines by themselves for pseudo-graphical rendering in your programs, or in conjunction with higher level calls for creating and using GUI elements.
+All drawing routines (except *WGPrint*) operate in the global coordinate space (not in local view space). You can use these drawing routines by themselves for pseudo-graphical rendering effects in your programs, or in conjunction with higher level calls for creating and using GUI elements.
 
 
 ####WGClearScreen
@@ -660,25 +676,27 @@ Paints a desktop background on the screen.
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGDesktop
 </td><td><pre>
-&FILL(left,top,width,height)
+&DESK
 </pre></td></tr></table>
 
 
 ####WGPlot
-Plots a single character (in Apple format)
+Plots a single character
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGPlot
-A: 		Character to plot
+A: 		Character to plot (Apple format)
 
 Note: Character is plotted at the current global cursor position.
 </td><td><pre>
-&PLOT(x,y,character)
+&PLOT(X position
+	  Y position,
+	  Character)
 </pre></td></tr></table>
 
 
 ####WGPrint
-Prints a string into the current view, at the local cursor position.
+Prints a string into the current view, at the *local* cursor position. The text is wrapped to the view's content width, and clipped to the visible view boundaries.
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGPrint
@@ -690,7 +708,7 @@ PARAM1:	Pointer to null-terminated string (MSB)
 
 
 ####WGStrokeRect
-Draws the outline of a rectangle.
+Draws the outline of a rectangle. The rectangle is drawn one pixel outside the region you specify. So, *do not* attempt to stroke a rectangle in row 0, row 23, column 0, or column 79. You may overwrite screen holes and cause system malfunctions.
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGStrokeRect
@@ -704,7 +722,7 @@ PARAM3: Height
 
 
 ####WGFillRect
-Fills a rectangle with a given character (in Apple format).
+Fills a rectangle with a given character
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGFillRect
@@ -712,14 +730,14 @@ PARAM0: Left edge
 PARAM1:	Top edge
 PARAM2: Width
 PARAM3: Height
-Y: 		Character to fill with
+Y: 		Character to fill with (Apple format)
 </td><td><pre>
 &FILL(left,top,width,height,character)
 </pre></td></tr></table>
 
 
 ####WGFancyRect
-Draws the outline of decorated GUI-style window.
+Draws the outline of decorated GUI-style window, with scrollbars and title bar. Similar to *WGStrokeRect*, the drawing occurs *outside* the rectangle you specify, so do not attempt to draw a fancy rect in row 0, row 23, column 0, or column 79.
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGFancyRect
@@ -731,7 +749,7 @@ PARAM3: Height
 Not available
 </td></tr></table>
 
-
+<br>
 
 Mouse & Keyboard Routines
 -------------------------
@@ -740,7 +758,7 @@ Various useful routines for working with the mouse and keyboard.
 
 
 ####WGEnableMouse
-Enables the mouse. Call this once at the start of your program to begin using the mouse. Calling this sets up the interrupt mechanisms needed to manage the mouse. If you start the mouse with this call, it's very important to call WGDisableMouse (below) when your program quits.
+Enables the mouse. Call this once at the start of your program to begin using the mouse. Calling this sets up the interrupt mechanisms needed to manage the mouse. If you start the mouse with this call, it's very important to call *WGDisableMouse* (below) when your program quits.
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGEnableMouse
@@ -765,25 +783,28 @@ Enables or disables the mouse. Passing a '1' is equivalent to calling WGEnableMo
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
 Not available
 </td><td><pre>
-&MOUSE(enable or disable)
+&MOUSE(1 to enable or 0 to disable)
 </pre></td></tr></table>
 
 
 ####WGGet
-A non-blocking version of Applesoft's GET. This allows you to easily create run-loops for GUI programming in Applesoft. The key read is returned in the Applesoft string variable you specify. If no keypress is pending, the value will be 0.
+A non-blocking version of Applesoft's GET. This allows you to easily create run-loops for GUI programming in Applesoft. The key read is returned in the Applesoft string variable you specify. If no keypress is pending, the value will be an empty string.
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
 Not available
 </td><td><pre>
-&GET(var)
+&GET(A$) 
 </pre></td></tr></table>
 
+<br><br>
+<hr>
+<br>
 
 Appendix A: AUXMEM Branch
 =========================
 
-For those really advanced users who want to get the most out of WeeGUI, there's an experimental branch with some more sophisticated options. Most significantly, almost all of the code in this version lives at the top of AUX memory (the other 64k your IIe/c came with). That means virtually all of main memory (and most of aux memory) is free for your programs to use. The only thing in main memory is a small dispatcher, which lives in everyone's favorite memory hole at $300. Also, this version separates out the mouse code as a separate driver program which can be loaded or not, as needed, saving further memory. If loaded, the mouse driver lives at the top of main memory, just under ProDOS. Interrupt code can not run from aux memory, so this compromise is necessary.
+For those really advanced users who want to get the most out of WeeGUI, there's an experimental branch with some more sophisticated options. Most significantly, almost all of the code in this version lives at the top of AUX memory (the other 64k your IIe/c came with). That means virtually all of main memory (and most of AUX memory) is free for your programs to use. The only thing in main memory is a small dispatcher, which lives in everyone's favorite memory hole at $300. Also, this version separates out the mouse code as a separate driver program which can be loaded or not, as needed, saving further memory. If loaded, the mouse driver lives at the top of main memory, just under ProDOS. Interrupt code can not run from AUX memory, so this compromise is necessary.
 
-This branch sacrifices the Applesoft API however, because it is not possible for code running from aux memory to access Applesoft programs and variables, as is required for the API to work.
+This branch sacrifices the Applesoft API however, because it is not possible for code running from AUX memory to access Applesoft programs and variables, as is required for the API to work.
 
 The AUXMEM branch is experimental, and not currently supported. If you're interested in using it or playing with it, feel free to clone it and play around. I'm happy to answer questions about it, as well, although I can't necessarily provide full technical support.

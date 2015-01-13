@@ -892,8 +892,16 @@ WGSetCursor:
 	pha
 
 	lda PARAM0
+	bpl WGSetCursor_StoreX
+	lda #0					; Prevent negatives
+
+WGSetCursor_StoreX:
 	sta	WG_LOCALCURSORX
 	lda PARAM1
+	bpl WGSetCursor_StoreY
+	lda #0					; Prevent negatives
+
+WGSetCursor_StoreY:
 	sta	WG_LOCALCURSORY
 
 	pla
