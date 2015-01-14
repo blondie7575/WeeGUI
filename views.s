@@ -721,9 +721,9 @@ WGViewFocusAction_buttonClickApplesoft:
 	beq WGViewFocusAction_mightBeZero
 
 WGViewFocusAction_buttonClickApplesoftNotZero:
-	sta PARAM0
+	sta WG_GOSUBLINE
 	lda WG_VIEWRECORDS+11,y
-	sta PARAM1
+	sta WG_GOSUBLINE+1
 
 WGViewFocusAction_buttonClickApplesoftGosub:
 	; Caller needs to handle Applesoft Gosub, so signal with a flag and return

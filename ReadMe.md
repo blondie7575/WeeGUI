@@ -2,16 +2,16 @@
 Known issues
 ------------
 
-- Hitting Reset in app that uses windows and desktop (no mouse needed) seems to mess up screen holes for Disk II
-- Mashing a button with mouse in Applesoft will cause Undefined Statement error
-- Repainting a view while the mouse cursor is on it will cause artifacts when mouse moves
-- Quitting sometimes leaves BASIC in inverted text mode
-- Quitting with button highlighted leaves us in inverted text mode
-- After initial run of basic demo, additional run fails with no buffers available
+- Hitting Reset during a WeeGUI application will leave your Apple II in an unsafe state
+
 
 To Do:
 ------
 
+- Repainting a view while the mouse cursor is on it will cause artifacts when mouse moves
+- Quitting sometimes leaves BASIC in inverted text mode
+- Quitting with button highlighted leaves us in inverted text mode
+- After initial run of basic demo, additional run fails with no buffers available
 - Make WGFillRect support 1 height and 1 width
 - If called in inverse mode, clear screen clears inverse
 - Fix unclosed PRE tags in documentation

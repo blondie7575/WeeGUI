@@ -928,8 +928,8 @@ WGBottomCursor:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGGosub
 ; Performs an Applesoft GOSUB to a line number
-; PARAM0: Line number (LSB)
-; PARAM1: Line number (MSB)
+; WG_GOSUBLINE:	Line number (LSB)
+; WG_GOSUBLINE+1: Line number (MSB)
 ;
 WGGosub:
 	lda #0
@@ -962,9 +962,9 @@ WGGosub:
 	; by faking the setup portion of the GOSUB, then leaving
 	; the state as GOTO expects it, we can fake the entire
 	; process to GOSUB to a line number we specify
-	lda PARAM0
+	lda WG_GOSUBLINE
 	sta LINNUML
-	lda PARAM1
+	lda WG_GOSUBLINE+1
 	sta LINNUMH
 
 	jsr GOTO+3
