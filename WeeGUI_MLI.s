@@ -63,3 +63,5 @@ WGScrollY				= 58
 WGScrollYBy				= 60
 WGEnableMouse			= 62
 WGDisableMouse			= 64
+WGExit					= 66
+

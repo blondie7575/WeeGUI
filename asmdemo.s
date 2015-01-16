@@ -159,6 +159,9 @@ keyLoop_focusOkay:
 keyLoop_quit:
 	ldx #WGDisableMouse
 	jsr WeeGUI
+	ldx #WGExit
+	jsr WeeGUI
+	
 	rts
 
 testPaintContentsClick:

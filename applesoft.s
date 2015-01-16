@@ -902,6 +902,16 @@ WGAmpersand_GETstore:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_EXIT
+; Shuts down WeeGUI
+; &EXIT
+WGAmpersand_EXIT:
+	jsr WGExit
+	jsr WGBottomCursor
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGBottomCursor
 ; Leave the cursor state in a place that Applesoft is happy with
 ;
@@ -1077,6 +1087,9 @@ WGAmpersandCommandTable:
 
 .byte TOKEN_GET,0,0,0,0,0
 .addr WGAmpersand_GET
+
+.byte "EXIT",0,0
+.addr WGAmpersand_EXIT
 
 ;.byte TOKEN_GOSUB,0,0,0,0,0,0,0,0,0,0,0,0,0		; For internal testing of the procedural gosub
 ;.addr WGAmpersand_GOSUB

@@ -71,7 +71,7 @@ WGEntryPointTable:
 .addr WGScrollYBy
 .addr WGEnableMouse
 .addr WGDisableMouse
-
+.addr WGExit
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGInit
@@ -128,6 +128,28 @@ WGInit_clearMemLoop:
 	RESTORE_AXY
 	rts
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGInit
+; Cleanup Should be called once at app shutdown
+WGExit:
+	pha
+
+	lda #CHAR_NORMAL
+	sta INVERSE
+
+	; Remove ourselves from ProDOS memory map
+	lda #%00000011
+	trb	MEMBITMAP + $0f
+	lda #$ff
+	trb	MEMBITMAP + $10
+	trb	MEMBITMAP + $11
+	lda #%11111100
+	trb	MEMBITMAP + $12
+
+	pla
+	rts
+	
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WG80

@@ -796,6 +796,24 @@ Not available
 &GET(A$) 
 </pre></td></tr></table>
 
+
+<br>
+
+Miscellaneous Routines
+----------------------
+
+Other stuff you might need.
+
+####WGExit
+Cleans up and shuts down WeeGUI. If you want your application to return cleanly to Applesoft when its down, you must call this. Otherwise you may get ProDOS complaining it is out of buffers, or other strange behaviour.
+
+<table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGExit
+</td><td><pre>
+&EXIT
+</pre></td></tr></table>
+
+
 <br><br>
 <hr>
 <br>
