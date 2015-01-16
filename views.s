@@ -280,6 +280,8 @@ WGPaintView_button:
 	jsr	paintButton
 
 WGPaintView_done:
+	jsr WGPointerDirty		; The pointer BG may now be stale
+
 	RESTORE_ZPP
 	RESTORE_AXY
 	rts
