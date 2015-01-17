@@ -48,6 +48,16 @@ WGFillRect_vertLoop:
 	and	#$01
 	bne	WGFillRect_horzLoopOdd
 
+	lda PARAM2
+	cmp #1			; Width==1 is a special case
+	bne WGFillRect_horzLoopEvenAlignedNormalWidth
+	jmp WGFillRect_horzLoopEvenAlignedOneWidth
+
+WGFillRect_horzLoopEvenAlignedOneWidth:
+	SETSWITCH	PAGE2ON
+	bra WGFillRect_horzLoopEvenAlignedOddWidth
+
+WGFillRect_horzLoopEvenAlignedNormalWidth:
 	; CASE 1: Left edge even-aligned, even width
 	SETSWITCH	PAGE2OFF
 	lda	PARAM2
@@ -74,6 +84,7 @@ WGFillRect_horzLoopEvenAligned1:	; Draw odd columns
 	and	#$01
 	beq	WGFillRect_horzLoopEvenAlignedEvenWidth
 
+WGFillRect_horzLoopEvenAlignedOddWidth:
 	; CASE 1a: Left edge even aligned, odd width
 	lda	PARAM2						; Fill in extra last column
 	lsr
@@ -90,6 +101,11 @@ WGFillRect_horzLoopEvenAlignedEvenWidth:
 
 WGFillRect_horzLoopOdd:
 	; CASE 2: Left edge odd-aligned, even width
+
+	lda PARAM2
+	cmp #1				; Width==1 is a special case
+	beq WGFillRect_horzLoopOddAlignedOneWidth
+
 	SETSWITCH	PAGE2ON
 	lda	PARAM2
 	lsr
@@ -115,6 +131,7 @@ WGFillRect_horzLoopOddAligned1:		; Draw even columns
 	and	#$01
 	beq	WGFillRect_horzLoopOddAlignedEvenWidth
 
+WGFillRect_horzLoopOddAlignedOddWidth:
 	; CASE 2a: Left edge odd aligned, odd width
 	lda	PARAM2						; Fill in extra last column
 	lsr
@@ -126,13 +143,17 @@ WGFillRect_horzLoopOddAlignedEvenWidth:
 	plx								; Prepare for next row
 	dex
 	cpx	PARAM1
-	bcs WGFillRect_vertLoop
+	bcc WGFillRect_done
+	jmp WGFillRect_vertLoop
 
 WGFillRect_done:
 	SETSWITCH	PAGE2OFF
 	RESTORE_AX
 	rts
 
+WGFillRect_horzLoopOddAlignedOneWidth:
+	SETSWITCH	PAGE2OFF
+	bra WGFillRect_horzLoopOddAlignedOddWidth
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
