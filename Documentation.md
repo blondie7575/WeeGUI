@@ -661,7 +661,7 @@ All drawing routines (except *WGPrint*) operate in the global coordinate space (
 
 
 ####WGClearScreen
-Erases the screen, leaving the cursor at the bottom.
+Clears the screen to black. Unlike Applesoft HOME, this version always clears to black, regardless of the INVERSE setting, and the global cursor is left at the bottom instead of the top.
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGClearScreen
@@ -681,7 +681,7 @@ X:		WGDesktop
 
 
 ####WGPlot
-Plots a single character
+Plots a single character. For Applesoft, you supply the Apple ROM value of the character, and **all** character sets are supported with no mode changing required. This means you can directly plot inverse lowercase, or MouseText characters, for example. For a complete list of the values of every character in the Apple IIe Enchanced set, see Appendix B.
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGPlot
@@ -691,7 +691,7 @@ Note: Character is plotted at the current global cursor position.
 </td><td><pre>
 &PLOT(X position
 	  Y position,
-	  Character)
+	  character)
 </pre></td></tr></table>
 
 
