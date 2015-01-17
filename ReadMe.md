@@ -8,7 +8,6 @@ Known issues
 To Do:
 ------
 
-- Make WGFillRect support 1 height and 1 width
 - Fix unclosed PRE tags in documentation
 - Delete view feature
 - Factor out mouse driver
