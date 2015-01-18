@@ -332,7 +332,7 @@ Configuration block consists of eight bytes:
 	6:	Width of view's content
 	7:	Height of view's content
 </pre></td><td><pre>
-&WINDW(	View ID,
+WINDW(	View ID,
 		Style (0 for plain, 1 for fancy),
 		Left edge,
 		Top edge,
