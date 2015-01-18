@@ -815,7 +815,9 @@ X:		WGExit
 
 
 <br><br>
-<hr>
+
+- - -
+
 <br>
 
 
@@ -830,7 +832,9 @@ The AUXMEM branch is experimental, and not currently supported. If you're intere
 
 
 <br><br>
-<hr>
+
+- - -
+
 <br>
 
 
