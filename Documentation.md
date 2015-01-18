@@ -331,7 +331,7 @@ Configuration block consists of eight bytes:
 	5:	Visible height of view
 	6:	Width of view's content
 	7:	Height of view's content
-</td><td><pre>
+</pre></td><td><pre>
 &WINDW(	View ID,
 		Style (0 for plain, 1 for fancy),
 		Left edge,
@@ -357,7 +357,7 @@ Configuration block consists of five bytes:
 	2:	Y position of checkbox
 	3: 	Pointer to null-terminated string label (LSB)
 	4:	Pointer to null-terminated string label (MSB)
-</td><td><pre>
+</pre></td><td><pre>
 &CHKBX(	View ID,
 		X position,
 		Y position,
@@ -382,7 +382,7 @@ Configuration block consists of eight bytes:
 	5:	Pointer to click callback (MSB)
 	6:	Pointer to null-terminated string label (LSB)
 	7:	Pointer to null-terminated string label (MSB)
-</td><td><pre>
+</pre></td><td><pre>
 &BUTTN(	View ID,
 		Left edge,
 		Top edge,
@@ -398,7 +398,7 @@ Selects a view. Subsequent view-related operations will apply to this view. Does
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGSelectView
 A:		View ID
-</td><td><pre>
+</pre></td><td><pre>
 &SEL(View ID)
 </pre></td></tr></table>
 
@@ -408,7 +408,7 @@ Processes any pending view actions that the user has initiated with the mouse. T
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGPendingViewAction
-</td><td><pre>
+</pre></td><td><pre>
 &PDACT
 </pre></td></tr></table>
 
@@ -430,7 +430,7 @@ Focus is shifted to the currently selected view. This will highlight the view vi
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewFocus
-</td><td><pre>
+</pre></td><td><pre>
 &FOC
 </pre></td></tr></table>
 
@@ -450,7 +450,7 @@ Focus is shifted to the next view in the focus chain, wrapping around to the fir
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewFocusNext
-</td><td><pre>
+</pre></td><td><pre>
 &FOCN
 </pre></td></tr></table>
 
@@ -460,7 +460,7 @@ Focus is shifted to the previous view in the focus chain, wrapping around to the
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewFocusPrev
-</td><td><pre>
+</pre></td><td><pre>
 &FOCP
 </pre></td></tr></table>
 
@@ -470,7 +470,7 @@ Action is taken on the currently focused view. If the view is a checkbox, that c
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewFocusAction
-</td><td><pre>
+</pre></td><td><pre>
 &ACT
 </pre></td></tr></table>
 
@@ -480,7 +480,7 @@ Draws (or redraws) the currently selected view.
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGPaintView
-</td><td><pre>
+</pre></td><td><pre>
 &PNT
 </pre></td></tr></table>
 
@@ -490,7 +490,7 @@ Redraws all views. This is useful if the screen becomes corrupted, or you need t
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewPaintAll
-</td><td><pre>
+</pre></td><td><pre>
 &PNTA
 </pre></td></tr></table>
 
@@ -502,7 +502,7 @@ Changes the title of the selected view. Titles are only visible in the "fancy" s
 X:		WGViewSetTitle
 PARAM0: Pointer to null-terminated string (LSB)
 PARAM1:	Pointer to null-terminated string (MSB)
-</td><td><pre>
+</pre></td><td><pre>
 &TITLE("title")
 </pre></td></tr></table>
 
@@ -514,7 +514,7 @@ Changes the action callback of the selected view.
 X:		WGViewSetAction
 PARAM0: Function pointer (LSB)
 PARAM1:	Function pointer (MSB)
-</td><td><pre>
+</pre></td><td><pre>
 &STACT(line number)
 </pre></td></tr></table>
 
@@ -555,7 +555,7 @@ Changes the position of the local cursor in the currently selected view.
 X:		WGSetCursor
 PARAM0: New X position
 PARAM1:	New Y position
-</td><td><pre>
+</pre></td><td><pre>
 &CURSR(x,y)
 </pre></td></tr></table>
 
@@ -616,7 +616,7 @@ Scrolls the currently selected view's contents to the specified vertical and hor
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
 Not available
-</td><td><pre>
+</pre></td><td><pre>
 &SCR(X position, Y position)
 </pre></td></tr></table>
 
@@ -648,7 +648,7 @@ Scrolls the currently selected view's contents by a specified delta (positive or
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
 Not available
-</td><td><pre>
+</pre></td><td><pre>
 &SCRBY(X offset, Y offset)
 </pre></td></tr></table>
 
@@ -665,7 +665,7 @@ Clears the screen to black. Unlike Applesoft HOME, this version always clears to
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGClearScreen
-</td><td><pre>
+</pre></td><td><pre>
 &HOME
 </pre></td></tr></table>
 
@@ -675,7 +675,7 @@ Paints a desktop background on the screen.
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGDesktop
-</td><td><pre>
+</pre></td><td><pre>
 &DESK
 </pre></td></tr></table>
 
@@ -688,7 +688,7 @@ X:		WGPlot
 A: 		Character to plot (Apple format)
 
 Note: Character is plotted at the current global cursor position.
-</td><td><pre>
+</pre></td><td><pre>
 &PLOT(X position
 	  Y position,
 	  character)
@@ -702,7 +702,7 @@ Prints a string into the current view, at the *local* cursor position. The text 
 X:		WGPrint
 PARAM0: Pointer to null-terminated string (LSB)
 PARAM1:	Pointer to null-terminated string (MSB)
-</td><td><pre>
+</pre></td><td><pre>
 &PRINT("string")
 </pre></td></tr></table>
 
@@ -716,7 +716,7 @@ PARAM0: Left edge
 PARAM1:	Top edge
 PARAM2: Width
 PARAM3: Height
-</td><td><pre>
+</pre></td><td><pre>
 &DRAW(left,top,width,height)
 </pre></td></tr></table>
 
@@ -731,7 +731,7 @@ PARAM1:	Top edge
 PARAM2: Width
 PARAM3: Height
 Y: 		Character to fill with (Apple format)
-</td><td><pre>
+</pre></td><td><pre>
 &FILL(left,top,width,height,character)
 </pre></td></tr></table>
 
@@ -782,7 +782,7 @@ Enables or disables the mouse. Passing a '1' is equivalent to calling WGEnableMo
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
 Not available
-</td><td><pre>
+</pre></td><td><pre>
 &MOUSE(1 to enable or 0 to disable)
 </pre></td></tr></table>
 
@@ -792,7 +792,7 @@ A non-blocking version of Applesoft's GET. This allows you to easily create run-
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
 Not available
-</td><td><pre>
+</pre></td><td><pre>
 &GET(A$) 
 </pre></td></tr></table>
 
@@ -809,7 +809,7 @@ Cleans up and shuts down WeeGUI. If you want your application to return cleanly 
 
 <table width=100%><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGExit
-</td><td><pre>
+</pre></td><td><pre>
 &EXIT
 </pre></td></tr></table>
 
@@ -826,3 +826,617 @@ For those really advanced users who want to get the most out of WeeGUI, there's 
 This branch sacrifices the Applesoft API however, because it is not possible for code running from AUX memory to access Applesoft programs and variables, as is required for the API to work.
 
 The AUXMEM branch is experimental, and not currently supported. If you're interested in using it or playing with it, feel free to clone it and play around. I'm happy to answer questions about it, as well, although I can't necessarily provide full technical support.
+
+<br><br>
+<hr>
+<br>
+
+Appendix B: Apple Character Set
+===============================
+
+Below are complete listings of the Apple //e Enchanced (and Apple //c) ROM character set. The characters are shown as they appear on a black video screen. In other words, "normal" is white text on a black background. These values can be passed directly into WGPlot (&PLOT in Applesoft) to draw any character directly to the screen. No need to mess with inverse mode and escape characters!
+
+<table>
+<tr>
+<th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th>
+</tr><tr>
+<td>0</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">@</span></td>
+<td>16</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">P</span></td>
+<td>32</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;"> </span></td>
+<td>48</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">0</span></td>
+</tr><tr>
+<td>1</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">A</span></td>
+<td>17</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">Q</span></td>
+<td>33</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">!</span></td>
+<td>49</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">1</span></td>
+</tr><tr>
+<td>2</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">B</span></td>
+<td>18</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">R</span></td>
+<td>34</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">"</span></td>
+<td>50</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">2</span></td>
+</tr><tr>
+<td>3</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">C</span></td>
+<td>19</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">S</span></td>
+<td>35</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">#</span></td>
+<td>51</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">3</span></td>
+</tr><tr>
+<td>4</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">D</span></td>
+<td>20</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">T</span></td>
+<td>36</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">$</span></td>
+<td>52</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">4</span></td>
+</tr><tr>
+<td>5</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">E</span></td>
+<td>21</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">U</span></td>
+<td>37</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">%</span></td>
+<td>53</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">5</span></td>
+</tr><tr>
+<td>6</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">F</span></td>
+<td>22</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">V</span></td>
+<td>38</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">&</span></td>
+<td>54</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">6</span></td>
+</tr><tr>
+<td>7</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">G</span></td>
+<td>23</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">W</span></td>
+<td>39</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">'</span></td>
+<td>55</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">7</span></td>
+</tr><tr>
+<td>8</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">H</span></td>
+<td>24</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">X</span></td>
+<td>40</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">(</span></td>
+<td>56</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">8</span></td>
+</tr><tr>
+<td>9</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">I</span></td>
+<td>25</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">Y</span></td>
+<td>41</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">)</span></td>
+<td>57</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">9</span></td>
+</tr><tr>
+<td>10</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">J</span></td>
+<td>26</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">Z</span></td>
+<td>42</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">*</span></td>
+<td>58</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">:</span></td>
+</tr><tr>
+<td>11</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">K</span></td>
+<td>27</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">[</span></td>
+<td>43</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">+</span></td>
+<td>59</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">;</span></td>
+</tr><tr>
+<td>12</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">L</span></td>
+<td>28</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">\</span></td>
+<td>44</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">,</span></td>
+<td>60</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;"><</span></td>
+</tr><tr>
+<td>13</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">M</span></td>
+<td>29</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">]</span></td>
+<td>45</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">-</span></td>
+<td>61</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">=</span></td>
+</tr><tr>
+<td>14</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">N</span></td>
+<td>30</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">^</span></td>
+<td>46</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">.</span></td>
+<td>62</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">></span></td>
+</tr><tr>
+<td>15</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">O</span></td>
+<td>31</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">_</span></td>
+<td>47</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">/</span></td>
+<td>63</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">?</span></td>
+</tr>
+
+</table>
+
+<table>
+<tr>
+<th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th>
+</tr><tr>
+<td>64</td><td style="background-color:#000000">
+<img src="docart/mousetext64.jpg"></td>
+<td>80</td><td style="background-color:#000000">
+<img src="docart/mousetext80.jpg"></td>
+<td>96</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">`</span></td>
+<td>112</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">p</span></td>
+</tr><tr>
+<td>65</td><td style="background-color:#000000">
+<img src="docart/mousetext65.jpg"></td>
+<td>81</td><td style="background-color:#000000">
+<img src="docart/mousetext81.jpg"></td>
+<td>97</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">a</span></td>
+<td>113</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">q</span></td>
+</tr><tr>
+<td>66</td><td style="background-color:#000000">
+<img src="docart/mousetext66.jpg"></td>
+<td>82</td><td style="background-color:#000000">
+<img src="docart/mousetext82.jpg"></td>
+<td>98</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">b</span></td>
+<td>114</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">r</span></td>
+</tr><tr>
+<td>67</td><td style="background-color:#000000">
+<img src="docart/mousetext67.jpg"></td>
+<td>83</td><td style="background-color:#000000">
+<img src="docart/mousetext83.jpg"></td>
+<td>99</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">c</span></td>
+<td>115</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">s</span></td>
+</tr><tr>
+<td>68</td><td style="background-color:#000000">
+<img src="docart/mousetext68.jpg"></td>
+<td>84</td><td style="background-color:#000000">
+<img src="docart/mousetext84.jpg"></td>
+<td>100</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">d</span></td>
+<td>116</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">t</span></td>
+</tr><tr>
+<td>69</td><td style="background-color:#000000">
+<img src="docart/mousetext69.jpg"></td>
+<td>85</td><td style="background-color:#000000">
+<img src="docart/mousetext85.jpg"></td>
+<td>101</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">e</span></td>
+<td>117</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">u</span></td>
+</tr><tr>
+<td>70</td><td style="background-color:#000000">
+<img src="docart/mousetext70.jpg"></td>
+<td>86</td><td style="background-color:#000000">
+<img src="docart/mousetext86.jpg"></td>
+<td>102</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">f</span></td>
+<td>118</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">v</span></td>
+</tr><tr>
+<td>71</td><td style="background-color:#000000">
+<img src="docart/mousetext71.jpg"></td>
+<td>87</td><td style="background-color:#000000">
+<img src="docart/mousetext87.jpg"></td>
+<td>103</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">g</span></td>
+<td>119</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">w</span></td>
+</tr><tr>
+<td>72</td><td style="background-color:#000000">
+<img src="docart/mousetext72.jpg"></td>
+<td>88</td><td style="background-color:#000000">
+<img src="docart/mousetext88.jpg"></td>
+<td>104</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">h</span></td>
+<td>120</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">x</span></td>
+</tr><tr>
+<td>73</td><td style="background-color:#000000">
+<img src="docart/mousetext73.jpg"></td>
+<td>89</td><td style="background-color:#000000">
+<img src="docart/mousetext89.jpg"></td>
+<td>105</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">i</span></td>
+<td>121</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">y</span></td>
+</tr><tr>
+<td>74</td><td style="background-color:#000000">
+<img src="docart/mousetext74.jpg"></td>
+<td>90</td><td style="background-color:#000000">
+<img src="docart/mousetext90.jpg"></td>
+<td>106</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">j</span></td>
+<td>122</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">z</span></td>
+</tr><tr>
+<td>75</td><td style="background-color:#000000">
+<img src="docart/mousetext75.jpg"></td>
+<td>91</td><td style="background-color:#000000">
+<img src="docart/mousetext91.jpg"></td>
+<td>107</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">k</span></td>
+<td>123</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">{</span></td>
+</tr><tr>
+<td>76</td><td style="background-color:#000000">
+<img src="docart/mousetext76.jpg"></td>
+<td>92</td><td style="background-color:#000000">
+<img src="docart/mousetext92.jpg"></td>
+<td>108</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">l</span></td>
+<td>124</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">|</span></td>
+</tr><tr>
+<td>77</td><td style="background-color:#000000">
+<img src="docart/mousetext77.jpg"></td>
+<td>93</td><td style="background-color:#000000">
+<img src="docart/mousetext93.jpg"></td>
+<td>109</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">m</span></td>
+<td>125</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">}</span></td>
+</tr><tr>
+<td>78</td><td style="background-color:#000000">
+<img src="docart/mousetext78.jpg"></td>
+<td>94</td><td style="background-color:#000000">
+<img src="docart/mousetext94.jpg"></td>
+<td>110</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">n</span></td>
+<td>126</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">~</span></td>
+</tr><tr>
+<td>79</td><td style="background-color:#000000">
+<img src="docart/mousetext79.jpg"></td>
+<td>95</td><td style="background-color:#000000">
+<img src="docart/mousetext95.jpg"></td>
+<td>111</td><td style="background-color:#000000">
+<span style="background-color:#ffffff;color:#000000;">o</span></td>
+<td>127</td><td style="background-color:#000000">
+<img src="docart/mousetext127.jpg"></td>
+</tr>
+
+</table>
+
+
+<table>
+<tr>
+<th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th>
+</tr><tr>
+<td>128</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">@</span></td>
+<td>144</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">P</span></td>
+<td>160</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;"> </span></td>
+<td>176</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">0</span></td>
+</tr><tr>
+<td>129</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">A</span></td>
+<td>145</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">Q</span></td>
+<td>161</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">!</span></td>
+<td>177</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">1</span></td>
+</tr><tr>
+<td>130</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">B</span></td>
+<td>146</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">R</span></td>
+<td>162</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">"</span></td>
+<td>178</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">2</span></td>
+</tr><tr>
+<td>131</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">C</span></td>
+<td>147</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">S</span></td>
+<td>163</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">#</span></td>
+<td>179</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">3</span></td>
+</tr><tr>
+<td>132</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">D</span></td>
+<td>148</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">T</span></td>
+<td>164</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">$</span></td>
+<td>180</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">4</span></td>
+</tr><tr>
+<td>133</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">E</span></td>
+<td>149</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">U</span></td>
+<td>165</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">%</span></td>
+<td>181</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">5</span></td>
+</tr><tr>
+<td>134</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">F</span></td>
+<td>150</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">V</span></td>
+<td>166</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">&</span></td>
+<td>182</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">6</span></td>
+</tr><tr>
+<td>135</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">G</span></td>
+<td>151</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">W</span></td>
+<td>167</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">'</span></td>
+<td>183</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">7</span></td>
+</tr><tr>
+<td>136</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">H</span></td>
+<td>152</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">X</span></td>
+<td>168</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">(</span></td>
+<td>184</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">8</span></td>
+</tr><tr>
+<td>137</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">I</span></td>
+<td>153</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">Y</span></td>
+<td>169</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">)</span></td>
+<td>185</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">9</span></td>
+</tr><tr>
+<td>138</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">J</span></td>
+<td>154</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">Z</span></td>
+<td>170</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">*</span></td>
+<td>186</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">:</span></td>
+</tr><tr>
+<td>139</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">K</span></td>
+<td>155</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">[</span></td>
+<td>171</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">+</span></td>
+<td>187</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">;</span></td>
+</tr><tr>
+<td>140</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">L</span></td>
+<td>156</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">\</span></td>
+<td>172</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">,</span></td>
+<td>188</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;"><</span></td>
+</tr><tr>
+<td>141</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">M</span></td>
+<td>157</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">]</span></td>
+<td>173</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">-</span></td>
+<td>189</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">=</span></td>
+</tr><tr>
+<td>142</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">N</span></td>
+<td>158</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">^</span></td>
+<td>174</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">.</span></td>
+<td>190</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">></span></td>
+</tr><tr>
+<td>143</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">O</span></td>
+<td>159</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">_</span></td>
+<td>175</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">/</span></td>
+<td>191</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">?</span></td>
+</tr>
+
+</table>
+
+<table>
+<tr>
+<th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th>
+</tr><tr>
+<td>192</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">@</span></td>
+<td>208</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">P</span></td>
+<td>224</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">`</span></td>
+<td>240</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">p</span></td>
+</tr><tr>
+<td>193</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">A</span></td>
+<td>209</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">Q</span></td>
+<td>225</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">a</span></td>
+<td>241</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">q</span></td>
+</tr><tr>
+<td>194</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">B</span></td>
+<td>210</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">R</span></td>
+<td>226</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">b</span></td>
+<td>242</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">r</span></td>
+</tr><tr>
+<td>195</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">C</span></td>
+<td>211</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">S</span></td>
+<td>227</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">c</span></td>
+<td>243</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">s</span></td>
+</tr><tr>
+<td>196</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">D</span></td>
+<td>212</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">T</span></td>
+<td>228</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">d</span></td>
+<td>244</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">t</span></td>
+</tr><tr>
+<td>197</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">E</span></td>
+<td>213</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">U</span></td>
+<td>229</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">e</span></td>
+<td>245</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">u</span></td>
+</tr><tr>
+<td>198</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">F</span></td>
+<td>214</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">V</span></td>
+<td>230</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">f</span></td>
+<td>246</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">v</span></td>
+</tr><tr>
+<td>199</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">G</span></td>
+<td>215</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">W</span></td>
+<td>231</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">g</span></td>
+<td>247</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">w</span></td>
+</tr><tr>
+<td>200</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">H</span></td>
+<td>216</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">X</span></td>
+<td>232</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">h</span></td>
+<td>248</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">x</span></td>
+</tr><tr>
+<td>201</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">I</span></td>
+<td>217</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">Y</span></td>
+<td>233</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">i</span></td>
+<td>249</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">y</span></td>
+</tr><tr>
+<td>202</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">J</span></td>
+<td>218</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">Z</span></td>
+<td>234</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">j</span></td>
+<td>250</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">z</span></td>
+</tr><tr>
+<td>203</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">K</span></td>
+<td>219</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">[</span></td>
+<td>235</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">k</span></td>
+<td>251</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">{</span></td>
+</tr><tr>
+<td>204</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">L</span></td>
+<td>220</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">\</span></td>
+<td>236</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">l</span></td>
+<td>252</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">|</span></td>
+</tr><tr>
+<td>205</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">M</span></td>
+<td>221</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">]</span></td>
+<td>237</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">m</span></td>
+<td>253</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">|</span></td>
+</tr><tr>
+<td>206</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">N</span></td>
+<td>222</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">^</span></td>
+<td>238</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">n</span></td>
+<td>254</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">~</span></td>
+</tr><tr>
+<td>207</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">O</span></td>
+<td>223</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">_</span></td>
+<td>239</td><td style="background-color:#000000">
+<span style="background-color:#000000;color:#ffffff;">o</span></td>
+<td>255</td><td style="background-color:#000000">
+<img src="docart/mousetext255.jpg"></td>
+</tr>
+
+</table>
