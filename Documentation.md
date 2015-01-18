@@ -343,6 +343,7 @@ Configuration block consists of eight bytes:
 </pre></td></tr></table>
 
 
+
 ####WGCreateCheckbox
 Creates a new WeeGUI checkbox view. This is a specialized version of WGCreateView, and its parameters are similar.
 
