@@ -818,6 +818,7 @@ X:		WGExit
 <hr>
 <br>
 
+
 Appendix A: AUXMEM Branch
 =========================
 
@@ -827,9 +828,11 @@ This branch sacrifices the Applesoft API however, because it is not possible for
 
 The AUXMEM branch is experimental, and not currently supported. If you're interested in using it or playing with it, feel free to clone it and play around. I'm happy to answer questions about it, as well, although I can't necessarily provide full technical support.
 
+
 <br><br>
 <hr>
 <br>
+
 
 Appendix B: Apple Character Set
 ===============================
