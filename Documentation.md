@@ -1374,6 +1374,8 @@ Below are complete listings of the Apple //e Enchanced (and Apple //c) ROM chara
 
 </table>
 
+<p style="background-color:#000000">Hello!</p>
+
 <table>
 <tr>
 <th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th>
