@@ -317,7 +317,7 @@ These routines are used for creating, modifying, and working with views.
 Creates a new WeeGUI view. Up to 16 are allowed in one program. If a view is created with the same ID as a previous view, the previous view is destroyed. Views are not shown when created. Call *WGPaintView* to display it.
 
 
-<table>
+<table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGCreateView
 PARAM0: Pointer to configuration block (LSB)
@@ -349,7 +349,8 @@ Configuration block consists of eight bytes:
 ####WGCreateCheckbox
 Creates a new WeeGUI checkbox view. This is a specialized version of WGCreateView, and its parameters are similar.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGCreateCheckbox
 PARAM0: Pointer to configuration block (LSB)
 PARAM1:	Pointer to configuration block (MSB)
@@ -365,7 +366,8 @@ Configuration block consists of five bytes:
 		X position,
 		Y position,
 		"Label")
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGCreateButton
