@@ -317,12 +317,8 @@ These routines are used for creating, modifying, and working with views.
 Creates a new WeeGUI view. Up to 16 are allowed in one program. If a view is created with the same ID as a previous view, the previous view is destroyed. Views are not shown when created. Call *WGPaintView* to display it.
 
 
-<table>
-<tr>
-<td>Hello</td>
-<td>World</td>
-</tr>
-</table>
+<table><tr><td>Hello</td><td>
+World</td></tr></table>
 
 
 
