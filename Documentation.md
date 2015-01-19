@@ -920,6 +920,14 @@ Appendix B: Apple Character Set
 
 Below are complete listings of the Apple //e Enchanced (and Apple //c) ROM character set. The characters are shown as they appear on a black video screen. In other words, "normal" is white text on a black background. These values can be passed directly into WGPlot (&PLOT in Applesoft) to draw any character directly to the screen. No need to mess with inverse mode and escape characters!
 
+Note: The tables below are images, because GitHub's flavor of Markdown rendering doesn't support any form of coloring text or backgrounds in tables. It's safe to assume you're viewing this in GitHub's viewer, so I've screen-captured the tables from a local program that does render all mixed HTML/Markdown properly.
+
+<img src="docart/romchars1.jpg">
+<img src="docart/romchars2.jpg">
+<img src="docart/romchars3.jpg">
+<img src="docart/romchars4.jpg">
+
+<!--
 <table>
 <tr>
 <th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th>
@@ -1374,7 +1382,6 @@ Below are complete listings of the Apple //e Enchanced (and Apple //c) ROM chara
 
 </table>
 
-<p COLOR="#800517">Hello!</p>
 
 <table>
 <tr>
@@ -1526,3 +1533,5 @@ Below are complete listings of the Apple //e Enchanced (and Apple //c) ROM chara
 </tr>
 
 </table>
+
+--!>
