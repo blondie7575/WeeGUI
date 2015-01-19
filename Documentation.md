@@ -316,7 +316,31 @@ These routines are used for creating, modifying, and working with views.
 ####WGCreateView
 Creates a new WeeGUI view. Up to 16 are allowed in one program. If a view is created with the same ID as a previous view, the previous view is destroyed. Views are not shown when created. Call *WGPaintView* to display it.
 
-<table></table>
+
+<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
+X:		WGCreateView
+PARAM0: Pointer to configuration block (LSB)
+PARAM1:	Pointer to configuration block (MSB)
+
+Configuration block consists of eight bytes:
+	0:	View ID (0-15)
+	1:	Style (0 for plain, 1 for fancy)
+	2:	Left edge of view
+	3:	Top edge of view
+	4:	Visible width of view
+	5:	Visible height of view
+	6:	Width of view's content
+	7:	Height of view's content
+</td><td>
+&WINDW(	View ID,
+		Style (0 for plain, 1 for fancy),
+		Left edge,
+		Top edge,
+		View width,
+		View height,
+		Content width,
+		Content height)
+</td></tr></table>
 
 
 
