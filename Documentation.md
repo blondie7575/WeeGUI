@@ -1374,7 +1374,7 @@ Below are complete listings of the Apple //e Enchanced (and Apple //c) ROM chara
 
 </table>
 
-<P ID=x97z style="color: green">Hello!</P>
+<P color="green">Hello!</P>
 
 <table>
 <tr>
