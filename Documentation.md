@@ -373,7 +373,8 @@ Configuration block consists of five bytes:
 ####WGCreateButton
 Creates a new WeeGUI button view. This is a specialized version of WGCreateView, and its parameters are similar.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGCreateButton
 PARAM0: Pointer to configuration block (LSB)
 PARAM1:	Pointer to configuration block (MSB)
@@ -394,155 +395,184 @@ Configuration block consists of eight bytes:
 		Width,
 		Line number for click callback,
 		"Label")
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGSelectView
 Selects a view. Subsequent view-related operations will apply to this view. Does not affect visual appearance of view.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGSelectView
 A:		View ID
 </pre></td><td><pre>
 &SEL(View ID)
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGPendingViewAction
 Processes any pending view actions that the user has initiated with the mouse. This should be called once each time through your run loop. If no mouse actions are pending, this call will do nothing, and quietly return to your program. If you do not wish to support the mouse, you do not need to call this.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGPendingViewAction
 </pre></td><td><pre>
 &PDACT
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGPendingView
 Returns the currently pending view, if any. This is a way to peek into the state of the mouse event system, to see if the user is trying to do something with the mouse. Most programs shouldn't need this.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGPendingView
 
 Returns in A:		View ID
 </td><td>
 Not available
-</td></tr></table>
+</td></tr>
+</table>
 
 
 ####WGViewFocus
 Focus is shifted to the currently selected view. This will highlight the view visually, as needed, and any affected views are redrawn as needed.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewFocus
 </pre></td><td><pre>
 &FOC
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGViewUnfocus
 The currently focused view becomes unfocused. Views are redrawn as needed.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewUnfocus
 </td><td>
 Not available
-</td></tr></table>
+</td></tr>
+</table>
 
 
 ####WGViewFocusNext
 Focus is shifted to the next view in the focus chain, wrapping around to the first one if needed.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewFocusNext
 </pre></td><td><pre>
 &FOCN
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGViewFocusPrev
 Focus is shifted to the previous view in the focus chain, wrapping around to the last one if needed.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewFocusPrev
 </pre></td><td><pre>
 &FOCP
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGViewFocusAction
 Action is taken on the currently focused view. If the view is a checkbox, that checkbox will be toggled. If the view is a button, the button will be clicked. Any callback attached to the view will be invoked.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewFocusAction
 </pre></td><td><pre>
 &ACT
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGPaintView
 Draws (or redraws) the currently selected view.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGPaintView
 </pre></td><td><pre>
 &PNT
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGViewPaintAll
 Redraws all views. This is useful if the screen becomes corrupted, or you need to erase it for any reason.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewPaintAll
 </pre></td><td><pre>
 &PNTA
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGViewSetTitle
 Changes the title of the selected view. Titles are only visible in the "fancy" style of view border. In Applesoft, the view is automatically redrawn to reflect the change. In assembly, you must call WGPaintView manually to see the change.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewSetTitle
 PARAM0: Pointer to null-terminated string (LSB)
 PARAM1:	Pointer to null-terminated string (MSB)
 </pre></td><td><pre>
 &TITLE("title")
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGViewSetAction
 Changes the action callback of the selected view.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewSetAction
 PARAM0: Function pointer (LSB)
 PARAM1:	Function pointer (MSB)
 </pre></td><td><pre>
 &STACT(line number)
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGViewFromPoint
 Returns the innermost view that contains the given point (in the lower nybble). For fancy views, the upper nybble of the result indicates which window feature was found:
 
-<table width="100%"><tr><th>Upper nybble</th><th>Window feature</th></tr>
+<table width="100%">
+<tr><th>Upper nybble</th><th>Window feature</th></tr>
 <tr><td>0000</td><td>Content region</td></tr>
 <tr><td>0001</td><td>Scroll arrow up</td></tr>
 <tr><td>0010</td><td>Scroll arrow down</td></tr>
 <tr><td>0011</td><td>Scroll arrow left</td></tr>
 <tr><td>0100</td><td>Scroll arrow right</td></tr>
-</td></tr></table>
+</td></tr>
+</table>
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGViewFromPoint
 PARAM0: X position to test
 PARAM1:	Y position to test
 Returns in A:	View ID (or <0 if no match)
 </td><td>
 Not available
-</td></tr></table>
+</td></tr>
+</table>
 
 
 <br>
@@ -556,35 +586,41 @@ These routines are used for manipulating the various cursors in WeeGUI. As expla
 ####WGSetCursor
 Changes the position of the local cursor in the currently selected view.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGSetCursor
 PARAM0: New X position
 PARAM1:	New Y position
 </pre></td><td><pre>
 &CURSR(x,y)
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGSetGlobalCursor
 Changes the position of the global system cursor. Most programs should not normally need to do this, and it may have unpredictable effects on WeeGUI or Applesoft's visual appearance.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGSetGlobalCursor
 PARAM0: New X position
 PARAM1:	New Y position
 </td><td>
 Not available
-</td></tr></table>
+</td></tr>
+</table>
 
 
 ####WGSyncGlobalCursor
 Synchronizes the global system cursor to the currently selected view's local cursor. If you modify the global cursor, you can call this to reset it to where WeeGUI expects it to be. Most programs should not need to use this, and results may be unpredictable.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGSyncGlobalCursor
 </td><td>
 Not available
-</td></tr></table>
+</td></tr>
+</table>
 
 <br>
 
@@ -597,65 +633,77 @@ These routines are used for scrolling view contents and working with scrollable 
 ####WGScrollX
 Scrolls the currently selected view's contents to the specified horizontal position.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGScrollX
 A: 		New X scroll position
 </td><td>
 Not available (see WGScroll)
-</td></tr></table>
+</td></tr>
+</table>
 
 
 ####WGScrollY
 Scrolls the currently selected view's contents to the specified vertical position.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGScrollY
 A: 		New Y scroll position
 </td><td>
 Not available (see WGScroll)
-</td></tr></table>
+</td></tr>
+</table>
 
 
 ####WGScroll
 Scrolls the currently selected view's contents to the specified vertical and horizontal position.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
 Not available
 </pre></td><td><pre>
 &SCR(X position, Y position)
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGScrollByX
 Scrolls the currently selected view's contents by a specified delta horizontally (positive or negative).
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGScrollByX
 A: 		Offset to apply to X scroll position
 </td><td>
 Not available (see WGScrollBy)
-</td></tr></table>
+</td></tr>
+</table>
 
 
 ####WGScrollByY
 Scrolls the currently selected view's contents by a specified delta vertically (positive or negative).
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGScrollY
 A: 		Offset to apply to Y scroll position
 </td><td>
 Not available
-</td></tr></table>
+</td></tr>
+</table>
 
 
 ####WGScrollBy
 Scrolls the currently selected view's contents by a specified delta (positive or negative).
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
 Not available
 </pre></td><td><pre>
 &SCRBY(X offset, Y offset)
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 <br>
 
@@ -668,27 +716,32 @@ All drawing routines (except *WGPrint*) operate in the global coordinate space (
 ####WGClearScreen
 Clears the screen to black. Unlike Applesoft HOME, this version always clears to black, regardless of the INVERSE setting, and the global cursor is left at the bottom instead of the top.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGClearScreen
 </pre></td><td><pre>
 &HOME
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGDesktop
 Paints a desktop background on the screen.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGDesktop
 </pre></td><td><pre>
 &DESK
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGPlot
 Plots a single character. For Applesoft, you supply the Apple ROM value of the character, and **all** character sets are supported with no mode changing required. This means you can directly plot inverse lowercase, or MouseText characters, for example. For a complete list of the values of every character in the Apple IIe Enchanced set, see Appendix B.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGPlot
 A: 		Character to plot (Apple format)
 
@@ -697,25 +750,29 @@ Note: Character is plotted at the current global cursor position.
 &PLOT(X position
 	  Y position,
 	  character)
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGPrint
 Prints a string into the current view, at the *local* cursor position. The text is wrapped to the view's content width, and clipped to the visible view boundaries.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGPrint
 PARAM0: Pointer to null-terminated string (LSB)
 PARAM1:	Pointer to null-terminated string (MSB)
 </pre></td><td><pre>
 &PRINT("string")
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGStrokeRect
 Draws the outline of a rectangle. The rectangle is drawn one pixel outside the region you specify. So, *do not* attempt to stroke a rectangle in row 0, row 23, column 0, or column 79. You may overwrite screen holes and cause system malfunctions.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGStrokeRect
 PARAM0: Left edge
 PARAM1:	Top edge
@@ -723,13 +780,15 @@ PARAM2: Width
 PARAM3: Height
 </pre></td><td><pre>
 &DRAW(left,top,width,height)
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGFillRect
 Fills a rectangle with a given character
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGFillRect
 PARAM0: Left edge
 PARAM1:	Top edge
@@ -738,13 +797,15 @@ PARAM3: Height
 Y: 		Character to fill with (Apple format)
 </pre></td><td><pre>
 &FILL(left,top,width,height,character)
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGFancyRect
 Draws the outline of decorated GUI-style window, with scrollbars and title bar. Similar to *WGStrokeRect*, the drawing occurs *outside* the rectangle you specify, so do not attempt to draw a fancy rect in row 0, row 23, column 0, or column 79.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGFancyRect
 PARAM0: Left edge
 PARAM1:	Top edge
@@ -752,7 +813,8 @@ PARAM2: Width
 PARAM3: Height
 </td><td>
 Not available
-</td></tr></table>
+</td></tr>
+</table>
 
 <br>
 
@@ -765,41 +827,49 @@ Various useful routines for working with the mouse and keyboard.
 ####WGEnableMouse
 Enables the mouse. Call this once at the start of your program to begin using the mouse. Calling this sets up the interrupt mechanisms needed to manage the mouse. If you start the mouse with this call, it's very important to call *WGDisableMouse* (below) when your program quits.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGEnableMouse
 </td><td>
 Not available (see WGMouse)
-</td></tr></table>
+</td></tr>
+</table>
 
 
 ####WGDisableMouse
 Disables the mouse. Call this when quitting your program, if you called WGEnableMouse. This is very important, as the interrupt mechanisms created for the mouse must be dismantled, otherwise the Apple II will be left in an unsafe state.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGDisableMouse
 </td><td>
 Not available (see WGMouse)
-</td></tr></table>
+</td></tr>
+</table>
 
 
 ####WGMouse
 Enables or disables the mouse. Passing a '1' is equivalent to calling WGEnableMouse (above). Passing a '0' is equivalent to calling WGDisableMouse (above). The same caveats and warnings apply.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
 Not available
 </pre></td><td><pre>
 &MOUSE(1 to enable or 0 to disable)
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 ####WGGet
 A non-blocking version of Applesoft's GET. This allows you to easily create run-loops for GUI programming in Applesoft. The key read is returned in the Applesoft string variable you specify. If no keypress is pending, the value will be an empty string.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
 Not available
 </pre></td><td><pre>
 &GET(A$) 
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 <br>
@@ -812,11 +882,13 @@ Other stuff you might need.
 ####WGExit
 Cleans up and shuts down WeeGUI. If you want your application to return cleanly to Applesoft when its down, you must call this. Otherwise you may get ProDOS complaining it is out of buffers, or other strange behaviour.
 
-<table width="100%"><tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGExit
 </pre></td><td><pre>
 &EXIT
-</pre></td></tr></table>
+</pre></td></tr>
+</table>
 
 
 <br><br>
