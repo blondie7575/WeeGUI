@@ -1374,11 +1374,13 @@ Below are complete listings of the Apple //e Enchanced (and Apple //c) ROM chara
 
 </table>
 
+<P ID=x97z style="color: green">Hello!</P>
+
 <table>
 <tr>
 <th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th><th>Value</th><th>Character</th>
 </tr><tr>
-<td>192</td><td color="#ff0000">
+<td>192</td><td style="background-color:#000000">
 <span style="background-color:#000000;color:#ffffff;">@</span></td>
 <td>208</td><td style="background-color:#000000">
 <span style="background-color:#000000;color:#ffffff;">P</span></td>
