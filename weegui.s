@@ -71,7 +71,10 @@ WGEntryPointTable:
 .addr WGScrollYBy
 .addr WGEnableMouse
 .addr WGDisableMouse
+.addr WGDeleteView
+.addr WGEraseView
 .addr WGExit
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGInit

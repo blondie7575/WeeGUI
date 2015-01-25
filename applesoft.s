@@ -902,6 +902,26 @@ WGAmpersand_GETstore:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_KILL
+; Deletes the selected view
+; &KILL
+WGAmpersand_KILL:
+	jsr WGDeleteView
+	jsr WGBottomCursor
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_WIPE
+; Erases all of the selected view
+; &WIPE
+WGAmpersand_WIPE:
+	jsr WGEraseView
+	jsr WGBottomCursor
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_EXIT
 ; Shuts down WeeGUI
 ; &EXIT
@@ -1087,6 +1107,12 @@ WGAmpersandCommandTable:
 
 .byte TOKEN_GET,0,0,0,0,0
 .addr WGAmpersand_GET
+
+.byte "KILL",0,0
+.addr WGAmpersand_KILL
+
+.byte "WIPE",0,0
+.addr WGAmpersand_WIPE
 
 .byte "EXIT",0,0
 .addr WGAmpersand_EXIT

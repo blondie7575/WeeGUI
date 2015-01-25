@@ -63,5 +63,7 @@ WGScrollY				= 58
 WGScrollYBy				= 60
 WGEnableMouse			= 62
 WGDisableMouse			= 64
-WGExit					= 66
+WGDeleteView			= 66
+WGEraseView				= 68
+WGExit					= 70
 

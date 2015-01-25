@@ -233,6 +233,26 @@ WGCreateButton_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGDeleteView
+; Deletes the current view and removes it from the screen
+;
+WGDeleteView:
+	SAVE_AY
+
+	jsr WGEraseView
+
+	LDY_ACTIVEVIEW
+
+	lda #0
+	sta WG_VIEWRECORDS+2,y	; 0 width indicates unused view
+	jsr WGViewPaintAll
+
+	RESTORE_AY
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGPaintView
 ; Paints the current view
 ;
@@ -465,6 +485,43 @@ paintWindowTitle_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGEraseView
+; Erases the current view (including decoration)
+;
+WGEraseView:
+	SAVE_AXY
+	SAVE_ZPP
+
+	LDY_ACTIVEVIEW
+
+	lda	WG_VIEWRECORDS+0,y
+	dec
+	sta PARAM0
+
+	lda	WG_VIEWRECORDS+1,y
+	dec
+	sta PARAM1
+
+	lda	WG_VIEWRECORDS+2,y
+	inc
+	inc
+	sta PARAM2
+
+	lda	WG_VIEWRECORDS+3,y
+	inc
+	inc
+	sta PARAM3
+
+	ldy	#' '+$80
+	jsr WGFillRect
+
+WGEraseView_done:
+	RESTORE_ZPP
+	RESTORE_AXY
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGEraseViewContents
 ; Erases the contents of the current view (interior contents only)
 ;
@@ -564,12 +621,15 @@ WGViewFocusNext:
 	jsr unfocusCurrent
 
 WGViewFocusNext_loop:
-	inc	WG_FOCUSVIEW			; Increment and wrap
+	lda	WG_FOCUSVIEW			; Increment and wrap
+	inc
+	cmp #16
+	beq WGViewFocusNext_wrap
+	sta WG_FOCUSVIEW
+
 	LDY_FOCUSVIEW
 	lda WG_VIEWRECORDS+2,y
-	bne WGViewFocusNext_wantFocus
-	lda #0
-	sta	WG_FOCUSVIEW
+	beq WGViewFocusNext_loop
 
 WGViewFocusNext_wantFocus:		; Does this view accept focus?
 	LDY_FOCUSVIEW
@@ -584,6 +644,10 @@ WGViewFocusNext_focus:
 	RESTORE_AY
 	rts
 
+WGViewFocusNext_wrap:
+	stz	WG_FOCUSVIEW
+	bra WGViewFocusNext_loop
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGViewFocusPrev
@@ -596,18 +660,15 @@ WGViewFocusPrev:
 	jsr unfocusCurrent
 
 WGViewFocusPrev_loop:
-	dec	WG_FOCUSVIEW			; Decrement and wrap
-	bpl WGViewFocusPrev_wantFocus
+	ldx	WG_FOCUSVIEW			; Decrement and wrap
+	dex
+	bmi WGViewFocusPrev_wrap
 
-WGViewFocusPrev_hadNone:
-	ldx #$f
-WGViewFocusPrev_findEndLoop:
+WGViewFocusPrev_findLoop:
 	stx WG_FOCUSVIEW
 	LDY_FOCUSVIEW
 	lda WG_VIEWRECORDS+2,y
-	bne WGViewFocusPrev_wantFocus
-	dex
-	bra WGViewFocusPrev_findEndLoop
+	beq WGViewFocusPrev_loop
 
 WGViewFocusPrev_wantFocus:		; Does this view accept focus?
 	LDY_FOCUSVIEW
@@ -621,6 +682,10 @@ WGViewFocusPrev_focus:
 
 	RESTORE_AXY
 	rts
+
+WGViewFocusPrev_wrap:
+	ldx #$f
+	bra WGViewFocusPrev_findLoop
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1124,18 +1189,24 @@ WGViewPaintAll:
 
 WGViewPaintAll_loop:
 	txa
-	jsr WGSelectView
+	sta WG_ACTIVEVIEW
 
 	LDY_ACTIVEVIEW
-	lda WG_VIEWRECORDS+2,y		; Last view?
-	beq WGViewPaintAll_done
+	lda WG_VIEWRECORDS+2,y		; Valid view?
+	beq WGViewPaintAll_next
 
 	jsr WGEraseViewContents
 	jsr WGPaintView
+
+WGViewPaintAll_next:
 	inx
-	bra WGViewPaintAll_loop
+	cpx #16
+	bne WGViewPaintAll_loop
 
 WGViewPaintAll_done:
+	lda #-1
+	jsr WGSelectView
+
 	RESTORE_AXY
 	rts
 

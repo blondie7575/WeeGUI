@@ -272,11 +272,23 @@ A View is a rectangle inside which content is displayed. Content exists in a spe
 
 Many API calls rely on the concept of a "selected" view. One view at a time can be "selected", and subsequent view-related operations will apply to that view. There is no visual effect to "selecting" a view. It's simply a way to tell WeeGUI which view you are currently interested in.
 
-**IMPORTANT:** The visual border around a view (a one-character-thick outline) is drawn *outside* the bounds of the view. This means *you need to allow room around your views*. Don't attempt to place a view in columns 0 or 79, or in rows 0 or 23. *In order to maximize rendering speed, WeeGUI takes only minimal precautions to prevent rendering outside the visible screen area.*
 
 <br>
 
-	
+
+View Styles
+-----------
+
+Views in WeeGUI can be drawn with two different types of frame: Plain and Fancy. Examples of each are shown below.
+
+
+**IMPORTANT:** The visual border around a view (a one-character-thick outline) is drawn *outside* the bounds of the view. This means *you need to allow room around your views*. Don't attempt to place a view in columns 0 or 79, or in rows 0 or 23. *In order to maximize rendering speed, WeeGUI takes only minimal precautions to prevent rendering outside the visible screen area.* Rendering outside the screen area will almost certainly cause crashes and other Very Bad Things™ on your Apple II.
+
+Because view frames are rendered with Mousetext characters, views have limits on how close they can be placed together, and overlapping views may not always look perfect. WeeGUI views are drawn with a modern display-list rendering strategy, which means it combines information about all views to make the result look as good as possible within the constraints of the Apple II character set. For example, you *can* have Plain views that are separated by only one row, because there is a "double-horizontal-line" character in Mousetext that WeeGUI can use to render horizontal borders close together. However, no such character exists for verticals, thus adjacent views must be separated by at least two columns. You'll need to experiment a bit to get a sense of what will render well and what won't.
+
+<br>
+
+
 Cursors
 -------
 
@@ -314,7 +326,7 @@ These routines are used for creating, modifying, and working with views.
 
 
 ####WGCreateView
-Creates a new WeeGUI view. Up to 16 are allowed in one program. If a view is created with the same ID as a previous view, the previous view is destroyed. Views are not shown when created. Call *WGPaintView* to display it.
+Creates a new WeeGUI view. Up to 16 are allowed in one program. If a view is created with the same ID as a previous view, the previous view is destroyed and replaced with the new one. Views are not shown when created. Call *WGPaintView* to display it.
 
 
 <table width="100%">
@@ -395,6 +407,18 @@ Configuration block consists of eight bytes:
 		Width,
 		Line number for click callback,
 		"Label")
+</pre></td></tr>
+</table>
+
+
+####WGDeleteView
+Deletes the selected view. The view is erased from the screen, and the ID is now available for use by a new view.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGDeleteView
+</pre></td><td><pre>
+&KILL
 </pre></td></tr>
 </table>
 
@@ -518,6 +542,30 @@ Redraws all views. This is useful if the screen becomes corrupted, or you need t
 X:		WGViewPaintAll
 </pre></td><td><pre>
 &PNTA
+</pre></td></tr>
+</table>
+
+
+####WGEraseViewContents
+Erases the content area of the selected view. The frame is not touched.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGEraseViewContents
+</pre></td><td><pre>
+&ERASE
+</pre></td></tr>
+</table>
+
+
+####WGEraseView
+Erases the content area and frame of the selected view.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGEraseView
+</pre></td><td><pre>
+&WIPE
 </pre></td></tr>
 </table>
 
