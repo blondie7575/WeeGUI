@@ -95,6 +95,7 @@ WGFillRect_horzLoopEvenAlignedOddWidth:
 WGFillRect_horzLoopEvenAlignedEvenWidth:
 	plx								; Prepare for next row
 	dex
+	bmi WGFillRect_done				; If we were at zero, we'll wrap dangerously
 	cpx	PARAM1
 	bcs	WGFillRect_vertLoop
 	bra	WGFillRect_done
@@ -142,6 +143,7 @@ WGFillRect_horzLoopOddAlignedOddWidth:
 WGFillRect_horzLoopOddAlignedEvenWidth:
 	plx								; Prepare for next row
 	dex
+	bmi WGFillRect_done				; If we were at zero, we'll wrap dangerously
 	cpx	PARAM1
 	bcc WGFillRect_done
 	jmp WGFillRect_vertLoop
