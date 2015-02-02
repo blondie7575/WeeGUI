@@ -174,24 +174,31 @@ testPaintContents:
 	ldx #WGEraseViewContents
 	jsr WeeGUI
 
-	ldy #0
-testPaintContents_loop:
-	ldx #0
-	stx PARAM0
-	sty PARAM1
+	stz PARAM0
+	stz PARAM1
 	ldx #WGSetCursor
 	jsr WeeGUI
 
-	tya
-	clc
-	adc #'A'
-	sta testStr3
+;	ldy #0
+;testPaintContents_loop:
+;	ldx #0
+;	stx PARAM0
+;	sty PARAM1
+;	ldx #WGSetCursor
+;	jsr WeeGUI
 
-	WGCALL16 WGPrint,testStr3
+;	tya
+;	clc
+;	adc #'A'
+;	sta testStr3
+;
+;	WGCALL16 WGPrint,testStr3
+;
+;	iny
+;	cpy #25
+;	bne testPaintContents_loop
 
-	iny
-	cpy #25
-	bne testPaintContents_loop
+	WGCALL16 WGPrint,testStr
 
 testPaintContents_done:
 	rts
@@ -228,9 +235,9 @@ testButton2:
 
 testStr:
 ;	.byte "This is a test of the emergency broadcast system.",0; If this had been a real emergency, you would be dead now.",0	; 107 chars
-	.byte "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_ !",34,"#$%&'()*+,-./0123456789:;<=>?`abcdefghijklmno",0
+	.byte "@ABCDEFGHIJKLMNOPQ",13,"RSTUVWXYZ[\]^_ !",34,"#$%&'()*+,-./0123456789:;<=>?`abcdefghijklmno"
 testStr2:
-	.byte "pqrstuvwxyz{|}~",$ff,0
+	.byte "pqrstuvwxyz",0;//{|}~",$ff,0
 testStr3:
 	.byte "x",0
 

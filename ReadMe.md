@@ -9,8 +9,9 @@ Known issues
 To Do:
 ------
 
-- Delete view feature
-- Factor out mouse driver
-- Standardize naming of functions
+- Support carriage returns in &print
 - Write sample code
 - Update side effects in assembly API
+- Support for frameless views
+- Document final memory map
+

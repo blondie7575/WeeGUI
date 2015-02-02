@@ -11,7 +11,7 @@
 
 CL65=cl65
 AC=AppleCommander.jar
-ADDR=7e00
+ADDR=7d00
 ADDRDEMO=6000
 
 PGM=weegui

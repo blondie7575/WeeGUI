@@ -21,7 +21,7 @@ PARAM3					= $09
 ; WeeGUI entry point
 ; Set up your call, then do a JSR to this address.
 ;
-WeeGUI					= $7e04
+WeeGUI					= $7d04		;  7d00
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

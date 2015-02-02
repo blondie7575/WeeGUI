@@ -7,7 +7,7 @@
 ;
 
 
-.org $7e00
+.org $7d00
 
 ; Common definitions
 
