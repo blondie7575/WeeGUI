@@ -179,9 +179,10 @@ Here's a sample Applesoft run loop using these techniques:
 	1  PRINT  CHR$ (4)"brun weegui"
 	70 REM Run Loop
 	80  &PDACT
-	85  &GET(A$)
-	90  IF A$ = "q" THEN END
-	100  GOTO 80
+	90  &GET(A%)
+	99 REM 113 is the ASCII code for 'q' (to quit)
+	100  IF A% = 113 THEN END
+	110  GOTO 80
 
 You can omit &PDACT if you have no desire to support the mouse.
 
@@ -909,13 +910,13 @@ Not available
 
 
 ####WGGet
-A non-blocking version of Applesoft's GET. This allows you to easily create run-loops for GUI programming in Applesoft. The key read is returned in the Applesoft string variable you specify. If no keypress is pending, the value will be an empty string.
+A non-blocking version of Applesoft's GET. This allows you to easily create run-loops for GUI programming in Applesoft. The key read is returned in the Applesoft integer variable you specify. If no keypress is pending, the value will be zero.
 
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
 Not available
 </pre></td><td><pre>
-&GET(A$) 
+&GET(A%) 
 </pre></td></tr>
 </table>
 

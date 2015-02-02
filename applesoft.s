@@ -879,23 +879,32 @@ WGAmpersand_GET:
 
 	sta KBDSTRB					; Clear strobe and high bit
 	and #%01111111
+	pha
 	bra WGAmpersand_GETstore
 
 WGAmpersand_GETnone:
 	lda #0
+	pha
 
 WGAmpersand_GETstore:
 	ldy #0
 
-	sta WG_KEYBUFFER			; Store the key
-	lda #1						; Create an Applesoft string record in the
-	sta (VARPNT),y				; variable's location
-	iny
-	lda #<WG_KEYBUFFER
+	lda #0
 	sta (VARPNT),y
 	iny
-	lda #>WG_KEYBUFFER
+	pla
 	sta (VARPNT),y
+	
+; String version:
+;	sta WG_KEYBUFFER			; Store the key
+;	lda #1						; Create an Applesoft string record in the
+;	sta (VARPNT),y				; variable's location
+;	iny
+;	lda #<WG_KEYBUFFER
+;	sta (VARPNT),y
+;	iny
+;	lda #>WG_KEYBUFFER
+;	sta (VARPNT),y
 
 	jsr WGAmpersandEndArguments
 	rts
