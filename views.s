@@ -819,8 +819,16 @@ WGViewFocusAction_knownRTS:
 WGPendingViewAction:
 	SAVE_AY
 
-	lda WG_PENDINGACTIONVIEW
+	lda WG_MOUSECLICK_X
 	bmi WGPendingViewAction_done
+
+	sta PARAM0
+	lda WG_MOUSECLICK_Y
+	sta PARAM1
+	jsr WGViewFromPoint
+	sta WG_PENDINGACTIONVIEW
+	cmp #$ff
+	beq WGPendingViewAction_done
 
 	and #$f					; Select view in question
 	jsr WGSelectView
@@ -859,9 +867,10 @@ WGPendingViewAction_hasCallback:
 	jsr WGViewFocus
 	jsr WGViewFocusAction	; Trigger application to redraw contents
 
-WGPendingViewAction_done:		; Centralized for branch range
+WGPendingViewAction_done:		; Located here for branch range
 	lda #$ff
 	sta WG_PENDINGACTIONVIEW
+	sta WG_MOUSECLICK_X
 
 	RESTORE_AY
 	rts
@@ -900,12 +909,16 @@ WGPendingViewAction_content:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGPendingView
-; Returns the view that is currently pending
-; OUT A : Pending view ID, or $ff if none
+; WGPendingClick
+; Returns the mouse click that is currently pending
+; OUT X,Y : Mouse coordinates, or $ff in X if none
 ;
-WGPendingView:
-	lda WG_PENDINGACTIONVIEW
+WGPendingClick:
+	ldx WG_MOUSECLICK_X
+	bmi WGPendingClick_done
+	ldy WG_MOUSECLICK_Y
+
+WGPendingClick_done:
 	rts
 
 

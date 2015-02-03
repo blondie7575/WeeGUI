@@ -339,15 +339,11 @@ WGMouseInterruptHandler_button:
 	bit WG_MOUSE_STAT			; Check for rising edge of button state
 	bpl WGMouseInterruptHandler_intDone
 
-	lda WG_MOUSEPOS_X		; Where did we click?
-	sta PARAM0
+	; Button was clicked, so make a note of location for later
+	lda WG_MOUSEPOS_X
+	sta WG_MOUSECLICK_X
 	lda WG_MOUSEPOS_Y
-	sta PARAM1
-	jsr WGViewFromPoint
-	bmi WGMouseInterruptHandler_intDone
-
-	; Button was clicked in a view, so make a note of it for later
-	sta WG_PENDINGACTIONVIEW
+	sta WG_MOUSECLICK_Y
 
 WGMouseInterruptHandler_intDone:
 	pla						; Restore text bank
@@ -542,6 +538,10 @@ WG_MOUSE_SLOT:
 WG_MOUSE_SLOTSHIFTED:
 .byte 0
 
+WG_MOUSECLICK_X:
+.byte $ff
+WG_MOUSECLICK_Y:
+.byte 0
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ProDOS system call parameter blocks

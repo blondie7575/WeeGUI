@@ -848,7 +848,7 @@ WGAmpersand_MOUSEoff:
 ; Performs any pending view action
 ; &PDACT
 WGAmpersand_PDACT:
-	lda WG_PENDINGACTIONVIEW
+	lda WG_MOUSECLICK_X
 	bmi WGAmpersand_PDACTdone
 
 	jsr WGPendingViewAction

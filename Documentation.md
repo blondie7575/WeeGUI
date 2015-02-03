@@ -449,14 +449,15 @@ X:		WGPendingViewAction
 </table>
 
 
-####WGPendingView
-Returns the currently pending view, if any. This is a way to peek into the state of the mouse event system, to see if the user is trying to do something with the mouse. Most programs shouldn't need this.
+####WGPendingClick
+Returns the currently pending click, if any. This is a way to peek into the state of the mouse event system, to see if the user is trying to do something with the pointer. Most programs shouldn't need this, but you can use it to do your own low-level click handling if you wish.
 
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
-X:		WGPendingView
+X:		WGPendingClick
 
-Returns in A:		View ID
+Returns in X:		X coordinate of click, or $ff if none
+Returns in Y:		Y coordinate of click, if any
 </td><td>
 Not available
 </td></tr>
