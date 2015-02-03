@@ -64,7 +64,7 @@ WGEntryPointTable:
 .addr WGViewFocusPrev
 .addr WGViewFocusAction
 .addr WGPendingViewAction
-.addr WGPendingView
+.addr WGPendingClick
 .addr WGScrollX
 .addr WGScrollXBy
 .addr WGScrollY

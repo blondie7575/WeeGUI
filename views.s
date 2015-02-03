@@ -465,10 +465,12 @@ paintWindowTitle_compute:
 	lsr
 	sec
 	sbc SCRATCH1
-	sta	WG_LOCALCURSORX		; Position cursor
-	lda #-1
-	sta WG_LOCALCURSORY
-	jsr WGSyncGlobalCursor
+	clc
+	adc WG_VIEWRECORDS+0,y
+	sta	WG_CURSORX		; Position cursor
+	lda WG_VIEWRECORDS+1,y
+	dec
+	sta WG_CURSORY
 
 	ldy #0
 paintWindowTitleLoop:
@@ -589,6 +591,21 @@ WGViewFocus:
 	jsr focusCurrent
 
 	RESTORE_AY
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGViewFocusQuiet
+; Shifts focus to the selected view without redrawing anything
+; Side effects: Changes selected view, repaints some views
+;
+WGViewFocusQuiet:
+	pha
+
+	lda WG_ACTIVEVIEW			; Stash current selection
+	sta WG_FOCUSVIEW			; Focus on our current selection
+
+	pla
 	rts
 
 
@@ -878,21 +895,21 @@ WGPendingViewAction_done:		; Located here for branch range
 WGPendingViewAction_up:
 	lda #1					; Up arrow
 	jsr WGScrollYBy
-	jsr WGViewFocus
+	jsr WGViewFocusQuiet
 	jsr WGViewFocusAction	; Trigger application to redraw contents
 	bra WGPendingViewAction_done
 
 WGPendingViewAction_down:
 	lda #-1					; Down arrow
 	jsr WGScrollYBy
-	jsr WGViewFocus
+	jsr WGViewFocusQuiet
 	jsr WGViewFocusAction	; Trigger application to redraw contents
 	bra WGPendingViewAction_done
 
 WGPendingViewAction_left:
 	lda #1					; Left arrow
 	jsr WGScrollXBy
-	jsr WGViewFocus
+	jsr WGViewFocusQuiet
 	jsr WGViewFocusAction	; Trigger application to redraw contents
 	bra WGPendingViewAction_done
 
