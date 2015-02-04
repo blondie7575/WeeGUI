@@ -130,12 +130,22 @@ WGPlot_done:
 ; cursor position. Clips to current view.
 ; PARAM0: String pointer, LSB
 ; PARAM1: String pointer, MSB
+; V: If set, characters are printed raw with no high bit alterations
 ; Side effects: Clobbers SA,BASL,BASH
 ;
 WGPrint:
 	SAVE_AXY
 	SAVE_ZPS
 
+	lda #%10000000
+	bvc WGPrint_setupMask
+	lda #0
+	clv
+
+WGPrint_setupMask:
+	sta WGPrint_specialMask
+
+	; Start checking clipping boundaries
 	lda WG_LOCALCURSORY
 	cmp	WG_VIEWCLIP+3
 	bcs	WGPrint_leapDone	; Entire string is below the clip box
@@ -220,7 +230,7 @@ WGPrint_visibleChars:
 WGPrint_charLoopNormal:
 	lda	(PARAM0),y			; Draw current character
 	beq WGPrint_done
-	ora #%10000000
+	ora WGPrint_specialMask
 	jsr	WGPlot
 	iny
 
@@ -286,3 +296,5 @@ WGPrint_charLoopInversePlot:
 	beq	WGPrint_endVisible
 	bra WGPrint_charLoopInverse
 
+WGPrint_specialMask:
+	.byte 0

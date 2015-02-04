@@ -812,8 +812,13 @@ Prints a string into the current view, at the *local* cursor position. The text 
 X:		WGPrint
 PARAM0: Pointer to null-terminated string (LSB)
 PARAM1:	Pointer to null-terminated string (MSB)
+Overflow: If set, characters are printed raw, with no high bit manipulation. Only works in NORMAL mode.
 </pre></td><td><pre>
 &PRINT("string")
+
+or
+
+&PRINT(raw_character)
 </pre></td></tr>
 </table>
 

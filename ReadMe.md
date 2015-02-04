@@ -8,7 +8,6 @@ Known issues
 
 To Do:
 ------
-- Clicking on scroll arrows in basicdemo messes up title rendering
 - Write sample code
 - Update side effects in assembly API
 - Support for frameless views

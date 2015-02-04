@@ -611,6 +611,10 @@ WGAmpersand_CURSR:
 WGAmpersand_PRINT:
 	jsr WGAmpersandBeginArguments
 
+	jsr CHRGOT					; Experimental alternate parameter support
+	cmp #'"'
+	bne WGAmpersand_PRINTint
+
 	jsr WGAmpersandTempStrArgument
 	stx	PARAM0
 	sty PARAM1
@@ -637,6 +641,24 @@ WGAmpersand_PRINT:
 
 	rts
 
+WGAmpersand_PRINTint:
+	; User passed a non-string, so interpret as an ASCII code
+	jsr WGAmpersandIntArgument
+	sta WGAmpersand_PRINTintBuffer
+	jsr WGAmpersandEndArguments
+
+	lda #<WGAmpersand_PRINTintBuffer
+	sta PARAM0
+	lda #>WGAmpersand_PRINTintBuffer
+	sta PARAM1
+	bit WGAmpersand_PRINTrts		; Set overflow
+	jsr WGPrint
+
+WGAmpersand_PRINTrts:
+	rts
+
+WGAmpersand_PRINTintBuffer:
+	.byte 0,0
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_SCR
