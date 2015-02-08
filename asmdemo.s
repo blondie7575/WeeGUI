@@ -47,7 +47,7 @@ main:
 ; Show off some WeeGUI features
 
 	;jmp	tortureTestPrint
-	;jmp	tortureTestRects
+	jmp	tortureTestRects
 	ldx #WGClearScreen
 	jsr WeeGUI
 

@@ -377,6 +377,9 @@ paintCheck_done:
 ; Y: Index into view records of button to paint
 ; Side effects: Clobbers all registers,P0,P1,S1
 paintButton:
+	lda INVERSE			; Preserve INVERSE state during this
+	pha
+
 	lda WG_VIEWRECORDS+12,y	; Prep the title string
 	sta PARAM0
 	lda WG_VIEWRECORDS+13,y
@@ -438,6 +441,8 @@ paintButton_titleMarginRightLoop:
 	jmp paintButton_titleMarginRightLoop
 
 paintButton_done:
+	pla						; Restore inverse state
+	sta INVERSE
 	rts
 
 
