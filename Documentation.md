@@ -108,6 +108,8 @@ Simple calls may use a register or two for parameters. For example, the call to 
 	ldx #WGSelectView	; Followed by a typical WeeGUI call
 	jsr WeeGUI
 
+Registers that you use to pass a parameter to WeeGUI may contain different values upon return.
+
 
 #####Zero Page Passing:
 
@@ -456,7 +458,7 @@ Returns the currently pending click, if any. This is a way to peek into the stat
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGPendingClick
 
-Returns in X:		X coordinate of click, or $ff if none
+Returns in X:		X coordinate of click, or $FF if none
 Returns in Y:		Y coordinate of click, if any
 </td><td>
 Not available
