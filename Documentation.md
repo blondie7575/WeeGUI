@@ -282,10 +282,10 @@ Many API calls rely on the concept of a "selected" view. One view at a time can 
 View Styles
 -----------
 
-Views in WeeGUI can be drawn with two different types of frame: Plain and Fancy. Examples of each are shown below.
+Views in WeeGUI can be drawn frameless, or with two different kinds of frame (as shown below).
 
 
-**IMPORTANT:** The visual border around a view (a one-character-thick outline) is drawn *outside* the bounds of the view. This means *you need to allow room around your views*. Don't attempt to place a view in columns 0 or 79, or in rows 0 or 23. *In order to maximize rendering speed, WeeGUI takes only minimal precautions to prevent rendering outside the visible screen area.* Rendering outside the screen area will almost certainly cause crashes and other Very Bad Things™ on your Apple II.
+**IMPORTANT:** The visual frame around a view is drawn *outside* the bounds of the view. This means *you need to allow room around your views*. Don't attempt to place a view in columns 0 or 79, or in rows 0 or 23. *In order to maximize rendering speed, WeeGUI takes only minimal precautions to prevent rendering outside the visible screen area.* Rendering outside the screen area will almost certainly cause crashes and other Very Bad Things™ on your Apple II. The exception to this is frameless views (style 0). These can be used right up to the edges of the screen.
 
 Because view frames are rendered with Mousetext characters, views have limits on how close they can be placed together, and overlapping views may not always look perfect. WeeGUI views are drawn with a modern display-list rendering strategy, which means it combines information about all views to make the result look as good as possible within the constraints of the Apple II character set. For example, you *can* have Plain views that are separated by only one row, because there is a "double-horizontal-line" character in Mousetext that WeeGUI can use to render horizontal borders close together. However, no such character exists for verticals, thus adjacent views must be separated by at least two columns. You'll need to experiment a bit to get a sense of what will render well and what won't.
 
@@ -340,7 +340,7 @@ PARAM1:	Pointer to configuration block (MSB)
 
 Configuration block consists of eight bytes:
 	0:	View ID (0-15)
-	1:	Style (0 for plain, 1 for fancy)
+	1:	Style (see View Styles, above)
 	2:	Left edge of view
 	3:	Top edge of view
 	4:	Visible width of view
@@ -349,7 +349,7 @@ Configuration block consists of eight bytes:
 	7:	Height of view's content
 </pre></td><td><pre>
 &WINDW(	View ID,
-		Style (0 for plain, 1 for fancy),
+		Style (see View Styles, above),
 		Left edge,
 		Top edge,
 		View width,
@@ -575,7 +575,7 @@ X:		WGEraseView
 
 
 ####WGViewSetTitle
-Changes the title of the selected view. Titles are only visible in the "fancy" style of view border. In Applesoft, the view is automatically redrawn to reflect the change. In assembly, you must call WGPaintView manually to see the change.
+Changes the title of the selected view. Titles are only visible in the "decorated" style of view border. In Applesoft, the view is automatically redrawn to reflect the change. In assembly, you must call WGPaintView manually to see the change.
 
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
@@ -859,7 +859,7 @@ Y: 		Character to fill with (Apple format)
 
 
 ####WGFancyRect
-Draws the outline of decorated GUI-style window, with scrollbars and title bar. Similar to *WGStrokeRect*, the drawing occurs *outside* the rectangle you specify, so do not attempt to draw a fancy rect in row 0, row 23, column 0, or column 79.
+Draws the outline of a decorated GUI-style window, with scrollbars and title bar. Similar to *WGStrokeRect*, the drawing occurs *outside* the rectangle you specify, so do not attempt to draw a decorated rect in row 0, row 23, column 0, or column 79.
 
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>

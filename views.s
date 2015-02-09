@@ -264,6 +264,7 @@ WGPaintView:
 
 	lda WG_VIEWRECORDS+4,y	; Cache style information
 	and #$f					; Mask off flag bits
+	beq WGPaintView_done	; If it's a stealth view, we're done
 	pha
 
 	lda	WG_VIEWRECORDS+0,y	; Fetch the geometry
