@@ -1,9 +1,9 @@
 ;
-;  guidemo.s
+;  asmdemo.s
 ;  WeeGUI sample application
 ;
 ;  Created by Quinn Dunki on 8/15/14.
-;  Copyright (c) 2014 One Girl, One Laptop Productions. All rights reserved.
+;  Copyright (c) 2015 One Girl, One Laptop Productions. All rights reserved.
 ;
 
 
@@ -18,17 +18,6 @@ KBD				= $c000
 KBDSTRB			= $c010
 
 
-.macro WGCALL16 func,addr
-	lda #<addr
-	sta PARAM0
-	lda #>addr
-	sta PARAM1
-	ldx #func
-	jsr WeeGUI
-.endmacro
-
-
-; Sample code
 main:
 
 	; BRUN the GUI library
@@ -43,49 +32,19 @@ main:
 @1:	jsr DOSCMD
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Show off some WeeGUI features
-
-	jmp	animateRects
-
-	ldx #WGClearScreen
-	jsr WeeGUI
-
-keyLoop:
-	ldx #WGPendingViewAction
-	jsr WeeGUI
-
-	lda KBD
-	bpl keyLoop
-	sta KBDSTRB
-
-	and #%01111111
-	cmp #113
-	beq	keyLoop_quit
-
-	jmp keyLoop
-
-keyLoop_quit:
-	ldx #WGExit
-	jsr WeeGUI
-	rts
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; animateRects
-; Strokes and paints rectangles of many different geometries
+; Show off rendering speed with some snazzy rectangle painting
 ;
 	; Stack:
 	; Curr X
 	; Curr Y
 	; Curr Width
 	; Curr Height
-animateRects:
+
 	ldx #WGClearScreen
 	jsr WeeGUI
 
-animateRectsEven:
-
+animateRects:
 	lda	#38			; Initialize
 	pha
 	lda #11
@@ -110,7 +69,7 @@ animateRectsEvenLoop:
 	inc
 	sta	$0100,x
 	cmp	#25
-	bcs	animateRectsEvenDone
+	bcs	animateRects
 
 	inx				; Load Width, then modify
 	lda	$0100,x
@@ -137,7 +96,7 @@ animateRectsEvenLoop:
 	dec
 	sta	$0100,x
 
-	ldy	#'Q'+$80
+	ldy	#64
 	ldx	#WGFillRect
 	jsr WeeGUI
 	ldx #WGStrokeRect
@@ -146,84 +105,10 @@ animateRectsEvenLoop:
 	jsr delayShort
 	jsr delayShort
 	jsr delayShort
+	jsr checkKbd
 
-	jmp animateRectsEvenLoop
+	bra animateRectsEvenLoop
 
-animateRectsEvenDone:
-	pla
-	pla
-	pla
-	pla
-
-animateRectsOdd:
-
-	lda	#37			; Initialize
-	pha
-	lda #11
-	pha
-	lda #2
-	pha
-	lda #2
-	pha
-
-animateRectsOddLoop:
-	ldx #WGClearScreen
-	jsr WeeGUI
-
-	tsx
-	inx
-	lda	$0100,x		; Load Height, then modify
-	sta	PARAM3
-	inc
-	inc
-	sta	$0100,x
-	cmp	#25
-	bcs	animateRectsOddDone
-
-	inx				; Load Width, then modify
-	lda	$0100,x
-	sta PARAM2
-	inc
-	inc
-	inc
-	inc
-	inc
-	inc
-	sta	$0100,x
-
-	inx				; Load Y, then modify
-	lda	$0100,x
-	sta	PARAM1
-	dec
-	sta	$0100,x
-
-	inx				; Load X, then modify
-	lda	$0100,x
-	sta	PARAM0
-	dec
-	dec
-	dec
-	sta	$0100,x
-
-	ldy	#'Q'+$80
-	ldx	#WGFillRect
-	jsr WeeGUI
-	ldx #WGStrokeRect
-	jsr WeeGUI
-
-	jsr delayShort
-	jsr delayShort
-	jsr delayShort
-
-	jmp animateRectsOddLoop
-
-animateRectsOddDone:
-	pla
-	pla
-	pla
-	pla
-
-	jmp	animateRectsEven
 
 delayShort:		; ~1/30 sec
 	pha
@@ -251,33 +136,26 @@ delayShortInner:
 	pla
 	rts
 
-delay:			; ~1 sec
-	pha
-	phx
-	phy
+checkKbd:
+	lda KBD
+	bpl checkKbdDone
+	sta KBDSTRB
 
-	ldy		#$ce	; Loop a bunch
-delayOuter:
-	ldx		#$ff
-delayInner:
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	dex
-	bne		delayInner
-	dey
-	bne		delayOuter
+	cmp #241		; 'q' with high bit set
+	bne	checkKbdDone
 
-	ply
-	plx
+	ldx #WGExit
+	jsr WeeGUI
+	pla		; Pull our own frame off the stack...
 	pla
+	pla
+	pla
+	pla		; ...four local variables + return address...
+	pla
+	rts		; ...so we can quit to ProDOS from here
+
+checkKbdDone:
 	rts
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

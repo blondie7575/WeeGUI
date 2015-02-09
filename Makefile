@@ -18,7 +18,7 @@ PGM=weegui
 DEMO=asmdemo
 
 all: $(DEMO) $(PGM)
-#all: $(PGM)
+
 
 $(DEMO):
 	@PATH=$(PATH):/usr/local/bin; $(CL65) -t apple2enh --start-addr $(ADDRDEMO) -l$(DEMO).lst $(DEMO).s

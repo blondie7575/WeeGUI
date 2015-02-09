@@ -3,7 +3,7 @@ WeeGUI
 
 WeeGUI is a lightweight library for creating graphical user interfaces in 80 column text mode on the Apple IIe Enhanced and Apple IIc family of computers. It supports both keyboard and mouse controls for your interface. It is designed to take minimal RAM (less than 6k), and can be used from assembly language or Applesoft BASIC programs under ProDOS. WeeGUI installs itself at the top of memory, using an area normally vacant in most BASIC and assembly programs.
 
-You can use WeeGUI as a full-blown user interface system, or as a simple drawing library for ASCII art. Use as much or as little of its features as you wish. WeeGUI tries not to enforce any particular structure or use-case on your program. It is intended to be so easy to use that you'll choose it over rolling your own menuing system for whatever application you're building.
+You can use WeeGUI as a full-blown user interface system, or as a simple drawing library for ASCII art. Use as much or as little of its features as you wish. WeeGUI tries not to enforce any particular structure or use-case on your program. It is intended to be so easy to use that you'll choose it over rolling your own menuing system for whatever application you're building. Whether you're building the next ProTERM, or just a quick-and-dirty interface for your Arduino project, WeeGUI can be your go-to library.
 
 <br>
 
@@ -46,7 +46,7 @@ When using assembly language, you can install WeeGUI by loading the *WEEGUI* lib
 
 		ldx #0
 		ldy #0
-	@0:	lda bloadCmdLine,x
+	@0:	lda brunCmdLine,x
 		beq @1
 		sta $0200,y
 		inx
@@ -54,7 +54,7 @@ When using assembly language, you can install WeeGUI by loading the *WEEGUI* lib
 		bra @0
 	@1:	jsr $be03
 
-	bloadCmdLine:
+	brunCmdLine:
 		.byte "BRUN WEEGUI",$8d,0
 		
 
@@ -147,7 +147,7 @@ A typical assembly language run loop simply waits for keypresses and responds to
 
 		; Respond to keys as needed
 
-		jmp runLoop
+		bra runLoop
 
 If you want to support the mouse, WeeGUI has you covered. You just need to add one piece to your run loop:
 
@@ -161,7 +161,7 @@ If you want to support the mouse, WeeGUI has you covered. You just need to add o
 
 		; Respond to keys as needed
 
-		jmp runLoop
+		bra runLoop
 
 Note the call to *WGPendingViewAction* on each pass through the loop. For the mouse, WeeGUI will make note of actions taken by the user, but won't act until you say so. It is up to your program to call *WGPendingViewAction* periodically to allow WeeGUI to handle these events.
 
