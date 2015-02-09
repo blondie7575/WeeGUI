@@ -9,6 +9,6 @@ Known issues
 
 To Do:
 ------
-- Support for frameless views
 - Document final memory map
 - Remove references to ORG in docs (except in memory map)
+- Put sample code in docs

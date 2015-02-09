@@ -11,19 +11,26 @@ You can use WeeGUI as a full-blown user interface system, or as a simple drawing
 Demo
 ----
 
-For a quick demo of what WeeGUI can do, install the disk image *weegui.dsk* in your emulator, or make a floppy disk from it and boot your real Apple II. On the disk, you'll find the WeeGUI library itself, an Applesoft demo program, and an assembly language demo program. Boot the disk, then try the following commands:
+For a quick demo of what WeeGUI can do, install the disk image *weegui.dsk* in your emulator, or make a floppy disk from it and boot your real Apple II. On the disk, you'll find the WeeGUI library itself, an Applesoft demo program, and an assembly language demo program. Boot the disk, then try the following command:
 
 	]-basicdemo
 	
-...for BASIC, or...
+	
+You'll be presented with a sample GUI for a fictional home automation system. This entire interface, including mouse and keyboard control, is just a handful of lines of Applesoft. You can navigate this demo using Tab and Return, or using your mouse. Mouse support works in the Virtual II emulator as well (assuming you have a mouse card assigned to one of the slots). If you have a physical Apple II, you can use either a standard Apple IIc mouse, or an Apple IIe mouse with a mouse card in any slot. The Apple IIgs mouse is not officially supported at the moment.
+
+
+<center><img src="docart/screenshot.jpg"></center>
+
+<br>
+
+Next, try this assembly language demo:
 
 	]-asmdemo
 	
-... for assembly language.
+Since assembly is all about speed, this demo shows off some fast ASCII-art animation done with WeeGUI. Hit 'q' (lowercase) to quit the demo.
 
-You can navigate these demos using Tab and Return, or using your mouse. Mouse support works in the Virtual II emulator just fine (assuming you have a mouse card assigned to one of the slots). If you have a physical Apple II, you can use either a standard Apple IIc mouse, or an Apple IIe mouse with a mouse card in any slot. The Apple IIgs mouse is not officially supported at the moment.
+The source code of these two example programs can be found in Appendix C of this document.
 
-If you prefer to learn by example, the source code of these two example programs can be found in Appendix B of this document.
 
 <br>
 	
@@ -282,7 +289,13 @@ Many API calls rely on the concept of a "selected" view. One view at a time can 
 View Styles
 -----------
 
-Views in WeeGUI can be drawn frameless, or with two different kinds of frame (as shown below).
+Views in WeeGUI can be drawn frameless, or with two different kinds of frame. Below are samples of each frame, shown against whichever background shows it the best (black or desktop).
+
+<center><table>
+<tr><td><img src="docart/viewshot0.jpg"></td></tr>
+<tr><td><img src="docart/viewshot1.jpg"></td></tr>
+<tr><td><img src="docart/viewshot2.jpg"></td></tr>
+</table></center>
 
 
 **IMPORTANT:** The visual frame around a view is drawn *outside* the bounds of the view. This means *you need to allow room around your views*. Don't attempt to place a view in columns 0 or 79, or in rows 0 or 23. *In order to maximize rendering speed, WeeGUI takes only minimal precautions to prevent rendering outside the visible screen area.* Rendering outside the screen area will almost certainly cause crashes and other Very Bad Things™ on your Apple II. The exception to this is frameless views (style 0). These can be used right up to the edges of the screen.
