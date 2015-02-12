@@ -442,8 +442,8 @@ renderPointer:
 	sta BASH
 
 	lda	WG_MOUSEPOS_X		; X even?
-	and	#$01
-	bne	renderPointer_xOdd
+	ror
+	bcs	renderPointer_xOdd
 
 	SETSWITCH	PAGE2ON
 

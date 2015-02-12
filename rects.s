@@ -45,8 +45,8 @@ WGFillRect_vertLoop:
 	sta BASH
 
 	lda	PARAM0			; Left edge even?
-	and	#$01
-	bne	WGFillRect_horzLoopOdd
+	ror
+	bcs	WGFillRect_horzLoopOdd
 
 	lda PARAM2
 	cmp #1			; Width==1 is a special case
@@ -81,8 +81,8 @@ WGFillRect_horzLoopEvenAligned1:	; Draw odd columns
 	bpl	WGFillRect_horzLoopEvenAligned1	; Loop for w/2
 
 	lda	PARAM2						; Is width even?
-	and	#$01
-	beq	WGFillRect_horzLoopEvenAlignedEvenWidth
+	ror
+	bcc	WGFillRect_horzLoopEvenAlignedEvenWidth
 
 WGFillRect_horzLoopEvenAlignedOddWidth:
 	; CASE 1a: Left edge even aligned, odd width
@@ -129,8 +129,8 @@ WGFillRect_horzLoopOddAligned1:		; Draw even columns
 	bpl	WGFillRect_horzLoopOddAligned1	; Loop for w/2
 
 	lda	PARAM2						; Is width even?
-	and	#$01
-	beq	WGFillRect_horzLoopOddAlignedEvenWidth
+	ror
+	bcc	WGFillRect_horzLoopOddAlignedEvenWidth
 
 WGFillRect_horzLoopOddAlignedOddWidth:
 	; CASE 2a: Left edge odd aligned, odd width
@@ -220,8 +220,8 @@ WGStrokeRect_horzEdge:
 	sta BASH
 
 	lda	PARAM0			; Left edge even?
-	and	#$01
-	beq	WGStrokeRect_horzEdgeEven
+	ror
+	bcc	WGStrokeRect_horzEdgeEven
 	jmp WGStrokeRect_horzLoopOdd
 
 WGStrokeRect_horzEdgeEven:
@@ -253,8 +253,8 @@ WGStrokeRect_horzLoopEvenAligned1:	; Draw odd columns
 	bpl	WGStrokeRect_horzLoopEvenAligned1	; Loop for w/2
 
 	lda	PARAM2						; Is width even?
-	and	#$01
-	beq	WGStrokeRect_horzLoopEvenAlignedEvenWidth
+	ror
+	bcc	WGStrokeRect_horzLoopEvenAlignedEvenWidth
 
 WGStrokeRect_horzLoopEvenAlignedOddWidth:
 	; CASE 1a: Left edge even aligned, odd width
@@ -310,8 +310,8 @@ WGStrokeRect_horzLoopOddAligned1:		; Draw even columns
 	bpl	WGStrokeRect_horzLoopOddAligned1	; Loop for w/2
 
 	lda	PARAM2						; Is width even?
-	and	#$01
-	beq	WGStrokeRect_horzLoopOddAlignedEvenWidth
+	ror
+	bcc	WGStrokeRect_horzLoopOddAlignedEvenWidth
 
 WGStrokeRect_horzLoopOddAlignedOddWidth:
 	; CASE 2a: Left edge odd aligned, odd width
@@ -368,8 +368,8 @@ WGStrokeRect_vertLoop:
 
 	lda	PARAM0			; Left edge even?
 	dec
-	and	#$01
-	bne	WGStrokeRect_vertLoopOdd
+	ror
+	bcs	WGStrokeRect_vertLoopOdd
 
 	; CASE 1: Left edge even-aligned, even width
 	SETSWITCH	PAGE2ON
@@ -380,8 +380,8 @@ WGStrokeRect_vertLoop:
 	lda	PARAM2						; Is width even?
 	inc
 	inc
-	and	#$01
-	bne	WGStrokeRect_vertLoopEvenAlignedOddWidth
+	ror
+	bcs	WGStrokeRect_vertLoopEvenAlignedOddWidth
 
 	lda PARAM2						; Calculate right edge
 	inc
@@ -423,8 +423,8 @@ WGStrokeRect_vertLoopOdd:
 	lda	PARAM2						; Is width even?
 	inc
 	inc
-	and	#$01
-	bne	WGStrokeRect_vertLoopOddAlignedOddWidth
+	ror
+	bcs	WGStrokeRect_vertLoopOddAlignedOddWidth
 
 	lda PARAM2						; Calculate right edge
 	inc
@@ -512,8 +512,8 @@ WGFancyRect_horzEdge:
 	sta BASH
 
 	lda	PARAM0			; Left edge even?
-	and	#$01
-	bne	WGFancyRect_horzLoopOdd
+	ror
+	bcs	WGFancyRect_horzLoopOdd
 
 	; CASE 1: Left edge even-aligned, even width
 	SETSWITCH	PAGE2OFF
@@ -539,8 +539,8 @@ WGFancyRect_horzLoopEvenAligned1:	; Draw odd columns
 	bpl	WGFancyRect_horzLoopEvenAligned1	; Loop for w/2
 
 	lda	PARAM2						; Is width even?
-	and	#$01
-	beq	WGFancyRect_horzLoopEvenAlignedEvenWidth
+	ror
+	bcc	WGFancyRect_horzLoopEvenAlignedEvenWidth
 
 WGFancyRect_horzLoopEvenAlignedOddWidth:
 	; CASE 1a: Left edge even aligned, odd width
@@ -588,8 +588,8 @@ WGFancyRect_horzLoopOddAligned1:		; Draw even columns
 	bpl	WGFancyRect_horzLoopOddAligned1	; Loop for w/2
 
 	lda	PARAM2						; Is width even?
-	and	#$01
-	beq	WGFancyRect_horzLoopOddAlignedEvenWidth
+	ror
+	bcc	WGFancyRect_horzLoopOddAlignedEvenWidth
 
 WGFancyRect_horzLoopOddAlignedOddWidth:
 	; CASE 2a: Left edge odd aligned, odd width
@@ -643,8 +643,8 @@ WGFancyRect_vertLoop:
 
 	lda	PARAM0			; Left edge even?
 	dec
-	and	#$01
-	bne	WGFancyRect_vertLoopOdd
+	ror
+	bcs	WGFancyRect_vertLoopOdd
 
 	; CASE 1: Left edge even-aligned, even width
 	SETSWITCH	PAGE2ON
@@ -655,8 +655,8 @@ WGFancyRect_vertLoop:
 	lda	PARAM2						; Is width even?
 	inc
 	inc
-	and	#$01
-	bne	WGFancyRect_vertLoopEvenAlignedOddWidth
+	ror
+	bcs	WGFancyRect_vertLoopEvenAlignedOddWidth
 
 	lda PARAM2						; Calculate right edge
 	inc
@@ -698,8 +698,8 @@ WGFancyRect_vertLoopOdd:
 	lda	PARAM2						; Is width even?
 	inc
 	inc
-	and	#$01
-	bne	WGFancyRect_vertLoopOddAlignedOddWidth
+	ror
+	bcs	WGFancyRect_vertLoopOddAlignedOddWidth
 
 	lda PARAM2						; Calculate right edge
 	inc

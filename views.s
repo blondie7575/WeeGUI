@@ -324,8 +324,8 @@ paintCheck:
 	bne paintCheck_selected
 
 	lda	WG_VIEWRECORDS+9,y
-	and #$01
-	beq paintCheck_unselectedUnchecked
+	ror
+	bcc paintCheck_unselectedUnchecked
 
 	lda #'D'
 	bra paintCheck_plot
@@ -336,8 +336,8 @@ paintCheck_unselectedUnchecked:
 
 paintCheck_selected:
 	lda	WG_VIEWRECORDS+9,y
-	and #$01
-	beq paintCheck_selectedUnchecked
+	ror
+	bcc paintCheck_selectedUnchecked
 
 	lda #'E'
 	bra paintCheck_plot

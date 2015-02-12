@@ -105,8 +105,8 @@ WGPlot:
 	sta BASH
 
 	lda	WG_CURSORX			; X even?
-	and	#$01
-	bne	WGPlot_xOdd
+	ror
+	bcs	WGPlot_xOdd
 
 	SETSWITCH	PAGE2ON		; Plot the character
 	pla

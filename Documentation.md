@@ -44,7 +44,7 @@ Place the WeeGUI library in the same ProDOS folder as your program. Then, at the
 
 	10  PRINT  CHR$ (4)"BRUN WEEGUI"
 
-That's it! WeeGUI will load itself at address $7E00 of main memory, just below ProDOS.
+That's it! WeeGUI will load itself into memory and it's ready for use.
 
 
 ####Assembly Language
@@ -65,12 +65,29 @@ When using assembly language, you can install WeeGUI by loading the *WEEGUI* lib
 		.byte "BRUN WEEGUI",$8d,0
 		
 
-If you load the library some other way, make sure you load it at $7E00, and perform a JSR to that address in order to prepare the library for use.
+If you load the library some other way, make sure you load it at the base address specified in the memory map below, and perform a JSR to that address in order to prepare the library for use.
 		
 You also need to include the file *WeeGUI_MLI.s* in your program. This is the WeeGUI Machine Language Interface, and it provides all the constants, entry points, etc that you'll need for WeeGUI.
 
 
-With either language, WeeGUI protects itself using ProDOS's memory page reservation scheme. This prevents it from being overwritten by ProDOS file operations, or Applesoft BASIC.
+With either language, WeeGUI protects itself using ProDOS's memory page reservation scheme, and Applesoft's HIMEM. This prevents it from being overwritten by ProDOS file operations, or Applesoft code/variables.
+
+
+####Memory Map
+
+WeeGUI is 6k in size, and lives at the top of main memory, right under ProDOS. For an experimental version that lives primarily in the auxiliary memory bank, see Appendix A.
+
+<table align="center">
+<tr><td>$FFFF</td><td></td></tr>
+<tr><td></td><td>...</td></tr>
+<tr><td>$BFFF</td><td>ProDOS</td></tr>
+<tr><td>$9600</td><td>ProDOS</td></tr>
+<tr><td>$95FF</td><td>WeeGUI</td></tr>
+<tr><td>$7D00</td><td>WeeGUI</td></tr>
+<tr><td>$7CFF</td><td>HIMEM</td></tr>
+<tr><td></td><td>...</td></tr>
+<tr><td>$0000</td><td></td></tr>
+</table>
 
 
 <br>
