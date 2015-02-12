@@ -20,7 +20,7 @@ VIEW_STYLE_CHECK = $03
 VIEW_STYLE_BUTTON = $04
 
 
-VIEW_STYLE_TAKESFOCUS = $02	; Styles >= this one are selectable
+VIEW_STYLE_TAKESFOCUS = $03	; Styles >= this one are selectable
 
 VIEW_STYLE_APPLESOFT = $80	; High nybble flag bit for views created from Applesoft
 
