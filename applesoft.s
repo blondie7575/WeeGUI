@@ -34,6 +34,7 @@ AYINT = $e10c			; Convert FAC to 8-bit signed integer
 GETBYT = $e6f8			; Gets an integer at text pointer, stores in X
 GETNUM = $e746			; Gets an 8-bit, stores it X, skips past a comma
 PTRGET = $dfe3			; Finds the Applesoft variable in memory at text pointer
+SETHI = $f299			; Sets value in LINNUM to HIMEM
 
 TOKEN_GOSUB = $b0		; Applesoft's token for GOSUB
 TOKEN_HOME = $97		; Applesoft's token for HOME
@@ -890,7 +891,7 @@ WGAmpersand_PDACTGosub:
 ; WGAmpersand_GET
 ; A non-blocking version of Applesoft GET. Returns 0 if no key
 ; is pending
-; &GET(A$)
+; &GET(A%)
 
 WGAmpersand_GET:
 	jsr WGAmpersandBeginArguments

@@ -108,6 +108,12 @@ WGInit:
 	lda #%11111100
 	tsb	MEMBITMAP + $12
 
+	; Protect us from Applesoft by setting up HIMEM
+	lda #$7d		; 7d00
+	sta LINNUMH
+	stz LINNUML
+	jsr SETHI
+
 	jsr WG80				; Enter 80-col text mode
 	jsr WGInitApplesoft		; Set up Applesoft API
 
@@ -133,13 +139,19 @@ WGInit_clearMemLoop:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGInit
+; WGExit
 ; Cleanup Should be called once at app shutdown
 WGExit:
 	pha
 
 	lda #CHAR_NORMAL
 	sta INVERSE
+
+	; Restore HIMEM to ProDOS default
+	lda #$96
+	sta LINNUMH
+	stz LINNUML
+	jsr SETHI
 
 	; Remove ourselves from ProDOS memory map
 	lda #%00000011
