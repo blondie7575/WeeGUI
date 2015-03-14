@@ -109,9 +109,10 @@ WGInit:
 	tsb	MEMBITMAP + $12
 
 	; Protect us from Applesoft by setting up HIMEM
-	lda #$7d		; 7d00
+	lda #$7c		; 7d00  (really 7cff)
 	sta LINNUMH
-	stz LINNUML
+	lda #$ff
+	sta LINNUML
 	jsr SETHI
 
 	jsr WG80				; Enter 80-col text mode

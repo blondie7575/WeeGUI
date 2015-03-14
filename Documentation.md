@@ -319,6 +319,11 @@ Views in WeeGUI can be drawn frameless, or with two different kinds of frame. Be
 
 Because view frames are rendered with Mousetext characters, views have limits on how close they can be placed together, and overlapping views may not always look perfect. WeeGUI views are drawn with a modern display-list rendering strategy, which means it combines information about all views to make the result look as good as possible within the constraints of the Apple II character set. For example, you *can* have Plain views that are separated by only one row, because there is a "double-horizontal-line" character in Mousetext that WeeGUI can use to render horizontal borders close together. However, no such character exists for verticals, thus adjacent views must be separated by at least two columns. You'll need to experiment a bit to get a sense of what will render well and what won't.
 
+###Decorated Views
+
+Decorated views have some special properties associated with them. First of all, the scroll arrows that you see are automatically detected for mouse clicking, and WeeGUI will scroll the view for you. Naturally, this requires your application to redraw the view in response. To facilitate this, the View Action (normally used by things like buttons) will be called for the decorated view when scrolling has taken place. You can use this callback to redraw the contents of your view. If you are also including your own scrolling method via keyboard, it is convenient to share this same subroutine for redrawing in response to keyboard scrolling. See the BASICDEMO sample code in Appendix C for an example of this, and see the Callbacks section above for information on view action callbacks.
+
+
 <br>
 
 
@@ -1016,3 +1021,77 @@ Below are complete listings of the Apple //e Enchanced (and Apple //c) ROM chara
 <img src="docart/romchars2.jpg">
 <img src="docart/romchars3.jpg">
 <img src="docart/romchars4.jpg">
+
+<br><br>
+
+- - -
+
+<br>
+
+Appendix C: Sample Code
+=================================
+
+Here is the source code to the BASICDEMO program, included in the WeeGUI disk image. It shows how a few simple lines of code can create a complex, sophisticated interface, thanks to WeeGUI.
+
+	 1  PRINT  CHR$ (4)"brun weegui"
+	 10  & DESK
+	 20  & WINDW(0,2,2,15,76,7,76,40)
+	 21  & TITLE("Help")
+	 22  & STACT(2500)
+	 30  GOSUB 2500
+	 40  & FILL(0,0,80,13,160)
+	 50  & WINDW(1,1,1,1,78,11,78,11)
+	 60  & BUTTN(2,4,3,21,4000,"Open Garage")
+	 70  & BUTTN(3,4,5,21,4100,"Close Garage")
+	 75  & SEL(1)
+	 80  & CURSR(40,1)
+	 85  &  PRINT (83): &  PRINT (83): &  PRINT (83)
+	 90  INVERSE : &  PRINT (" Lighting "): NORMAL
+	 95  &  PRINT (83): &  PRINT (83): &  PRINT (83)
+	 100  & CHKBX(4,42,4,"Parlor")
+	 110  & CHKBX(5,42,6,"Lounge")
+	 120  & CHKBX(6,42,8,"Bedroom")
+	 130  GOSUB 4000
+	 140  & BUTTN(7,71,1,8,10000,"Quit")
+	 198  & SEL(0)
+	 199  & MOUSE(1)
+	 200  REM  RUN LOOP
+	 210  & PDACT
+	 220  &  GET (A%)
+	 230  IF A% = 113 GOTO 10000
+	 240  IF A% = 11 THEN  & SCRBY(0,1): GOSUB 2500
+	 250  IF A% = 10 THEN  & SCRBY(0, - 1): GOSUB 2500
+	 260  IF A% = 27 THEN  & FOCP
+	 270  IF A% = 9 THEN  & FOCN
+	 280  IF A% = 13 THEN  & ACT
+	 300  GOTO 200
+	 2500  & SEL(0)
+	 2510  & ERASE
+	 2520  & CURSR(2,1)
+	 3000  &  PRINT ("Welcome to the SuperAutoMat6000 home automation system.")
+	 3005  & CURSR(0,3)
+	 3010  &  PRINT ("Use the buttons and checkboxes above to achieve the per
+		 fect mood for any occasion. Frequent use may cause heartburn. Do not
+		  look into laser with remaining eye.")
+	 3015  &  PRINT (" Note that this is a really long, pointless block of me
+		 aningless text, but at least you can scroll it!")
+	 3017  &  PRINT (" Darn good thing too, because it doesn't fit in the all
+		 otted space here.")
+	 3019  & CURSR(8,7)
+	 3020  &  PRINT ("(c)2015 OmniCorp. All rights reserved.")
+	 3050  RETURN
+	 4000  & SEL(1)
+	 4010  & CURSR(4,8)
+	 4020  &  PRINT ("Garage door is open  ")
+	 4030  RETURN
+	 4100  & SEL(1)
+	 4110  & CURSR(4,8)
+	 4120  &  PRINT ("Garage door is closed")
+	 4130  RETURN
+	 10000  & MOUSE(0)
+	 10010  & EXIT
+	 10020  HOME
+
+
+Here's the source code to the assembly language demo, which shows off the speed of WeeGUI's rendering. This code is also synchronized to the vertical blank, for the smoothest possible animation.
+
