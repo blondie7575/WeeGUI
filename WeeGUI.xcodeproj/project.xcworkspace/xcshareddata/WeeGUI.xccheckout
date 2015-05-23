@@ -7,14 +7,14 @@
 	<key>IDESourceControlProjectIdentifier</key>
 	<string>CF799A61-C8B1-43FD-B9D1-A4282374D325</string>
 	<key>IDESourceControlProjectName</key>
-	<string>WeeGUI</string>
+	<string>project</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
 		<key>F041408A2ABBA5E27FC164AE936A5C1AA13AD5FD</key>
 		<string>https://github.com/blondie7575/WeeGUI</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>WeeGUI.xcodeproj</string>
+	<string>WeeGUI.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>F041408A2ABBA5E27FC164AE936A5C1AA13AD5FD</key>

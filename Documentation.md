@@ -302,6 +302,11 @@ Many API calls rely on the concept of a "selected" view. One view at a time can 
 
 <br>
 
+<center><img src="docart/viewdiagram.jpg"><br></center>
+The above diagram shows how the two coordinate systems (global and local) relate to each other. Note that the content area of a view (shown in light blue) is larger than what is shown. The content is clipped to the red box, and can be scrolled as needed.
+
+<br>
+ 
 
 View Styles
 -----------
