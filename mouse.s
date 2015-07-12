@@ -36,8 +36,10 @@ MOUSE_XL = $0478		; + Slot Num
 MOUSE_XH = $0578		; + Slot Num
 MOUSE_YL = $04f8		; + Slot Num
 MOUSE_YH = $05f8		; + Slot Num
-MOUSE_CLAMPL = $04f8
-MOUSE_CLAMPH = $05f8
+MOUSE_CLAMPL = $04f8	; Upper mouse clamp (LSB). Slot independent.
+MOUSE_CLAMPH = $05f8	; Upper mouse clamp (MSB). Slot independent.
+MOUSE_ZEROL = $0478		; Zero value of mouse (LSB). Slot independent.
+MOUSE_ZEROH = $0578		; Zero value of mouse (MSB). Slot independent.
 
 MOUSTAT_MASK_BUTTONINT = %00000100
 MOUSTAT_MASK_MOVEINT = %00000010
@@ -77,6 +79,16 @@ WGEnableMouse:
 	jsr WGFindMouse
 	bcs WGEnableMouse_Error
 
+	; Note if we're a //e or //c, because mouse tracking and interrupts are different
+	lda $fbb3
+	cmp #$06
+	bne WGEnableMouse_Error		; II or II+? Sorry...
+	lda $fbc0
+	bne WGEnableMouse_IIe
+	lda #1
+	sta WG_APPLEIIC
+
+WGEnableMouse_IIe:
 	; Install our interrupt handler via ProDOS (play nice!)
 	jsr PRODOS_MLI
 	.byte ALLOC_INTERRUPT
@@ -96,9 +108,21 @@ WGEnableMouse:
 	lda #MOUSEMODE_COMBINT		; Enable combination interrupt mode
 	CALLMOUSE SETMOUSE
 
+	; Set the mouse's zero postion to (1,1), since we're in text screen space
+	stz MOUSE_ZEROH
+	lda #0
+	sta MOUSE_ZEROL
+	lda #1
+	CALLMOUSE CLAMPMOUSE
+	lda #0
+	CALLMOUSE CLAMPMOUSE
+
 	; Scale the mouse's range into something easy to do math with,
 	; while retaining as much range of motion and precision as possible
-	lda #$80			; 640 horizontally
+	lda WG_APPLEIIC
+	bne WGEnableMouse_ConfigIIc
+
+	lda #$7f			; 640 - 1 horizontally
 	sta MOUSE_CLAMPL
 	lda #$02
 	sta MOUSE_CLAMPH
@@ -111,19 +135,37 @@ WGEnableMouse:
 	sta MOUSE_CLAMPH
 	lda #1
 	CALLMOUSE CLAMPMOUSE
+	bra WGEnableMouse_Activate
 
+WGEnableMouse_Error:
+	stz WG_MOUSEACTIVE
+
+WGEnableMouse_done:			; Exit point here for branch range
+	pla
+	rts
+
+WGEnableMouse_ConfigIIc:	; //c's tracking is weird. Need to clamp to a much smaller range
+	lda #$4f				; 80 - 1 horizontally
+	sta MOUSE_CLAMPL
+	lda #$00
+	sta MOUSE_CLAMPH
+	lda #0
+	CALLMOUSE CLAMPMOUSE
+
+	lda #$17			; 24 - 1 vertically
+	sta MOUSE_CLAMPL
+	lda #$00
+	sta MOUSE_CLAMPH
+	lda #1
+	CALLMOUSE CLAMPMOUSE
+
+WGEnableMouse_Activate:
 	lda #1
 	sta WG_MOUSEACTIVE
 
 	cli					; Once all setup is done, it's safe to enable interrupts
 	bra WGEnableMouse_done
 
-WGEnableMouse_Error:
-	stz WG_MOUSEACTIVE
-
-WGEnableMouse_done:
-	pla
-	rts
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -275,6 +317,7 @@ WGMouseInterruptHandler:
 	CALLMOUSE SERVEMOUSE
 	bcs WGMouseInterruptHandler_disregard
 
+	php
 	sei
 
 	lda PAGE2			; Need to preserve text bank, because we may interrupt rendering
@@ -295,6 +338,9 @@ WGMouseInterruptHandler:
 	ldx WG_MOUSE_SLOT
 	lda MOUSTAT,x			; Movement/button status bits are now valid
 	sta WG_MOUSE_STAT
+
+	lda WG_APPLEIIC
+	bne WGMouseInterruptHandler_IIc
 
 	; Read mouse position and transform it into screen space
 	lsr MOUSE_XH,x
@@ -320,7 +366,15 @@ WGMouseInterruptHandler:
 
 	lda MOUSE_YL,x
 	sta WG_MOUSEPOS_Y
+	bra WGMouseInterruptHandler_draw
 
+WGMouseInterruptHandler_IIc:		; IIc tracks much slower, so don't scale
+	lda MOUSE_XL,x
+	sta WG_MOUSEPOS_X
+	lda MOUSE_YL,x
+	sta WG_MOUSEPOS_Y
+
+WGMouseInterruptHandler_draw:
 	jsr WGDrawPointer				; Redraw the pointer
 	bra WGMouseInterruptHandler_intDone
 
@@ -338,8 +392,9 @@ WGMouseInterruptHandler_button:
 
 	bit WG_MOUSE_STAT			; Check for rising edge of button state
 	bpl WGMouseInterruptHandler_intDone
+	bvs WGMouseInterruptHandler_intDone		; Held, so ignore (//c only, but more elegant code to leave in for both)
 
-	; Button was clicked, so make a note of location for later
+	; Button went down, so make a note of location for later
 	lda WG_MOUSEPOS_X
 	sta WG_MOUSECLICK_X
 	lda WG_MOUSEPOS_Y
@@ -357,7 +412,7 @@ WGMouseInterruptHandler_intDoneBankOff:
 WGMouseInterruptHandler_done:
 	RESTORE_AXY
 
-	cli
+	plp
 	clc								; Notify ProDOS this was our interrupt
 	rts
 
@@ -528,7 +583,8 @@ WG_MOUSE_STAT:
 .byte 0
 WG_MOUSEBG:
 .byte 0
-
+WG_APPLEIIC:
+.byte 0
 WG_MOUSE_JUMPL:
 .byte 0
 WG_MOUSE_JUMPH:
