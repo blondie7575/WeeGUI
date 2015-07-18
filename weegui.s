@@ -7,7 +7,7 @@
 ;
 
 
-.org $7d00
+.org $7b00
 
 ; Common definitions
 
@@ -74,7 +74,8 @@ WGEntryPointTable:
 .addr WGDeleteView
 .addr WGEraseView
 .addr WGExit
-
+.addr WGCreateProgress
+.addr WGSetState
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGInit
@@ -86,10 +87,13 @@ WGInit:
 	;
 	; See section 5.1.4 in the ProDOS 8 Technical Reference Manual
 	; for an explanation of these values. We're reserving memory
-	; pages $7e-$95 so that ProDOS won't use our memory for file
+	; pages $7b-$95 so that ProDOS won't use our memory for file
 	; buffers, or allow Applesoft to step on us
 	;
 	; Byte in System Bitmap : Bit within byte
+	;   0f:100
+	;   0f:011
+	;   0f:010
 	;   0f:001
 	;   0f:000
 	;   10:111 .. 10:000
@@ -100,16 +104,16 @@ WGInit:
 	;	12:100
 	;	12:011
 	;	12:010
-	lda #%00000011
+	lda #%00001111
 	tsb	MEMBITMAP + $0f
-	lda #$ff
+	lda #%11111111
 	tsb	MEMBITMAP + $10
 	tsb	MEMBITMAP + $11
 	lda #%11111100
 	tsb	MEMBITMAP + $12
 
 	; Protect us from Applesoft by setting up HIMEM
-	lda #$7c		; 7d00  (really 7cff)
+	lda #$7a		; 7b00  (really 7aff)
 	sta LINNUMH
 	lda #$ff
 	sta LINNUML
@@ -155,7 +159,7 @@ WGExit:
 	jsr SETHI
 
 	; Remove ourselves from ProDOS memory map
-	lda #%00000011
+	lda #%00001111
 	trb	MEMBITMAP + $0f
 	lda #$ff
 	trb	MEMBITMAP + $10

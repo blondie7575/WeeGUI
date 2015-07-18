@@ -158,6 +158,98 @@ WGCreateCheckbox_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGCreateProgress
+; Creates a new progress bar
+; PARAM0: Pointer to configuration struct (LSB)
+; PARAM1: Pointer to configuration struct (MSB)
+;
+; Configuration struct:
+; ID: View ID (0-f)
+; XX: Screen X origin
+; YY: Screen Y origin
+; PW: Progress width
+;
+WGCreateProgress:
+	SAVE_AXY
+
+	ldy #0
+	lda (PARAM0),y	; Find our new view record
+	pha				; Cache view ID so we can select when we're done
+
+	asl
+	asl
+	asl
+	asl				; Records are 16 bytes wide
+	tax
+
+	iny
+	lda (PARAM0),y
+	sta	WG_VIEWRECORDS+0,x	; Screen X
+
+	iny
+	lda (PARAM0),y
+	sta	WG_VIEWRECORDS+1,x	; Screen Y
+
+	iny
+	lda (PARAM0),y
+	sta	WG_VIEWRECORDS+2,x	; Screen width
+	sta	WG_VIEWRECORDS+7,x	; View width
+
+	lda	#1
+	sta	WG_VIEWRECORDS+3,x	; Screen height
+	sta	WG_VIEWRECORDS+8,x	; View height
+
+	lda #VIEW_STYLE_PROGRESS
+	sta	WG_VIEWRECORDS+4,x	; Style
+
+	stz	WG_VIEWRECORDS+5,x	; Initialize scrolling
+	stz	WG_VIEWRECORDS+6,x
+
+	stz WG_VIEWRECORDS+9,x	; Initialize state
+	stz WG_VIEWRECORDS+10,x	; Initialize callback
+	stz WG_VIEWRECORDS+11,x
+
+	iny
+	lda (PARAM0),y
+	sta	WG_VIEWRECORDS+12,x	; Title
+	iny
+	lda (PARAM0),y
+	sta	WG_VIEWRECORDS+13,x
+
+	pla
+	jsr WGSelectView		; Leave this as the active view
+
+WGCreateProgress_done:
+	RESTORE_AXY
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGSetState
+; Sets state field in view record
+; PARAM0: Value
+;
+WGSetState:
+	SAVE_AXY
+
+	LDY_ACTIVEVIEW
+
+	lda WG_VIEWRECORDS+9,y
+	and #$80
+	sta SCRATCH0
+	lda PARAM0
+	and #$7F
+	ora	SCRATCH0
+	sta	WG_VIEWRECORDS+9,y	; State (preserving bit 7)
+
+WGSetState_done:
+	RESTORE_AXY
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGCreateButton
 ; Creates a new button
 ; PARAM0: Pointer to configuration struct (LSB)
@@ -286,6 +378,8 @@ WGPaintView:
 	beq WGPaintView_check
 	cmp #VIEW_STYLE_BUTTON
 	beq	WGPaintView_button
+	cmp #VIEW_STYLE_PROGRESS
+	beq WGPaintView_progress
 	bra WGPaintView_done
 
 WGPaintView_decorated:
@@ -295,6 +389,10 @@ WGPaintView_decorated:
 	
 WGPaintView_check:
 	jsr paintCheck
+	bra WGPaintView_done
+
+WGPaintView_progress:
+	jsr paintProgress
 	bra WGPaintView_done
 
 WGPaintView_button:
@@ -369,6 +467,49 @@ paintCheck_titleLoop:
 	bra paintCheck_titleLoop
 
 paintCheck_done:
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; paintProgress
+; Paints the contents of a progress bar
+; Y: Index into view records of progress bar to paint
+; Side effects: Clobbers all registers,P0,P1
+paintProgress:
+	lda WG_VIEWRECORDS+1,y		; Top edge
+	sta	PARAM1
+
+	lda #1
+	sta PARAM3
+
+	lda	WG_VIEWRECORDS+9,y		; Progress value as width
+	sta PARAM2
+	beq paintProgress_noFill	; skip if nothing to draw
+
+	lda WG_VIEWRECORDS+0,y		; Left edge
+	sta PARAM0
+	phy
+	ldy #$20					; inverse space
+	jsr WGFillRect
+	ply
+
+paintProgress_noFill:
+	lda WG_VIEWRECORDS+2,y		; full width
+	sec
+	sbc WG_VIEWRECORDS+9,y		; Progress value
+	beq paintProgress_done		; skip if nothing to draw
+	sta PARAM2
+
+	lda WG_VIEWRECORDS+0,y		; left edge
+	clc
+	adc WG_VIEWRECORDS+9,y		; Progress value
+	sta PARAM0
+
+	ldy #$A0					; space
+	jsr WGFillRect
+
+paintProgress_done:
 	rts
 
 

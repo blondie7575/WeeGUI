@@ -16,11 +16,12 @@ CHAR_FLASH = $7f
 VIEW_STYLE_STEALTH = $00
 VIEW_STYLE_PLAIN = $01
 VIEW_STYLE_FANCY = $02
-VIEW_STYLE_CHECK = $03
-VIEW_STYLE_BUTTON = $04
+VIEW_STYLE_PROGRESS = $03
+VIEW_STYLE_CHECK = $04
+VIEW_STYLE_BUTTON = $05
 
 
-VIEW_STYLE_TAKESFOCUS = $03	; Styles >= this one are selectable
+VIEW_STYLE_TAKESFOCUS = $04	; Styles >= this one are selectable
 
 VIEW_STYLE_APPLESOFT = $80	; High nybble flag bit for views created from Applesoft
 
