@@ -67,5 +67,6 @@ WGDeleteView			= 66
 WGEraseView				= 68
 WGExit					= 70
 WGCreateProgress		= 72
+WGSetState				= 74
 
 

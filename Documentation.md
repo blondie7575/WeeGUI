@@ -698,7 +698,7 @@ Sets the currently selected view's value. Currently only useful for progress bar
 X:		WGSetState
 A: 		new value
 </td><td>
-&SETV(V value)
+&SETV(value)
 </td></tr>
 </table>
 

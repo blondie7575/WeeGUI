@@ -75,6 +75,7 @@ WGEntryPointTable:
 .addr WGEraseView
 .addr WGExit
 .addr WGCreateProgress
+.addr WGSetState
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGInit
@@ -86,7 +87,7 @@ WGInit:
 	;
 	; See section 5.1.4 in the ProDOS 8 Technical Reference Manual
 	; for an explanation of these values. We're reserving memory
-	; pages $7c-$95 so that ProDOS won't use our memory for file
+	; pages $7b-$95 so that ProDOS won't use our memory for file
 	; buffers, or allow Applesoft to step on us
 	;
 	; Byte in System Bitmap : Bit within byte

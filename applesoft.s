@@ -474,7 +474,7 @@ WGAmpersand_PROG:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_SETV
-; Set value (state)
+; Set the 'value' field of the selected view
 ; &SETV(v)
 WGAmpersand_SETV:
 	jsr WGAmpersandBeginArguments
