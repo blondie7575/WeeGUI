@@ -425,6 +425,29 @@ Configuration block consists of five bytes:
 </table>
 
 
+####WGCreateProgress
+Creates a new WeeGUI progress bar view. This is a specialized version of WGCreateView, and its parameters are similar.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGCreateProgress
+PARAM0: Pointer to configuration block (LSB)
+PARAM1:	Pointer to configuration block (MSB)
+
+Configuration block consists of five bytes:
+	0:	View ID (0-15)
+	1:	Left edge of progress bar
+	2:	Top edge of progress bar
+	3:	Width of progress bar
+</pre></td><td><pre>
+&PROG(	View ID,
+		Left edge,
+		Top edge,
+		Width)
+</pre></td></tr>
+</table>
+
+
 ####WGCreateButton
 Creates a new WeeGUI button view. This is a specialized version of WGCreateView, and its parameters are similar.
 
@@ -663,6 +686,19 @@ PARAM1:	Y position to test
 Returns in A:	View ID (or <0 if no match)
 </td><td>
 Not available
+</td></tr>
+</table>
+
+
+####WGSetValue
+Sets the currently selected view's value. Currently only useful for progress bar views.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGSetState
+A: 		new value
+</td><td>
+&SETV(V value)
 </td></tr>
 </table>
 

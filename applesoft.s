@@ -436,6 +436,65 @@ WGAmpersand_CHKBX:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_PROG
+; Create a progress bar
+; &PROG(id,x,y,width)
+WGAmpersand_PROG:
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+0
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+1
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+2
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+3
+
+	jsr WGAmpersandEndArguments
+
+	CALL16 WGCreateProgress,WGAmpersandCommandBuffer
+
+	LDY_ACTIVEVIEW				; Flag this as an Applesoft-created view
+	lda #VIEW_STYLE_APPLESOFT
+	ora WG_VIEWRECORDS+4,y
+	sta WG_VIEWRECORDS+4,y
+	
+	jsr WGPaintView
+	jsr WGBottomCursor
+
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_SETV
+; Set value (state)
+; &SETV(v)
+WGAmpersand_SETV:
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandIntArgument
+	pha
+
+	jsr WGAmpersandEndArguments
+
+	pla
+	sta PARAM0
+	jsr WGSetState
+
+	jsr WGPaintView
+	jsr WGBottomCursor
+
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_BUTTN
 ; Create a button
 ; &BUTTN(id,x,y,width,lineNum,"title")
@@ -1148,6 +1207,12 @@ WGAmpersandCommandTable:
 
 .byte "EXIT",0,0
 .addr WGAmpersand_EXIT
+
+.byte "PROG",0,0
+.addr WGAmpersand_PROG
+
+.byte "SETV",0,0
+.addr WGAmpersand_SETV
 
 ;.byte TOKEN_GOSUB,0,0,0,0,0,0,0,0,0,0,0,0,0		; For internal testing of the procedural gosub
 ;.addr WGAmpersand_GOSUB
