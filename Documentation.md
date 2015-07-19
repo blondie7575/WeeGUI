@@ -83,8 +83,8 @@ WeeGUI is 6k in size, and lives at the top of main memory, right under ProDOS. F
 <tr><td>$BFFF</td><td>ProDOS</td></tr>
 <tr><td>$9600</td><td>ProDOS</td></tr>
 <tr><td>$95FF</td><td>WeeGUI</td></tr>
-<tr><td>$7D00</td><td>WeeGUI</td></tr>
-<tr><td>$7CFF</td><td>HIMEM</td></tr>
+<tr><td>$7B00</td><td>WeeGUI</td></tr>
+<tr><td>$7AFF</td><td>HIMEM</td></tr>
 <tr><td></td><td>...</td></tr>
 <tr><td>$0000</td><td></td></tr>
 </table>
