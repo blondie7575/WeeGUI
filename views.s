@@ -1026,7 +1026,7 @@ WGPendingViewAction_hasCallback:
 	cmp #WG_FEATURE_RT
 	bne WGPendingViewAction_done
 
-	lda #-1					; Right arrow
+	lda #$FF					; Right arrow
 	jsr WGScrollXBy
 	jsr WGViewFocus
 	jsr WGViewFocusAction	; Trigger application to redraw contents
@@ -1047,7 +1047,7 @@ WGPendingViewAction_up:
 	bra WGPendingViewAction_done
 
 WGPendingViewAction_down:
-	lda #-1					; Down arrow
+	lda #$FF					; Down arrow
 	jsr WGScrollYBy
 	jsr WGViewFocusQuiet
 	jsr WGViewFocusAction	; Trigger application to redraw contents
@@ -1381,7 +1381,7 @@ WGViewPaintAll_next:
 	bne WGViewPaintAll_loop
 
 WGViewPaintAll_done:
-	lda #-1
+	lda #$FF
 	jsr WGSelectView
 
 	RESTORE_AXY
