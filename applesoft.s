@@ -30,6 +30,7 @@ LINGET = $da0c			; Read a line number (16-bit integer) into LINNUM
 FRMNUM = $dd67			; Evaluate an expression as a number and store in FAC
 CHKCOM = $debe			; Validates current character is a ',', then gets it
 SYNCHR = $dec0			; Validates current character is what's in A
+SYNERR = $dec9			; Beeps and shows a SYNTAX ERROR
 AYINT = $e10c			; Convert FAC to 8-bit signed integer
 GETBYT = $e6f8			; Gets an integer at text pointer, stores in X
 GETNUM = $e746			; Gets an 8-bit, stores it X, skips past a comma
@@ -254,8 +255,15 @@ WGAmpersandAddrArgument:
 ; OUT Y : Pointer to a stored copy of the string (MSB)
 ; Side effects: Clobbers P0/P1 and all registers
 WGAmpersandStrArgument:
-	lda #'"'
-	jsr SYNCHR			; Expect opening quote
+	ldy #0
+	lda #'"'			; Expect opening quote
+	cmp (TXTPTRL),y		; Can't use SYNERR here because it skips whitespace
+	bne WGAmpersandStrArgument_error
+
+	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
+	bne WGAmpersandStrArgument_loop_inc0
+	inc TXTPTRH
+WGAmpersandStrArgument_loop_inc0:
 
 	lda TXTPTRL			; Allocate for, and copy the string at TXTPTR
 	sta PARAM0
@@ -265,18 +273,31 @@ WGAmpersandStrArgument:
 	jsr WGStoreStr
 
 WGAmpersandStrArgument_loop:
-	jsr CHRGET								; Consume the string for Applesoft
+	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
+	bne WGAmpersandStrArgument_loop_inc1
+	inc TXTPTRH
+WGAmpersandStrArgument_loop_inc1:
+	lda (TXTPTRL),y
 	beq WGAmpersandStrArgument_done
 	cmp #'"'								; Check for closing quote
 	bne WGAmpersandStrArgument_loop
 
 WGAmpersandStrArgument_done:
-	lda #'"'
-	jsr SYNCHR			; Expect closing quote
+	lda #'"'			; Expect closing quote
+	cmp (TXTPTRL),y		; Can't use SYNERR here because it skips whitespace
+	bne WGAmpersandTempStrArgument_error
+
+	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
+	bne WGAmpersandStrArgument_loop_inc2
+	inc TXTPTRH
+WGAmpersandStrArgument_loop_inc2:
 
 	ldx PARAM0
 	ldy PARAM1
 	rts
+
+WGAmpersandStrArgument_error:
+	jmp SYNERR
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -288,8 +309,15 @@ WGAmpersandStrArgument_done:
 ; OUT A : String length
 ; Side effects: Clobbers P0/P1 and all registers
 WGAmpersandTempStrArgument:
-	lda #'"'
-	jsr SYNCHR			; Expect opening quote
+	ldy #0
+	lda #'"'			; Expect opening quote
+	cmp (TXTPTRL),y		; Can't use SYNERR here because it skips whitespace
+	bne WGAmpersandTempStrArgument_error
+
+	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
+	bne WGAmpersandTempStrArgument_loop_inc0
+	inc TXTPTRH
+WGAmpersandTempStrArgument_loop_inc0:
 
 	lda TXTPTRL			; Grab current TXTPTR
 	sta PARAM0
@@ -297,14 +325,24 @@ WGAmpersandTempStrArgument:
 	sta PARAM1
 
 WGAmpersandTempStrArgument_loop:
-	jsr CHRGET								; Consume the string for Applesoft
+	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
+	bne WGAmpersandTempStrArgument_loop_inc1
+	inc TXTPTRH
+WGAmpersandTempStrArgument_loop_inc1:
+	lda (TXTPTRL),y
 	beq WGAmpersandTempStrArgument_done
 	cmp #'"'								; Check for closing quote
 	bne WGAmpersandTempStrArgument_loop
 
 WGAmpersandTempStrArgument_done:
-	lda #'"'
-	jsr SYNCHR			; Expect closing quote
+	lda #'"'			; Expect closing quote
+	cmp (TXTPTRL),y		; Can't use SYNERR here because it skips whitespace
+	bne WGAmpersandTempStrArgument_error
+
+	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
+	bne WGAmpersandTempStrArgument_loop_inc2
+	inc TXTPTRH
+WGAmpersandTempStrArgument_loop_inc2:
 
 	; Compute the 8-bit distance TXTPTR moved. Note that we can't simply
 	; count in the above loop, because CHRGET will skip ahead unpredictable
@@ -320,6 +358,8 @@ WGAmpersandTempStrArgument_done:
 
 	rts
 
+WGAmpersandTempStrArgument_error:
+	jmp SYNERR
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Ampersand API entry points
