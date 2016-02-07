@@ -897,6 +897,10 @@ Overflow: If set, characters are printed raw, with no high bit manipulation. Onl
 or
 
 &PRINT(raw_character)
+
+or
+
+&PRINT(VARIABLE$)
 </pre></td></tr>
 </table>
 
