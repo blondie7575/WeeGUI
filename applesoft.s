@@ -285,7 +285,7 @@ WGAmpersandStrArgument_loop_inc1:
 WGAmpersandStrArgument_done:
 	lda #'"'			; Expect closing quote
 	cmp (TXTPTRL),y		; Can't use SYNERR here because it skips whitespace
-	bne WGAmpersandTempStrArgument_error
+	bne WGAmpersandStrArgument_error
 
 	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
 	bne WGAmpersandStrArgument_loop_inc2
@@ -713,13 +713,14 @@ WGAmpersand_PRINT:
 
 	jsr CHRGOT					; Experimental alternate parameter support
 	cmp #'"'
-	bne WGAmpersand_PRINTint
+	bne WGAmpersand_NotLiteral
 
 	jsr WGAmpersandTempStrArgument
 	stx	PARAM0
 	sty PARAM1
 	pha
 
+WGAmpersand_PrintStrPtrAndLen:
 	jsr WGAmpersandEndArguments
 
 	; We're pointing to the string directly in the Applesoft
@@ -741,8 +742,24 @@ WGAmpersand_PRINT:
 
 	rts
 
+WGAmpersand_NotLiteral:
+	cmp #'A'
+	bmi WGAmpersand_PRINTint
+
+	jsr PTRGET			; Non-numeric, so assume string variable
+	ldy #0
+	lda (VARPNT),y
+	pha					; Length goes on stack
+	iny
+	lda (VARPNT),y		; Get string pointer out of Applesoft record
+	sta PARAM0
+	iny
+	lda (VARPNT),y
+	sta PARAM1
+	bra WGAmpersand_PrintStrPtrAndLen
+
 WGAmpersand_PRINTint:
-	; User passed a non-string, so interpret as an ASCII code
+	; User passed numeric value, so interpret as an ASCII code
 	jsr WGAmpersandIntArgument
 	sta WGAmpersand_PRINTintBuffer
 	jsr WGAmpersandEndArguments
