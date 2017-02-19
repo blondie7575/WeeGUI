@@ -231,6 +231,11 @@ WGAmpersandIntArgument_signed:
 ; Side effects: Clobbers all registers
 WGAmpersandAddrArgument:
 	jsr CHRGOT
+	cmp #TOKEN_GOSUB
+	; if GOSUB token, skip it.
+	bne WGAmpersandAddrArgument_line
+	jsr CHRGET
+WGAmpersandAddrArgument_line:
 	jsr LINGET
 
 	ldx LINNUML
