@@ -15,7 +15,7 @@
 #define BedroomCheckBoxID 6
 #define QuitButtonID 7
 
-	print chr$(4)"brun weegui"
+	print "^Dbrun weegui"
 	WGDesktop
 	WGCreateView(TextViewID,DecoratedView,2,15,76,7,76,40)
 	WGViewSetTitle("Help")
@@ -42,7 +42,7 @@
 	WGCreateCheckbox(LoungeCheckBoxID,42,6,"Lounge")
 	WGCreateCheckbox(BedroomCheckBoxID,42,8,"Bedroom")
 	gosub OpenGarageAction
-	WGCreateButton(QuitButtonID,71,1,8,10000,"Quit")
+	WGCreateButton(QuitButtonID,71,1,8,QuitAction,"Quit")
 	WGSelectView(0)
 	WGEnableMouse
 
@@ -72,6 +72,7 @@
 		endif
 	until key% = QuitChar
 
+QuitAction:
 	WGDisableMouse
 	WGExit
 	home 
