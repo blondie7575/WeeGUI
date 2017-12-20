@@ -483,7 +483,7 @@ WGAmpersand_CHKBX:
 	lda #VIEW_STYLE_APPLESOFT
 	ora WG_VIEWRECORDS+4,y
 	sta WG_VIEWRECORDS+4,y
-	
+
 	jsr WGPaintView
 	jsr WGBottomCursor
 
@@ -520,7 +520,7 @@ WGAmpersand_PROG:
 	lda #VIEW_STYLE_APPLESOFT
 	ora WG_VIEWRECORDS+4,y
 	sta WG_VIEWRECORDS+4,y
-	
+
 	jsr WGPaintView
 	jsr WGBottomCursor
 
@@ -886,7 +886,6 @@ WGAmpersand_FILL:
 	jsr WGAmpersandNextArgument
 
 	jsr WGAmpersandIntArgument
-	ora #$80					; Convert to Apple format
 	pha
 
 	jsr WGAmpersandEndArguments
@@ -971,7 +970,7 @@ WGAmpersand_PLOT:
 	pla
 	jsr WGPlot
 	jsr WGBottomCursor
-	
+
 	rts
 
 
@@ -1048,7 +1047,7 @@ WGAmpersand_GETstore:
 	iny
 	pla
 	sta (VARPNT),y
-	
+
 ; String version:
 ;	sta WG_KEYBUFFER			; Store the key
 ;	lda #1						; Create an Applesoft string record in the
@@ -1291,4 +1290,3 @@ WGAmpersandCommandTable:
 
 
 WGAmpersandCommandTableEnd:
-
