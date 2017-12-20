@@ -112,6 +112,37 @@ WGStrLen_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAllocStr
+; Finds room in our block string allocator
+; Return: PARAM0: Stored string, LSB
+;         PARAM1: Stored string, MSB
+;         Null if pool is full
+;         X: Pool index of free space
+; Side Effects: Clobbers AX
+;
+WGAllocStr:
+	ldx #0
+
+WGAllocStr_findEmptyLoop:
+	lda WG_STRINGS,x
+	beq WGAllocStr_done
+	txa
+	clc
+	adc #16	; String blocks are 16 bytes wide
+	bcs WGAllocStr_noRoom
+	tax
+	bra WGAllocStr_findEmptyLoop
+
+WGAllocStr_noRoom:
+	lda #0
+	sta PARAM0
+	sta PARAM1
+
+WGAllocStr_done:
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGStoreStr
 ; Finds room in our block allocator and copies the given string.
 ; A: Terminator character
@@ -125,26 +156,11 @@ WGStoreStr:
 	sta WG_SCRATCHA
 	SAVE_AXY
 
-	ldx #0
+	jsr WGAllocStr
+	lda PARAM1
+	beq WGStoreStr_done
 	ldy #0
 
-WGStoreStr_findEmptyLoop:
-	lda WG_STRINGS,x
-	beq WGStoreStr_copy
-	txa
-	clc
-	adc #16	; String blocks are 16 bytes wide
-	bcs WGStoreStr_noRoom
-	tax
-	bra WGStoreStr_findEmptyLoop
-
-WGStoreStr_noRoom:
-	lda #0
-	sta PARAM0
-	sta PARAM1
-	bra WGStoreStr_done
-
-WGStoreStr_copy:
 	phx			; Remember the start of our string
 
 WGStoreStr_copyLoop:
@@ -170,5 +186,53 @@ WGStoreStr_terminate:
 	sta PARAM1
 
 WGStoreStr_done:
+	RESTORE_AXY
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGStorePascalStr
+; Finds room in our block allocator and copies the given string.
+; X: Length
+; PARAM0: String pointer, LSB
+; PARAM1: String pointer, MSB
+; Return: PARAM0: Stored string, LSB
+;         PARAM1: Stored string, MSB
+; Side Effects: Clobbers SA
+;
+WGStorePascalStr:
+	stx WG_SCRATCHA
+	SAVE_AXY
+
+	jsr WGAllocStr
+	lda PARAM1
+	beq WGStorePascalStr_done
+	ldy #0
+
+	phx			; Remember the start of our string
+
+WGStorePascalStr_copyLoop:
+	cpy WG_SCRATCHA
+	beq WGStorePascalStr_terminate
+	lda	(PARAM0),y
+	sta WG_STRINGS,x
+	inx
+	iny
+	cpy #15				; Clip string to maximum block size
+	bne WGStorePascalStr_copyLoop
+
+WGStorePascalStr_terminate:
+	lda #0				; Terminate the stored string
+	sta WG_STRINGS,x
+
+	pla					; Return pointer to the start of the block
+	clc
+	adc #<WG_STRINGS
+	sta PARAM0
+	lda #0
+	adc #>WG_STRINGS
+	sta PARAM1
+
+WGStorePascalStr_done:
 	RESTORE_AXY
 	rts

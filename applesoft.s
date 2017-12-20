@@ -258,13 +258,13 @@ WGAmpersandStrArgument:
 	ldy #0
 	lda #'"'			; Expect opening quote
 	cmp (TXTPTRL),y		; Can't use SYNERR here because it skips whitespace
-	bne WGAmpersandStrArgument_error
+	bne WGAmpersandStr_NotLiteral
 
 	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
 	bne WGAmpersandStrArgument_loop_inc0
 	inc TXTPTRH
-WGAmpersandStrArgument_loop_inc0:
 
+WGAmpersandStrArgument_loop_inc0:
 	lda TXTPTRL			; Allocate for, and copy the string at TXTPTR
 	sta PARAM0
 	lda TXTPTRH
@@ -276,6 +276,7 @@ WGAmpersandStrArgument_loop:
 	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
 	bne WGAmpersandStrArgument_loop_inc1
 	inc TXTPTRH
+
 WGAmpersandStrArgument_loop_inc1:
 	lda (TXTPTRL),y
 	beq WGAmpersandStrArgument_done
@@ -290,14 +291,28 @@ WGAmpersandStrArgument_done:
 	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
 	bne WGAmpersandStrArgument_loop_inc2
 	inc TXTPTRH
-WGAmpersandStrArgument_loop_inc2:
 
+WGAmpersandStrArgument_loop_inc2:
 	ldx PARAM0
 	ldy PARAM1
 	rts
 
 WGAmpersandStrArgument_error:
 	jmp SYNERR
+
+WGAmpersandStr_NotLiteral:
+	jsr PTRGET			; Assume string variable
+	ldy #0
+	lda (VARPNT),y		; Grab length
+	tax
+	iny
+	lda (VARPNT),y		; Get string pointer out of Applesoft record
+	sta PARAM0			; Allocate for, and copy the string
+	iny
+	lda (VARPNT),y
+	sta PARAM1
+	jsr WGStorePascalStr
+	bra WGAmpersandStrArgument_loop_inc2
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
