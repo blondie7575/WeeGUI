@@ -138,12 +138,15 @@ WGPrint:
 	SAVE_ZPS
 
 	lda #%10000000
+	ldx #%00111111
 	bvc WGPrint_setupMask
 	lda #0
+	ldx #$ff
 	clv
 
 WGPrint_setupMask:
 	sta WGPrint_specialMask
+	stx WGPrint_setupMaskInverse
 
 	; Start checking clipping boundaries
 	lda WG_LOCALCURSORY
@@ -280,7 +283,7 @@ WGPrint_charLoopInverse:
 	bra WGPrint_charLoopInversePlot
 
 WGPrint_charLoopInverseLow:
-	and #%00111111			; Normal inverse
+	and WGPrint_setupMaskInverse	; Normal inverse
 
 WGPrint_charLoopInversePlot:
 	jsr	WGPlot
@@ -297,4 +300,6 @@ WGPrint_charLoopInversePlot:
 	bra WGPrint_charLoopInverse
 
 WGPrint_specialMask:
+	.byte 0
+WGPrint_setupMaskInverse:
 	.byte 0

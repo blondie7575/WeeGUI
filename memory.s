@@ -24,6 +24,7 @@ VIEW_STYLE_BUTTON = $05
 VIEW_STYLE_TAKESFOCUS = $04	; Styles >= this one are selectable
 
 VIEW_STYLE_APPLESOFT = $80	; High nybble flag bit for views created from Applesoft
+VIEW_STYLE_RAWTITLE = $40	; High nybble flag bit for views with raw titles
 
 IRQVECTORL = $03fe
 IRQVECTORH = $03ff

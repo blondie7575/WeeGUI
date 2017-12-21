@@ -457,10 +457,22 @@ paintCheck_plot:				; Paint our state
 	sta PARAM1
 	ldy #0
 
+	lda WG_VIEWRECORDS+4,y			; Raw or Apple format title?
+	and #VIEW_STYLE_RAWTITLE
+	bne paintCheck_titleRawLoop
+
 paintCheck_titleLoop:
 	lda (PARAM0),y
 	beq paintCheck_done
 	ora #$80
+	jsr WGPlot
+	inc WG_CURSORX
+	iny
+	bra paintCheck_titleLoop
+
+paintCheck_titleRawLoop:
+	lda (PARAM0),y
+	beq paintCheck_done
 	jsr WGPlot
 	inc WG_CURSORX
 	iny
@@ -471,7 +483,6 @@ paintCheck_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
 ; paintProgress
 ; Paints the contents of a progress bar
 ; Y: Index into view records of progress bar to paint
@@ -568,6 +579,14 @@ paintButton_titleMarginLeftLoop:
 	jmp paintButton_titleMarginLeftLoop
 
 paintButton_title:
+	pha
+	lda WG_VIEWRECORDS+4,y			; Raw or Apple format title?
+	and #VIEW_STYLE_RAWTITLE
+	beq paintButton_titleApple
+	bit paintButton_doneRTS		; Set overflow
+
+paintButton_titleApple:
+	pla
 	jsr WGPrint
 	ldx WG_VIEWRECORDS+2,y
 	stx SCRATCH1			; Loop until right edge of button is reached
@@ -585,6 +604,8 @@ paintButton_titleMarginRightLoop:
 paintButton_done:
 	pla						; Restore inverse state
 	sta INVERSE
+
+paintButton_doneRTS:
 	rts
 
 
@@ -620,14 +641,27 @@ paintWindowTitle_compute:
 	sta WG_CURSORY
 
 	ldy #0
+
+	lda WG_VIEWRECORDS+4,y			; Raw or Apple format title?
+	and #VIEW_STYLE_RAWTITLE
+	bne paintWindowTitleRawLoop
+
 paintWindowTitleLoop:
 	lda (PARAM0),y
 	beq paintWindowTitle_done
-	ora #%10000000
+	ora #$80
 	jsr	WGPlot				; Draw the character
 	iny
 	inc WG_CURSORX			; Advance cursors
 	bra paintWindowTitleLoop
+
+paintWindowTitleRawLoop:
+	lda (PARAM0),y
+	beq paintWindowTitle_done
+	jsr	WGPlot				; Draw the character
+	iny
+	inc WG_CURSORX			; Advance cursors
+	bra paintWindowTitleRawLoop
 
 paintWindowTitle_done:
 	rts
@@ -1121,6 +1155,30 @@ WGViewSetAction:
 	sta WG_VIEWRECORDS+11,y
 
 WGViewSetAction_done:
+	RESTORE_AY
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGViewSetRawTitle
+; Sets the raw title flag of the active view
+; PARAM0: Flag to set
+WGViewSetRawTitle:
+	SAVE_AY
+
+	LDY_ACTIVEVIEW
+	lda PARAM0
+	asl		; Shifts need to match VIEW_STYLE_RAWTITLE
+	asl
+	asl
+	asl
+	asl
+	asl
+	eor WG_VIEWRECORDS+4,y
+	sta WG_VIEWRECORDS+4,y
+
+WGViewSetRawTitle_done:
 	RESTORE_AY
 	rts
 

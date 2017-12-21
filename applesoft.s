@@ -550,6 +550,28 @@ WGAmpersand_SETV:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_STRW
+; Sets the "raw title" flag on the selected view
+; &STRW(0/1)
+WGAmpersand_STRW:
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandIntArgument
+	pha
+
+	jsr WGAmpersandEndArguments
+
+	pla
+	sta PARAM0
+	jsr WGViewSetRawTitle
+
+	jsr WGPaintView
+	jsr WGBottomCursor
+
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_BUTTN
 ; Create a button
 ; &BUTTN(id,x,y,width,lineNum,"title")
@@ -1284,6 +1306,9 @@ WGAmpersandCommandTable:
 
 .byte "SETV",0,0
 .addr WGAmpersand_SETV
+
+.byte "STRW",0,0
+.addr WGAmpersand_STRW
 
 ;.byte TOKEN_GOSUB,0,0,0,0,0,0,0,0,0,0,0,0,0		; For internal testing of the procedural gosub
 ;.addr WGAmpersand_GOSUB

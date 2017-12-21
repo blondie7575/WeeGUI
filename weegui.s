@@ -7,7 +7,7 @@
 ;
 
 
-.org $7b00
+.org $7a00
 
 ; Common definitions
 
@@ -21,11 +21,6 @@
 main:
 	jsr WGInit
 	rts				; Don't add any bytes here!
-
-
-; This is the non-negotiable entry point used by applications Don't move it!
-; $7e04
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -76,6 +71,8 @@ WGEntryPointTable:
 .addr WGExit
 .addr WGCreateProgress
 .addr WGSetState
+.addr WGViewSetRawTitle
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGInit
@@ -113,7 +110,7 @@ WGInit:
 	tsb	MEMBITMAP + $12
 
 	; Protect us from Applesoft by setting up HIMEM
-	lda #$7a		; 7b00  (really 7aff)
+	lda #$79		; 7a00  (really 79ff)
 	sta LINNUMH
 	lda #$ff
 	sta LINNUML

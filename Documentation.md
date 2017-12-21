@@ -695,10 +695,23 @@ Sets the currently selected view's value. Currently only useful for progress bar
 
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
-X:		WGSetState
+X:		WGSetValue
 A: 		new value
 </td><td>
 &SETV(value)
+</td></tr>
+</table>
+
+
+####WGViewSetRawTitle
+Sets the currently selected view's title to be rendered in raw bytes (or not). This allows some advanced tricks with using Mousetext and mixed inversion in view titles.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGSetRawTitle
+PARAM0: 0 or 1
+</td><td>
+&STRW(0 or 1)
 </td></tr>
 </table>
 

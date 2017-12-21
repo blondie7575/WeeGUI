@@ -21,7 +21,7 @@ PARAM3					= $09
 ; WeeGUI entry point
 ; Set up your call, then do a JSR to this address.
 ;
-WeeGUI					= $7b04		;  7c00
+WeeGUI					= $7a04
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -68,5 +68,5 @@ WGEraseView				= 68
 WGExit					= 70
 WGCreateProgress		= 72
 WGSetState				= 74
-
+WGViewSetRawTitle		= 76
 
