@@ -7,7 +7,7 @@
 ;
 
 
-.org $7a00
+.org $7800
 
 ; Common definitions
 
@@ -84,7 +84,7 @@ WGInit:
 	;
 	; See section 5.1.4 in the ProDOS 8 Technical Reference Manual
 	; for an explanation of these values. We're reserving memory
-	; pages $7b-$95 so that ProDOS won't use our memory for file
+	; pages $78-$94 so that ProDOS won't use our memory for file
 	; buffers, or allow Applesoft to step on us
 	;
 	; Byte in System Bitmap : Bit within byte
@@ -101,20 +101,20 @@ WGInit:
 	;	12:100
 	;	12:011
 	;	12:010
-	lda #%00001111
-	tsb	MEMBITMAP + $0f
-	lda #%11111111
-	tsb	MEMBITMAP + $10
-	tsb	MEMBITMAP + $11
-	lda #%11111100
-	tsb	MEMBITMAP + $12
+;	lda #%00001111
+;	tsb	MEMBITMAP + $0f
+;	lda #%11111111
+;	tsb	MEMBITMAP + $10
+;	tsb	MEMBITMAP + $11
+;	lda #%11111100
+;	tsb	MEMBITMAP + $12
 
 	; Protect us from Applesoft by setting up HIMEM
-	lda #$79		; 7a00  (really 79ff)
-	sta LINNUMH
-	lda #$ff
-	sta LINNUML
-	jsr SETHI
+;	lda #$77		; 7800  (really 77ff)
+;	sta LINNUMH
+;	lda #$ff
+;	sta LINNUML
+;	jsr SETHI
 
 	jsr WG80				; Enter 80-col text mode
 	jsr WGInitApplesoft		; Set up Applesoft API
@@ -150,19 +150,19 @@ WGExit:
 	sta INVERSE
 
 	; Restore HIMEM to ProDOS default
-	lda #$96
-	sta LINNUMH
-	stz LINNUML
-	jsr SETHI
+;	lda #$96
+;	sta LINNUMH
+;	stz LINNUML
+;	jsr SETHI
 
 	; Remove ourselves from ProDOS memory map
-	lda #%00001111
-	trb	MEMBITMAP + $0f
-	lda #$ff
-	trb	MEMBITMAP + $10
-	trb	MEMBITMAP + $11
-	lda #%11111100
-	trb	MEMBITMAP + $12
+;	lda #%00001111
+;	trb	MEMBITMAP + $0f
+;	lda #$ff
+;	trb	MEMBITMAP + $10
+;	trb	MEMBITMAP + $11
+;	lda #%11111100
+;	trb	MEMBITMAP + $12
 
 	pla
 	rts

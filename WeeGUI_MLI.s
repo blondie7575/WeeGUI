@@ -21,7 +21,7 @@ PARAM3					= $09
 ; WeeGUI entry point
 ; Set up your call, then do a JSR to this address.
 ;
-WeeGUI					= $7a04
+WeeGUI					= $7804		; Offset of WGDispatch from 7800
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
