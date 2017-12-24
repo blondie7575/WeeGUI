@@ -691,7 +691,7 @@ Not available
 
 
 ####WGSetValue
-Sets the currently selected view's value. Currently only useful for progress bar views.
+Sets the currently selected view's value. For progress bar views, this is the progress value. For checkboxes, 1 is checked and 0 is unchecked.
 
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
