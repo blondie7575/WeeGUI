@@ -207,8 +207,9 @@ Here's a sample Applesoft run loop using these techniques:
 	80  &PDACT
 	90  &GET(A%)
 	99 REM 113 is the ASCII code for 'q' (to quit)
-	100  IF A% = 113 THEN END
+	100  IF A% = 113 THEN GOTO 1000
 	110  GOTO 80
+	1000 &EXIT
 
 You can omit &PDACT if you have no desire to support the mouse.
 
