@@ -92,6 +92,8 @@ WGAmpersand_parseLoop:
 	beq WGAmpersand_matchStart	; Check for end-of-statement (CHRGET handles : and EOL)
 	cmp #'('
 	beq WGAmpersand_matchStart
+	cmp #':'
+	beq WGAmpersand_matchStart
 
 	sta WGAmpersandCommandBuffer,y
 
