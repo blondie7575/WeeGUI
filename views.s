@@ -331,14 +331,17 @@ WGCreateButton_done:
 WGDeleteView:
 	SAVE_AY
 
-	jsr WGEraseView
-
 	LDY_ACTIVEVIEW
+	lda WG_VIEWRECORDS+2,y
+	beq WGDeleteView_done	; Not an allocated view
+
+	jsr WGEraseView
 
 	lda #0
 	sta WG_VIEWRECORDS+2,y	; 0 width indicates unused view
 	jsr WGViewPaintAll
 
+WGDeleteView_done:
 	RESTORE_AY
 	rts
 
