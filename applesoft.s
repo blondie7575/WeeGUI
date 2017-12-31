@@ -878,9 +878,22 @@ WGAmpersand_GOSUB:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_ERASE
-; Erases the contents of the selected view
-; &ERASE
+; Erases the contents of the selected view (with frame if 1)
+; &ERASE(0 or 1)
 WGAmpersand_ERASE:
+	jsr WGAmpersandBeginArguments
+	jsr WGAmpersandIntArgument
+
+	pha
+	jsr WGAmpersandEndArguments
+
+	pla
+	beq WGAmpersand_ERASEcontents
+	jsr WGEraseView
+	jsr WGBottomCursor
+	rts
+
+WGAmpersand_ERASEcontents:
 	jsr WGEraseViewContents
 	jsr WGBottomCursor
 	rts
@@ -1098,16 +1111,6 @@ WGAmpersand_KILL:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_WIPE
-; Erases all of the selected view
-; &WIPE
-WGAmpersand_WIPE:
-	jsr WGEraseView
-	jsr WGBottomCursor
-	rts
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_EXIT
 ; Shuts down WeeGUI
 ; &EXIT
@@ -1139,6 +1142,30 @@ WGBottomCursor:
 	RESTORE_AY
 	rts
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_GTSEL
+; Returns ID of selected view
+; &GTSEL(A%)
+
+WGAmpersand_GTSEL:
+	jsr WGAmpersandBeginArguments
+
+	jsr PTRGET
+
+	lda WG_ACTIVEVIEW
+	pha
+
+	ldy #0
+	lda #0
+	sta (VARPNT),y
+	iny
+	pla
+	sta (VARPNT),y
+
+	jsr WGAmpersandEndArguments
+	rts
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1297,9 +1324,6 @@ WGAmpersandCommandTable:
 .byte "KILL",0,0
 .addr WGAmpersand_KILL
 
-.byte "WIPE",0,0
-.addr WGAmpersand_WIPE
-
 .byte "EXIT",0,0
 .addr WGAmpersand_EXIT
 
@@ -1311,6 +1335,9 @@ WGAmpersandCommandTable:
 
 .byte "STRW",0,0
 .addr WGAmpersand_STRW
+
+.byte "GTSEL",0
+.addr WGAmpersand_GTSEL
 
 ;.byte TOKEN_GOSUB,0,0,0,0,0,0,0,0,0,0,0,0,0		; For internal testing of the procedural gosub
 ;.addr WGAmpersand_GOSUB

@@ -621,7 +621,7 @@ Erases the content area of the selected view. The frame is not touched.
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGEraseViewContents
 </pre></td><td><pre>
-&ERASE
+&ERASE(0)
 </pre></td></tr>
 </table>
 
@@ -633,7 +633,7 @@ Erases the content area and frame of the selected view.
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGEraseView
 </pre></td><td><pre>
-&WIPE
+&ERASE(1)
 </pre></td></tr>
 </table>
 
