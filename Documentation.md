@@ -503,6 +503,18 @@ A:		View ID
 </table>
 
 
+####WGGetSel
+Returns the ID of the currently selected view in the Applesoft integer variable you specify. Assembly programs can access the global variable WG_SELECTVIEW directly.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
+Not available
+</pre></td><td><pre>
+& GTSEL(A%) 
+</pre></td></tr>
+</table>
+
+
 ####WGPendingViewAction
 Processes any pending view actions that the user has initiated with the mouse. This should be called once each time through your run loop. If no mouse actions are pending, this call will do nothing, and quietly return to your program. If you do not wish to support the mouse, you do not need to call this.
 
