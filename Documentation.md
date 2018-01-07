@@ -75,16 +75,15 @@ With either language, WeeGUI protects itself using ProDOS's memory page reservat
 
 ####Memory Map
 
-WeeGUI is 6k in size, and lives at the top of main memory, right under ProDOS. For an experimental version that lives primarily in the auxiliary memory bank, see Appendix A.
+WeeGUI is about 7k in size, and lives on top of the second hires page. The assumption is that, if you're making an 80-column-text-based GUI program, you don't _also_ need fancy hi-res page flipping animations. For an experimental version that lives primarily in the auxiliary memory bank, see Appendix A.
 
 <table align="center">
 <tr><td>$FFFF</td><td></td></tr>
 <tr><td></td><td>...</td></tr>
-<tr><td>$BFFF</td><td>ProDOS</td></tr>
-<tr><td>$9600</td><td>ProDOS</td></tr>
-<tr><td>$95FF</td><td>WeeGUI</td></tr>
-<tr><td>$7B00</td><td>WeeGUI</td></tr>
-<tr><td>$7AFF</td><td>HIMEM</td></tr>
+<tr><td>$9600-$BFFF</td><td>ProDOS</td></tr>
+<tr><td>$5B0F-$95FF</td><td>Applesoft</td></tr>
+<tr><td>$4000-$5B0E</td><td>WeeGUI</td></tr>
+<tr><td>$3FFF</td><td>Hi-Res 1</td></tr>
 <tr><td></td><td>...</td></tr>
 <tr><td>$0000</td><td></td></tr>
 </table>

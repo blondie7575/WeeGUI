@@ -7,7 +7,7 @@
 ;
 
 
-.org $7800
+.org $4000
 
 ; Common definitions
 
@@ -80,39 +80,10 @@ WGEntryPointTable:
 WGInit:
 	SAVE_AXY
 
-    ; Reserve our memory in the ProDOS allocator bitmap
-	;
-	; See section 5.1.4 in the ProDOS 8 Technical Reference Manual
-	; for an explanation of these values. We're reserving memory
-	; pages $78-$94 so that ProDOS won't use our memory for file
-	; buffers, or allow Applesoft to step on us
-	;
-	; Byte in System Bitmap : Bit within byte
-	;   0f:100
-	;   0f:011
-	;   0f:010
-	;   0f:001
-	;   0f:000
-	;   10:111 .. 10:000
-	;   11:111 .. 11:000
-	;   12:111
-	;	12:110
-	;	12:101
-	;	12:100
-	;	12:011
-	;	12:010
-;	lda #%00001111
-;	tsb	MEMBITMAP + $0f
-;	lda #%11111111
-;	tsb	MEMBITMAP + $10
-;	tsb	MEMBITMAP + $11
-;	lda #%11111100
-;	tsb	MEMBITMAP + $12
-
 	; Protect us from Applesoft by setting up HIMEM
-;	lda #$78		; 7800  (really 77ff)
+;	lda #$3f		; 4000  (really 3fff)
 ;	sta LINNUMH
-;	lda #$00
+;	lda #$ff
 ;	sta LINNUML
 ;	jsr SETHI
 
