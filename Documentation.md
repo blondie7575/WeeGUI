@@ -821,12 +821,12 @@ Not available
 </table>
 
 
-####WGScrollByX
+####WGScrollXBy
 Scrolls the currently selected view's contents by a specified delta horizontally (positive or negative).
 
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
-X:		WGScrollByX
+X:		WGScrollXBy
 A: 		Offset to apply to X scroll position
 </td><td>
 Not available (see WGScrollBy)
@@ -834,12 +834,12 @@ Not available (see WGScrollBy)
 </table>
 
 
-####WGScrollByY
+####WGScrollYBy
 Scrolls the currently selected view's contents by a specified delta vertically (positive or negative).
 
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
-X:		WGScrollY
+X:		WGScrollYBy
 A: 		Offset to apply to Y scroll position
 </td><td>
 Not available
