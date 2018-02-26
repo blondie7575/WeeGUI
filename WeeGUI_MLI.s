@@ -69,4 +69,6 @@ WGExit					= 70
 WGCreateProgress		= 72
 WGSetState				= 74
 WGViewSetRawTitle		= 76
+WGSetContentWidth		= 77
+WGSetContentHeight		= 78
 

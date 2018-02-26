@@ -858,6 +858,32 @@ Not available
 </pre></td></tr>
 </table>
 
+
+####WGViewWidth
+Changes the content width of the currently selected view.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
+A: 		New content width for the view
+</td><td>
+Not available
+</td></tr>
+</table>
+
+
+####WGViewHeight
+Changes the content width of the currently selected view.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td>
+A: 		New content height for the view
+</td><td>
+Not available
+</td></tr>
+</table>
+
+
+
 <br>
 
 Drawing Routines

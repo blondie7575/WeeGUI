@@ -1416,6 +1416,44 @@ WGScrollYBy_done:
 	
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGSetContentWidth
+; Sets the content width of the current view
+; A: New width
+;
+WGSetContentWidth:
+	phy
+	pha
+
+	LDY_ACTIVEVIEW
+	pla
+
+	sta	WG_VIEWRECORDS+7,y
+	jsr	cacheClipPlanes		; Content width changed, so clipping cache is stale
+
+	ply
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGSetContentHeight
+; Sets the content width of the current view
+; A: New height
+;
+WGSetContentHeight:
+	phy
+	pha
+
+	LDY_ACTIVEVIEW
+	pla
+
+	sta	WG_VIEWRECORDS+8,y
+	jsr	cacheClipPlanes		; Content height changed, so clipping cache is stale
+
+	ply
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGViewPaintAll
 ; Repaints all views
 ; Side effects: Changes selected view
