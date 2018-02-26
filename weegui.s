@@ -72,6 +72,8 @@ WGEntryPointTable:
 .addr WGCreateProgress
 .addr WGSetState
 .addr WGViewSetRawTitle
+.addr WGSetContentWidth
+.addr WGSetContentHeight
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
