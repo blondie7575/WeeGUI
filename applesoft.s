@@ -386,21 +386,25 @@ WGAmpersandTempStrArgument_error:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersand_HOME
-; Clears the screen
-; &HOME
+; Clears the screen to black (if 0) or "desktop" fill (if 1)
+; &HOME(0 or 1)
 WGAmpersand_HOME:
-	jsr WGClearScreen
-	jsr WGBottomCursor
+	jsr WGAmpersandBeginArguments
+	jsr WGAmpersandIntArgument
+	pha
+	jsr WGAmpersandEndArguments
+	pla
 
-	rts
+	beq WGAmpersand_HOMEClearScreen
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGAmpersand_DESK
-; Render the desktop
-; &DESK
-WGAmpersand_DESK:
 	jsr WGDesktop
+	bra WGAmpersand_HOMEBottomCursor
+
+WGAmpersand_HOMEClearScreen:
+	jsr WGClearScreen
+	; execution falls through here
+
+WGAmpersand_HOMEBottomCursor:
 	jsr WGBottomCursor
 	rts
 
@@ -490,6 +494,45 @@ WGAmpersand_CHKBX:
 	jsr WGBottomCursor
 
 	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGAmpersand_RADIO
+; Create a radio button
+; &RADIO(id,x,y,"title")
+WGAmpersand_RADIO:
+	jsr WGAmpersandBeginArguments
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+0
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+1
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandIntArgument
+	sta WGAmpersandCommandBuffer+2
+	jsr WGAmpersandNextArgument
+
+	jsr WGAmpersandStrArgument
+	stx WGAmpersandCommandBuffer+3
+	sty WGAmpersandCommandBuffer+4
+
+	jsr WGAmpersandEndArguments
+
+	CALL16 WGCreateRadio,WGAmpersandCommandBuffer
+
+	LDY_ACTIVEVIEW                ; Flag this as an Applesoft-created view
+	lda #VIEW_STYLE_APPLESOFT
+	ora WG_VIEWRECORDS+4,y
+	sta WG_VIEWRECORDS+4,y
+
+	jsr WGPaintView
+	jsr WGBottomCursor
+
+	rts
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1249,8 +1292,8 @@ WGAmpersandCommandTable:
 .byte TOKEN_HOME,0,0,0,0,0
 .addr WGAmpersand_HOME
 
-.byte "DESK",0,0
-.addr WGAmpersand_DESK
+.byte "RADIO",0
+.addr WGAmpersand_RADIO
 
 .byte "WINDW",0
 .addr WGAmpersand_WINDW

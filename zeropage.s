@@ -22,3 +22,4 @@ PARAM2			= $08
 PARAM3			= $09
 SCRATCH0		= $19
 SCRATCH1		= $1a
+SCRATCH2		= $1b

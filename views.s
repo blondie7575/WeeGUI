@@ -156,6 +156,72 @@ WGCreateCheckbox_done:
 	rts
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGCreateRadio
+; Creates a new radio button
+; PARAM0: Pointer to configuration struct (LSB)
+; PARAM1: Pointer to configuration struct (MSB)
+;
+; Configuration struct:
+; ID: View ID (0-f)
+; XX: Screen X origin
+; YY: Screen Y origin
+; SL: String pointer (LSB)
+; SH: String pointer (MSB)
+;
+WGCreateRadio:
+	SAVE_AXY
+
+	ldy #0
+	lda (PARAM0),y            ; Find our new view record
+	pha                       ; Cache view ID so we can select when we're done
+
+	asl
+	asl
+	asl
+	asl                       ; Records are 16 bytes wide
+	tax
+
+	iny
+	lda (PARAM0),y
+	sta WG_VIEWRECORDS+0,x    ; Screen X
+
+	iny
+	lda (PARAM0),y
+	sta WG_VIEWRECORDS+1,x    ; Screen Y
+
+	lda #1
+	sta WG_VIEWRECORDS+2,x    ; Initialize screen width
+	sta WG_VIEWRECORDS+3,x    ; Initialize screen height
+	sta WG_VIEWRECORDS+7,x    ; Initialize view width
+	sta WG_VIEWRECORDS+8,x    ; Initialize view height
+
+	lda #VIEW_STYLE_RADIO
+	sta WG_VIEWRECORDS+4,x    ; Style
+
+	stz WG_VIEWRECORDS+5,x    ; Initialize scrolling
+	stz WG_VIEWRECORDS+6,x
+
+	stz WG_VIEWRECORDS+9,x    ; Initialize state
+	stz WG_VIEWRECORDS+10,x   ; Initialize callback
+	stz WG_VIEWRECORDS+11,x
+
+	iny
+	lda (PARAM0),y
+	sta WG_VIEWRECORDS+12,x   ; Title
+	iny
+	lda (PARAM0),y
+	sta WG_VIEWRECORDS+13,x
+
+	pla
+	jsr WGSelectView          ; Leave this as the active view
+
+WGCreateRadio_done:
+	RESTORE_AXY
+	rts
+
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGCreateProgress
@@ -374,6 +440,8 @@ WGPaintView:
 	pla						; Draw outline
 	cmp #VIEW_STYLE_FANCY
 	beq WGPaintView_decorated
+	cmp #VIEW_STYLE_RADIO
+	beq WGPaintView_radio
 
 	jsr WGStrokeRect
 
@@ -389,7 +457,10 @@ WGPaintView_decorated:
 	jsr WGFancyRect
 	jsr paintWindowTitle
 	bra WGPaintView_done
-	
+
+WGPaintView_radio:
+	jsr WGStrokeRoundRect
+	; execution falls through here
 WGPaintView_check:
 	jsr paintCheck
 	bra WGPaintView_done
@@ -947,15 +1018,45 @@ WGViewFocusAction:
 	SAVE_AXY
 
 	lda WG_FOCUSVIEW
-	bmi WGViewFocusAction_done
+	bpl	WGViewFocusAction_do
+	jmp WGViewFocusAction_done
 
+WGViewFocusAction_do:
 	LDY_FOCUSVIEW
 	lda WG_VIEWRECORDS+4,y		; What kind of view is it?
 	and #$f						; Mask off flag bits
 
 	cmp #VIEW_STYLE_CHECK
 	beq WGViewFocusAction_toggleCheckbox
+    cmp #VIEW_STYLE_RADIO
+	beq WGViewFocusAction_toggleRadio
 	bra WGViewFocusAction_buttonClick	; Everything else treated like a button
+
+WGViewFocusAction_toggleRadio:
+	lda #15
+WGViewFocusAction_toggleRadioLoop:
+	pha
+	cmp	WG_FOCUSVIEW
+	beq WGViewFocusAction_toggleRadioLoopNext
+	LDY_AVIEW
+	lda	WG_VIEWRECORDS+4,y
+	and	#$f
+	cmp	#VIEW_STYLE_RADIO
+	bne	WGViewFocusAction_toggleRadioLoopNext
+	lda	WG_VIEWRECORDS+9,y		; check if this radio button is selected
+	beq WGViewFocusAction_toggleRadioLoopNext
+	lda	#0
+	sta	WG_VIEWRECORDS+9,y		; if so, deselect it and repaint
+	pla
+	pha
+	jsr	WGSelectView
+	jsr	WGPaintView
+WGViewFocusAction_toggleRadioLoopNext:
+	pla
+	dec
+	bpl WGViewFocusAction_toggleRadioLoop
+	LDY_FOCUSVIEW
+	; execution falls through here
 
 WGViewFocusAction_toggleCheckbox:
 	lda WG_VIEWRECORDS+9,y		; Change the checkbox's state and redraw

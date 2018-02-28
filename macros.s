@@ -93,10 +93,14 @@
 	pha
 	lda SCRATCH1
 	pha
+	lda SCRATCH2
+	pha
 .endmacro
 
 
 .macro RESTORE_ZPS			; Restores Zero Page locations we use for scratch
+	pla
+	sta SCRATCH2
 	pla
 	sta	SCRATCH1
 	pla

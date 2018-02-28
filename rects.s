@@ -159,7 +159,7 @@ WGFillRect_horzLoopOddAlignedOneWidth:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGStrokeRect
+; WGStrokeRect / WGStrokeRoundRect
 ; Strokes a rectangle (assumes 80 cols)
 ; PARAM0: Left edge
 ; PARAM1: Top edge
@@ -171,6 +171,8 @@ CH_TOP = '_'+$80
 CH_BOTTOM = 'L'
 CH_LEFT = 'Z'
 CH_RIGHT = '_'
+CH_ROUND_LEFT = '('+$80
+CH_ROUND_RIGHT = ')'+$80
 CH_DOUBLE = '\'
 
 .macro PLOTHLINE
@@ -194,8 +196,21 @@ CH_DOUBLE = '\'
 
 
 WGStrokeRect:
-	SAVE_AXY
-	SAVE_ZPS
+    pha
+    lda #CH_LEFT
+    sta SCRATCH1
+    lda #CH_RIGHT
+    bra WGStrokeRect_common
+WGStrokeRoundRect:
+    pha
+    lda #CH_ROUND_LEFT
+    sta SCRATCH1
+    lda #CH_ROUND_RIGHT
+WGStrokeRect_common:
+    sta SCRATCH2
+    pla
+    SAVE_AXY
+    SAVE_ZPS
 
 	; Top and bottom edges
 	;
@@ -374,7 +389,7 @@ WGStrokeRect_vertLoop:
 	; CASE 1: Left edge even-aligned, even width
 	SETSWITCH	PAGE2ON
 	ldy	#$0
-	lda	#CH_LEFT					; Plot the left edge
+	lda	SCRATCH1					; Plot the left edge
 	sta	(BASL),y
 
 	lda	PARAM2						; Is width even?
@@ -390,7 +405,7 @@ WGStrokeRect_vertLoop:
 	dec
 	tay
 	SETSWITCH	PAGE2OFF
-	lda	#CH_RIGHT					; Plot the right edge
+	lda	SCRATCH2					; Plot the right edge
 	sta	(BASL),y
 	jmp	WGStrokeRect_vertLoopEvenAlignedNextRow
 
@@ -402,7 +417,7 @@ WGStrokeRect_vertLoopEvenAlignedOddWidth:
 	inc
 	lsr
 	tay
-	lda	#CH_RIGHT					; Plot the right edge
+	lda	SCRATCH2					; Plot the right edge
 	sta	(BASL),y
 
 WGStrokeRect_vertLoopEvenAlignedNextRow:
@@ -417,7 +432,7 @@ WGStrokeRect_vertLoopOdd:
 	; CASE 2: Left edge odd-aligned, even width
 	SETSWITCH	PAGE2OFF
 	ldy	#$0
-	lda	#CH_LEFT					; Plot the left edge
+	lda	SCRATCH1					; Plot the left edge
 	sta	(BASL),y
 
 	lda	PARAM2						; Is width even?
@@ -432,7 +447,7 @@ WGStrokeRect_vertLoopOdd:
 	lsr
 	tay
 	SETSWITCH	PAGE2ON
-	lda	#CH_RIGHT					; Plot the right edge
+	lda	SCRATCH2					; Plot the right edge
 	sta	(BASL),y
 	jmp	WGStrokeRect_vertLoopOddAlignedNextRow
 
@@ -444,7 +459,7 @@ WGStrokeRect_vertLoopOddAlignedOddWidth:
 	inc
 	lsr
 	tay
-	lda	#CH_RIGHT					; Plot the right edge
+	lda	SCRATCH2					; Plot the right edge
 	sta	(BASL),y
 
 WGStrokeRect_vertLoopOddAlignedNextRow:

@@ -97,9 +97,9 @@ Calling WeeGUI
 
 ###Applesoft
 
-WeeGUI is accessed from Applesoft through ampersand extensions. For example, the DESK command clears the screen and draws a desktop background:
+WeeGUI is accessed from Applesoft through ampersand extensions. For example, the HOME command clears the screen and can optionally draw a desktop background:
 
-	10 &DESK
+	10 &HOME(1)
 
 If the call requires parameters, you can make a C-style function call. For example, to select view #6, you would call:
 
@@ -421,6 +421,32 @@ Configuration block consists of five bytes:
 		X position,
 		Y position,
 		"Label")
+</pre></td></tr>
+</table>
+
+
+####WGCreateRadio
+Creates a new WeeGUI radio button view. This is a specialized version of WGCreateView, and its parameters are similar.
+
+Radio buttons act as a group; selecting one radio button deselects all other radio buttons. In WeeGUI, all radio buttons function as a single group. If you need multiple radio groups, rethink your design until you realize you don't need that.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:        WGCreateRadio
+PARAM0: Pointer to configuration block (LSB)
+PARAM1:    Pointer to configuration block (MSB)
+
+Configuration block consists of five bytes:
+0:    View ID (0-15)
+1:    X position of checkbox
+2:    Y position of checkbox
+3:     Pointer to null-terminated string label (LSB)
+4:    Pointer to null-terminated string label (MSB)
+</pre></td><td><pre>
+&RADIO(    View ID,
+        X position,
+        Y position,
+"Label")
 </pre></td></tr>
 </table>
 
@@ -899,7 +925,7 @@ Clears the screen to black. Unlike Applesoft HOME, this version always clears to
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGClearScreen
 </pre></td><td><pre>
-&HOME
+&HOME(0)
 </pre></td></tr>
 </table>
 
@@ -911,7 +937,7 @@ Paints a desktop background on the screen.
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGDesktop
 </pre></td><td><pre>
-&DESK
+&HOME(1)
 </pre></td></tr>
 </table>
 
@@ -962,6 +988,22 @@ Draws the outline of a rectangle. The rectangle is drawn one pixel outside the r
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGStrokeRect
+PARAM0: Left edge
+PARAM1:	Top edge
+PARAM2: Width
+PARAM3: Height
+</pre></td><td><pre>
+&DRAW(left,top,width,height)
+</pre></td></tr>
+</table>
+
+
+####WGStrokeRoundRect
+Draws the outline of a "round" rectangle, with left and right edges curved instead of straight. The rectangle is drawn one pixel outside the region you specify. So, *do not* attempt to stroke a rectangle in row 0, row 23, column 0, or column 79. You may overwrite screen holes and cause system malfunctions.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGStrokeRoundRect
 PARAM0: Left edge
 PARAM1:	Top edge
 PARAM2: Width
