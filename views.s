@@ -529,9 +529,9 @@ paintCheck_plot:				; Paint our state
 	sta PARAM0
 	lda WG_VIEWRECORDS+13,y
 	sta PARAM1
-	ldy #0
 
 	lda WG_VIEWRECORDS+4,y			; Raw or Apple format title?
+	ldy #0
 	and #VIEW_STYLE_RAWTITLE
 	bne paintCheck_titleRawLoop
 
@@ -550,7 +550,7 @@ paintCheck_titleRawLoop:
 	jsr WGPlot
 	inc WG_CURSORX
 	iny
-	bra paintCheck_titleLoop
+	bra paintCheck_titleRawLoop
 
 paintCheck_done:
 	rts
