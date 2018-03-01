@@ -74,6 +74,8 @@ WGEntryPointTable:
 .addr WGViewSetRawTitle
 .addr WGSetContentWidth
 .addr WGSetContentHeight
+.addr WGStrokeRoundRect
+.addr WGCreateRadio
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
