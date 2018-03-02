@@ -46,31 +46,36 @@ WGClearScreen_charLoop:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGDesktop
 ; Paints the desktop pattern (assumes 80 cols)
-; Side effects: Clobbers BASL,BASH
 ;
 WGDesktop:
 
 	SAVE_AXY
-	SETSWITCH	PAGE2OFF
+	SETSWITCH PAGE2OFF
 	ldx	#23
 
 WGDesktop_lineLoop:
 	lda TEXTLINES_L,x	; Compute video memory address of line
-	sta BASL
+	sta WGDesktop_charLoop+1
+	sta WGDesktop_charLoop2+1
 	lda TEXTLINES_H,x
-	sta BASH
+	sta WGDesktop_charLoop+2
+	sta WGDesktop_charLoop2+2
 
 	ldy	#39
-
-WGDesktop_charLoop:
 	lda #'W'
-	sta	(BASL),y
-	SETSWITCH	PAGE2ON
-	lda #'V'
-	sta	(BASL),y
-	SETSWITCH	PAGE2OFF
+WGDesktop_charLoop:
+	sta	$FFFF,y			; Self-modifying code!
 	dey
 	bpl	WGDesktop_charLoop
+
+	SETSWITCH PAGE2ON
+	ldy	#39
+	lda #'V'
+WGDesktop_charLoop2:
+	sta	$FFFF,y			; Self-modifying code!
+	dey
+	bpl	WGDesktop_charLoop2
+	SETSWITCH PAGE2OFF
 
 	dex
 	bpl WGDesktop_lineLoop
