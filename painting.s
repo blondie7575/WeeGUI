@@ -8,79 +8,56 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGClearScreen
-; Clears the text screen (assumes 80 cols)
-; Side effects: Clobbers BASL,BASH
-;
-WGClearScreen:
-
-	SAVE_AXY
-	SETSWITCH	PAGE2OFF
-	ldx	#23
-
-WGClearScreen_lineLoop:
-
-	lda TEXTLINES_L,x	; Compute video memory address of line
-	sta BASL
-	lda TEXTLINES_H,x
-	sta BASH
-
-	ldy	#39
-	lda	#' ' + $80
-
-WGClearScreen_charLoop:
-	sta	(BASL),y
-	SETSWITCH	PAGE2ON
-	sta	(BASL),y
-	SETSWITCH	PAGE2OFF
-	dey
-	bpl	WGClearScreen_charLoop
-
-	dex
-	bpl WGClearScreen_lineLoop
-
-	RESTORE_AXY
-	rts
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGDesktop
 ; Paints the desktop pattern (assumes 80 cols)
 ;
 WGDesktop:
+	pha
+	lda	#'W'
+	sta	WGClearScreen_charPage1+1
+	lda	#'V'
+	bra	WGClearScreen_common
 
-	SAVE_AXY
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGClearScreen
+; Clears the text screen (assumes 80 cols)
+;
+WGClearScreen:
+	pha
+	lda	#' ' + $80
+	sta	WGClearScreen_charPage1+1
+WGClearScreen_common:
+	sta	WGClearScreen_charPage2+1
+	SAVE_XY
 	SETSWITCH PAGE2OFF
 	ldx	#23
-
-WGDesktop_lineLoop:
-	lda TEXTLINES_L,x	; Compute video memory address of line
-	sta WGDesktop_charLoop+1
-	sta WGDesktop_charLoop2+1
-	lda TEXTLINES_H,x
-	sta WGDesktop_charLoop+2
-	sta WGDesktop_charLoop2+2
-
+WGClearScreen_lineLoop:
+	lda	TEXTLINES_L,x	; Compute video memory address of line
+	sta	WGClearScreen_charLoop1+1
+	sta	WGClearScreen_charLoop2+1
+	lda	TEXTLINES_H,x
+	sta	WGClearScreen_charLoop1+2
+	sta	WGClearScreen_charLoop2+2
 	ldy	#39
-	lda #'W'
-WGDesktop_charLoop:
+WGClearScreen_charPage1:
+	lda	#$FF			; Self-modifying code!
+WGClearScreen_charLoop1:
 	sta	$FFFF,y			; Self-modifying code!
 	dey
-	bpl	WGDesktop_charLoop
-
+	bpl	WGClearScreen_charLoop1
 	SETSWITCH PAGE2ON
 	ldy	#39
-	lda #'V'
-WGDesktop_charLoop2:
+WGClearScreen_charPage2:
+	lda	#$FF			; Self-modifying code!
+WGClearScreen_charLoop2:
 	sta	$FFFF,y			; Self-modifying code!
 	dey
-	bpl	WGDesktop_charLoop2
+	bpl	WGClearScreen_charLoop2
 	SETSWITCH PAGE2OFF
-
 	dex
-	bpl WGDesktop_lineLoop
-
-	RESTORE_AXY
+	bpl	WGClearScreen_lineLoop
+	RESTORE_XY
+	pla
 	rts
 
 
