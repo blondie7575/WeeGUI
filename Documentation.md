@@ -1123,6 +1123,20 @@ X:		WGExit
 
 <br><br>
 
+####WGReset
+Deallocate all WeeGUI views and strings. This is called automatically during WeeGUI startup, but you can call it yourself at any time if you want to "start over" with no views. This does not clear the screen or repaint anything.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGReset
+</pre></td><td><pre>
+Not available
+</pre></td></tr>
+</table>
+
+
+<br><br>
+
 - - -
 
 <br>
