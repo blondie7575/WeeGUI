@@ -105,56 +105,9 @@ WGCreateView_done:
 ; SH: String pointer (MSB)
 ;
 WGCreateCheckbox:
-	SAVE_AXY
-
-	ldy #0
-	lda (PARAM0),y	; Find our new view record
-	pha				; Cache view ID so we can select when we're done
-
-	asl
-	asl
-	asl
-	asl				; Records are 16 bytes wide
-	tax
-
-	iny
-	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+0,x	; Screen X
-
-	iny
-	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+1,x	; Screen Y
-
-	lda	#1
-	sta	WG_VIEWRECORDS+2,x	; Initialize screen width
-	sta	WG_VIEWRECORDS+3,x	; Initialize screen height
-	sta	WG_VIEWRECORDS+7,x	; Initialize view width
-	sta	WG_VIEWRECORDS+8,x	; Initialize view height
-
-	lda #VIEW_STYLE_CHECK
-	sta	WG_VIEWRECORDS+4,x	; Style
-
-	stz	WG_VIEWRECORDS+5,x	; Initialize scrolling
-	stz	WG_VIEWRECORDS+6,x
-
-	stz WG_VIEWRECORDS+9,x	; Initialize state
-	stz WG_VIEWRECORDS+10,x	; Initialize callback
-	stz WG_VIEWRECORDS+11,x
-
-	iny
-	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+12,x	; Title
-	iny
-	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+13,x
-
-	pla
-	jsr WGSelectView		; Leave this as the active view
-
-WGCreateCheckbox_done:
-	RESTORE_AXY
-	rts
-
+	pha
+	lda	#VIEW_STYLE_CHECK
+	bra	WGCreate1x1_common
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGCreateRadio
@@ -170,56 +123,60 @@ WGCreateCheckbox_done:
 ; SH: String pointer (MSB)
 ;
 WGCreateRadio:
-	SAVE_AXY
+	pha
+	lda	#VIEW_STYLE_RADIO
+WGCreate1x1_common:
+	sta	WGCreate1x1_style+1
+	SAVE_XY
 
-	ldy #0
-	lda (PARAM0),y            ; Find our new view record
-	pha                       ; Cache view ID so we can select when we're done
+	ldy	#0
+	lda	(PARAM0),y	; Find our new view record
+	pha				; Cache view ID so we can select when we're done
 
 	asl
 	asl
 	asl
-	asl                       ; Records are 16 bytes wide
+	asl				; Records are 16 bytes wide
 	tax
 
 	iny
-	lda (PARAM0),y
-	sta WG_VIEWRECORDS+0,x    ; Screen X
+	lda	(PARAM0),y
+	sta	WG_VIEWRECORDS+0,x	; Screen X
 
 	iny
-	lda (PARAM0),y
-	sta WG_VIEWRECORDS+1,x    ; Screen Y
+	lda	(PARAM0),y
+	sta	WG_VIEWRECORDS+1,x	; Screen Y
 
-	lda #1
-	sta WG_VIEWRECORDS+2,x    ; Initialize screen width
-	sta WG_VIEWRECORDS+3,x    ; Initialize screen height
-	sta WG_VIEWRECORDS+7,x    ; Initialize view width
-	sta WG_VIEWRECORDS+8,x    ; Initialize view height
+	lda	#1
+	sta	WG_VIEWRECORDS+2,x	; Initialize screen width
+	sta	WG_VIEWRECORDS+3,x	; Initialize screen height
+	sta	WG_VIEWRECORDS+7,x	; Initialize view width
+	sta	WG_VIEWRECORDS+8,x	; Initialize view height
 
-	lda #VIEW_STYLE_RADIO
-	sta WG_VIEWRECORDS+4,x    ; Style
+WGCreate1x1_style:
+	lda	#$FF				; Self-modifying code!
+	sta	WG_VIEWRECORDS+4,x	; Style
 
-	stz WG_VIEWRECORDS+5,x    ; Initialize scrolling
-	stz WG_VIEWRECORDS+6,x
+	stz	WG_VIEWRECORDS+5,x	; Initialize scrolling
+	stz	WG_VIEWRECORDS+6,x
 
-	stz WG_VIEWRECORDS+9,x    ; Initialize state
-	stz WG_VIEWRECORDS+10,x   ; Initialize callback
-	stz WG_VIEWRECORDS+11,x
+	stz	WG_VIEWRECORDS+9,x	; Initialize state
+	stz	WG_VIEWRECORDS+10,x	; Initialize callback
+	stz	WG_VIEWRECORDS+11,x
 
 	iny
-	lda (PARAM0),y
-	sta WG_VIEWRECORDS+12,x   ; Title
+	lda	(PARAM0),y
+	sta	WG_VIEWRECORDS+12,x	; Title
 	iny
-	lda (PARAM0),y
-	sta WG_VIEWRECORDS+13,x
+	lda	(PARAM0),y
+	sta	WG_VIEWRECORDS+13,x
 
 	pla
-	jsr WGSelectView          ; Leave this as the active view
+	jsr	WGSelectView		; Leave this as the active view
 
-WGCreateRadio_done:
-	RESTORE_AXY
+	RESTORE_XY
+	pla
 	rts
-
 
 
 
