@@ -728,12 +728,12 @@ Not available
 </table>
 
 
-####WGSetValue
-Sets the currently selected view's value. For progress bar views, this is the progress value. For checkboxes, 1 is checked and 0 is unchecked.
+####WGSetState
+Sets the currently selected view's value. For progress bar views, this is the progress value. For checkboxes and radio buttons, 1 is checked and 0 is unchecked.
 
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
-X:		WGSetValue
+X:		WGSetState
 A: 		new value
 </td><td>
 &SETV(value)
