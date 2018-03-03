@@ -1186,7 +1186,7 @@ Appendix C: Sample Code
 Here is the source code to the BASICDEMO program, included in the WeeGUI disk image. It shows how a few simple lines of code can create a complex, sophisticated interface, thanks to WeeGUI.
 
 	 1  PRINT  CHR$ (4)"brun weegui"
-	 10  & DESK
+	 10  & HOME(1)
 	 20  & WINDW(0,2,2,15,76,7,76,40)
 	 21  & TITLE("Help")
 	 22  & STACT(2500)
