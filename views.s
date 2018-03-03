@@ -487,27 +487,22 @@ paintCheck_plot:				; Paint our state
 	lda WG_VIEWRECORDS+13,y
 	sta PARAM1
 
-	lda WG_VIEWRECORDS+4,y			; Raw or Apple format title?
-	ldy #0
+	lda WG_VIEWRECORDS+4,y		; Raw or Apple format title?
 	and #VIEW_STYLE_RAWTITLE
-	bne paintCheck_titleRawLoop
+	asl
+	eor	#$80					; becomes #$80 for Apple format, 0 for raw
+	sta paintCheck_mask+1
 
+	ldy #0
 paintCheck_titleLoop:
 	lda (PARAM0),y
 	beq paintCheck_done
-	ora #$80
+paintCheck_mask:
+	ora #$FF					; Self-modifying code!
 	jsr WGPlot
 	inc WG_CURSORX
 	iny
 	bra paintCheck_titleLoop
-
-paintCheck_titleRawLoop:
-	lda (PARAM0),y
-	beq paintCheck_done
-	jsr WGPlot
-	inc WG_CURSORX
-	iny
-	bra paintCheck_titleRawLoop
 
 paintCheck_done:
 	rts
@@ -671,28 +666,22 @@ paintWindowTitle_compute:
 	dec
 	sta WG_CURSORY
 
-	ldy #0
-
 	lda WG_VIEWRECORDS+4,y			; Raw or Apple format title?
 	and #VIEW_STYLE_RAWTITLE
-	bne paintWindowTitleRawLoop
+	asl
+	eor	#$80						; becomes #$80 for Apple format, 0 for raw
+	sta paintWindowTitle_mask
 
+	ldy #0
 paintWindowTitleLoop:
 	lda (PARAM0),y
 	beq paintWindowTitle_done
-	ora #$80
+paintWindowTitle_mask:
+	ora #$FF				; Self-modifying code!
 	jsr	WGPlot				; Draw the character
 	iny
 	inc WG_CURSORX			; Advance cursors
 	bra paintWindowTitleLoop
-
-paintWindowTitleRawLoop:
-	lda (PARAM0),y
-	beq paintWindowTitle_done
-	jsr	WGPlot				; Draw the character
-	iny
-	inc WG_CURSORX			; Advance cursors
-	bra paintWindowTitleRawLoop
 
 paintWindowTitle_done:
 	rts
