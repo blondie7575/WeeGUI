@@ -76,6 +76,7 @@ WGEntryPointTable:
 .addr WGSetContentHeight
 .addr WGStrokeRoundRect
 .addr WGCreateRadio
+.addr WGReset
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
