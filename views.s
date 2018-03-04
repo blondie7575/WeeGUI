@@ -105,56 +105,9 @@ WGCreateView_done:
 ; SH: String pointer (MSB)
 ;
 WGCreateCheckbox:
-	SAVE_AXY
-
-	ldy #0
-	lda (PARAM0),y	; Find our new view record
-	pha				; Cache view ID so we can select when we're done
-
-	asl
-	asl
-	asl
-	asl				; Records are 16 bytes wide
-	tax
-
-	iny
-	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+0,x	; Screen X
-
-	iny
-	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+1,x	; Screen Y
-
-	lda	#1
-	sta	WG_VIEWRECORDS+2,x	; Initialize screen width
-	sta	WG_VIEWRECORDS+3,x	; Initialize screen height
-	sta	WG_VIEWRECORDS+7,x	; Initialize view width
-	sta	WG_VIEWRECORDS+8,x	; Initialize view height
-
-	lda #VIEW_STYLE_CHECK
-	sta	WG_VIEWRECORDS+4,x	; Style
-
-	stz	WG_VIEWRECORDS+5,x	; Initialize scrolling
-	stz	WG_VIEWRECORDS+6,x
-
-	stz WG_VIEWRECORDS+9,x	; Initialize state
-	stz WG_VIEWRECORDS+10,x	; Initialize callback
-	stz WG_VIEWRECORDS+11,x
-
-	iny
-	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+12,x	; Title
-	iny
-	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+13,x
-
-	pla
-	jsr WGSelectView		; Leave this as the active view
-
-WGCreateCheckbox_done:
-	RESTORE_AXY
-	rts
-
+	pha
+	lda	#VIEW_STYLE_CHECK
+	bra	WGCreate1x1_common
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGCreateRadio
@@ -170,56 +123,60 @@ WGCreateCheckbox_done:
 ; SH: String pointer (MSB)
 ;
 WGCreateRadio:
-	SAVE_AXY
+	pha
+	lda	#VIEW_STYLE_RADIO
+WGCreate1x1_common:
+	sta	WGCreate1x1_style+1
+	SAVE_XY
 
-	ldy #0
-	lda (PARAM0),y            ; Find our new view record
-	pha                       ; Cache view ID so we can select when we're done
+	ldy	#0
+	lda	(PARAM0),y	; Find our new view record
+	pha				; Cache view ID so we can select when we're done
 
 	asl
 	asl
 	asl
-	asl                       ; Records are 16 bytes wide
+	asl				; Records are 16 bytes wide
 	tax
 
 	iny
-	lda (PARAM0),y
-	sta WG_VIEWRECORDS+0,x    ; Screen X
+	lda	(PARAM0),y
+	sta	WG_VIEWRECORDS+0,x	; Screen X
 
 	iny
-	lda (PARAM0),y
-	sta WG_VIEWRECORDS+1,x    ; Screen Y
+	lda	(PARAM0),y
+	sta	WG_VIEWRECORDS+1,x	; Screen Y
 
-	lda #1
-	sta WG_VIEWRECORDS+2,x    ; Initialize screen width
-	sta WG_VIEWRECORDS+3,x    ; Initialize screen height
-	sta WG_VIEWRECORDS+7,x    ; Initialize view width
-	sta WG_VIEWRECORDS+8,x    ; Initialize view height
+	lda	#1
+	sta	WG_VIEWRECORDS+2,x	; Initialize screen width
+	sta	WG_VIEWRECORDS+3,x	; Initialize screen height
+	sta	WG_VIEWRECORDS+7,x	; Initialize view width
+	sta	WG_VIEWRECORDS+8,x	; Initialize view height
 
-	lda #VIEW_STYLE_RADIO
-	sta WG_VIEWRECORDS+4,x    ; Style
+WGCreate1x1_style:
+	lda	#$FF				; Self-modifying code!
+	sta	WG_VIEWRECORDS+4,x	; Style
 
-	stz WG_VIEWRECORDS+5,x    ; Initialize scrolling
-	stz WG_VIEWRECORDS+6,x
+	stz	WG_VIEWRECORDS+5,x	; Initialize scrolling
+	stz	WG_VIEWRECORDS+6,x
 
-	stz WG_VIEWRECORDS+9,x    ; Initialize state
-	stz WG_VIEWRECORDS+10,x   ; Initialize callback
-	stz WG_VIEWRECORDS+11,x
+	stz	WG_VIEWRECORDS+9,x	; Initialize state
+	stz	WG_VIEWRECORDS+10,x	; Initialize callback
+	stz	WG_VIEWRECORDS+11,x
 
 	iny
-	lda (PARAM0),y
-	sta WG_VIEWRECORDS+12,x   ; Title
+	lda	(PARAM0),y
+	sta	WG_VIEWRECORDS+12,x	; Title
 	iny
-	lda (PARAM0),y
-	sta WG_VIEWRECORDS+13,x
+	lda	(PARAM0),y
+	sta	WG_VIEWRECORDS+13,x
 
 	pla
-	jsr WGSelectView          ; Leave this as the active view
+	jsr	WGSelectView		; Leave this as the active view
 
-WGCreateRadio_done:
-	RESTORE_AXY
+	RESTORE_XY
+	pla
 	rts
-
 
 
 
@@ -530,27 +487,22 @@ paintCheck_plot:				; Paint our state
 	lda WG_VIEWRECORDS+13,y
 	sta PARAM1
 
-	lda WG_VIEWRECORDS+4,y			; Raw or Apple format title?
-	ldy #0
+	lda WG_VIEWRECORDS+4,y		; Raw or Apple format title?
 	and #VIEW_STYLE_RAWTITLE
-	bne paintCheck_titleRawLoop
+	asl
+	eor	#$80					; becomes #$80 for Apple format, 0 for raw
+	sta paintCheck_mask+1
 
+	ldy #0
 paintCheck_titleLoop:
 	lda (PARAM0),y
 	beq paintCheck_done
-	ora #$80
+paintCheck_mask:
+	ora #$FF					; Self-modifying code!
 	jsr WGPlot
 	inc WG_CURSORX
 	iny
 	bra paintCheck_titleLoop
-
-paintCheck_titleRawLoop:
-	lda (PARAM0),y
-	beq paintCheck_done
-	jsr WGPlot
-	inc WG_CURSORX
-	iny
-	bra paintCheck_titleRawLoop
 
 paintCheck_done:
 	rts
@@ -714,28 +666,22 @@ paintWindowTitle_compute:
 	dec
 	sta WG_CURSORY
 
-	ldy #0
-
 	lda WG_VIEWRECORDS+4,y			; Raw or Apple format title?
 	and #VIEW_STYLE_RAWTITLE
-	bne paintWindowTitleRawLoop
+	asl
+	eor	#$80						; becomes #$80 for Apple format, 0 for raw
+	sta paintWindowTitle_mask
 
+	ldy #0
 paintWindowTitleLoop:
 	lda (PARAM0),y
 	beq paintWindowTitle_done
-	ora #$80
+paintWindowTitle_mask:
+	ora #$FF				; Self-modifying code!
 	jsr	WGPlot				; Draw the character
 	iny
 	inc WG_CURSORX			; Advance cursors
 	bra paintWindowTitleLoop
-
-paintWindowTitleRawLoop:
-	lda (PARAM0),y
-	beq paintWindowTitle_done
-	jsr	WGPlot				; Draw the character
-	iny
-	inc WG_CURSORX			; Advance cursors
-	bra paintWindowTitleRawLoop
 
 paintWindowTitle_done:
 	rts

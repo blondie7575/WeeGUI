@@ -76,6 +76,7 @@ WGEntryPointTable:
 .addr WGSetContentHeight
 .addr WGStrokeRoundRect
 .addr WGCreateRadio
+.addr WGReset
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -91,10 +92,24 @@ WGInit:
 ;	sta LINNUML
 ;	jsr SETHI
 
-	jsr WG80				; Enter 80-col text mode
-	jsr WGInitApplesoft		; Set up Applesoft API
+	jsr	WG80				; Enter 80-col text mode
+	jsr	WGInitApplesoft		; Set up Applesoft API
 
-	ldy #15			; Clear our block allocators
+	RESTORE_AXY
+
+	jmp	WGReset
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGReset
+; Reset views and strings. Called from WGInit during app startup.
+; Can also be called at any time to "start over" with no views.
+; (Does not clear screen or repaint.)
+;
+WGReset:
+	SAVE_AXY
+
+	ldy	#15			; Clear our block allocators
 WGInit_clearMemLoop:
 	tya
 	asl
@@ -103,17 +118,17 @@ WGInit_clearMemLoop:
 	asl
 	tax
 	lda #0
-	sta WG_STRINGS,x
+	sta	WG_VIEWRECORDS+2,x
+	sta	WG_STRINGS,x
 	dey
 	bpl WGInit_clearMemLoop
 
-	lda #$ff
-	sta WG_PENDINGACTIONVIEW
-	sta WG_FOCUSVIEW
-	
+	lda	#$ff
+	sta	WG_PENDINGACTIONVIEW
+	sta	WG_FOCUSVIEW
+
 	RESTORE_AXY
 	rts
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGExit

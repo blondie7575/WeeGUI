@@ -728,12 +728,12 @@ Not available
 </table>
 
 
-####WGSetValue
-Sets the currently selected view's value. For progress bar views, this is the progress value. For checkboxes, 1 is checked and 0 is unchecked.
+####WGSetState
+Sets the currently selected view's value. For progress bar views, this is the progress value. For checkboxes and radio buttons, 1 is checked and 0 is unchecked.
 
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
-X:		WGSetValue
+X:		WGSetState
 A: 		new value
 </td><td>
 &SETV(value)
@@ -1123,6 +1123,20 @@ X:		WGExit
 
 <br><br>
 
+####WGReset
+Deallocate all WeeGUI views and strings. This is called automatically during WeeGUI startup, but you can call it yourself at any time if you want to "start over" with no views. This does not clear the screen or repaint anything.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGReset
+</pre></td><td><pre>
+Not available
+</pre></td></tr>
+</table>
+
+
+<br><br>
+
 - - -
 
 <br>
@@ -1172,7 +1186,7 @@ Appendix C: Sample Code
 Here is the source code to the BASICDEMO program, included in the WeeGUI disk image. It shows how a few simple lines of code can create a complex, sophisticated interface, thanks to WeeGUI.
 
 	 1  PRINT  CHR$ (4)"brun weegui"
-	 10  & DESK
+	 10  & HOME(1)
 	 20  & WINDW(0,2,2,15,76,7,76,40)
 	 21  & TITLE("Help")
 	 22  & STACT(2500)
