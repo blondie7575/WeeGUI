@@ -75,6 +75,10 @@ WGEnableMouse:
 
 	SETSWITCH PAGE2OFF
 
+	; Warning!
+	; We're relying on the fact that the 65C02 treats undefined opcodes as NOPs here!	
+	; (in the same way that ProDOS 2.4.2 does)
+
 	sec
 	.byte $C2, $01 ;REP #$01	; clear carry flag on 65816
 	bcc WGEnableMouse_IIGS

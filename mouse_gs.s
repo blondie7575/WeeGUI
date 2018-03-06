@@ -41,7 +41,7 @@ GS_Mouse_CheckX:
 	.byte $C2, $30 ;rep #$30 ;16-bit A,X,Y
 	.byte $A2, <MousePixX, >MousePixX ;ldx #MousePixX
 	jsr GS_Mouse_AddDelta ;Cvt to signed word, add to pixPos & range clamp
-	.byte $9D, <(MouseTxtX-MousePixX), >(MouseTxtX-MousePixX) ;sta MouseTxtX-MousePixX,x ;16-bit store overwrites Y
+	.byte $95, MouseTxtX-MousePixX ;sta MouseTxtX-MousePixX,x ;16-bit store overwrites Y
 GS_Mouse_CheckY:
 	tya ;a=DeltaY
 	inx
@@ -56,13 +56,11 @@ GS_Mouse_CheckY:
 	eor MouseBtn0-MousePixY,x ;Remove old button0
 	sta MouseBtn0-MousePixY,x ;Save new button0
 	bmi GS_Mouse_NoDownEdge
-	.byte $BC, <(MouseTxtX-MousePixY), >(MouseTxtX-MousePixY) ;ldy MouseTxtX-MousePixY,x
+	ldy MouseTxtX-MousePixY,x
 	sty MouseDownX ;Set WG_MOUSECLICK_X & WG_MOUSECLICK_Y
 GS_Mouse_NoDownEdge:
 	.byte $FB ;xce ;65816 emulation mode: 8-bit A,X,Y
-	jsr WGDrawPointer				; Redraw the pointer
-GS_Mouse_Exit:
-	rts
+	jmp WGDrawPointer				; Redraw the pointer
 
 ;-------------------------------
 
@@ -78,15 +76,16 @@ GS_Mouse_GotDelta:
 	bpl GS_Mouse_NoMinClamp
 	.byte $7B ;tdc ;Clamp neg position to zero
 GS_Mouse_NoMinClamp:
-	.byte $DD, <(MouseMaxX-MousePixX), >(MouseMaxX-MousePixX) ;cmp MouseMaxX-MousePixX,x
+	cmp MouseMaxX-MousePixX,x
 	bcc GS_Mouse_NoMaxClamp
-	.byte $BD, <(MouseMaxX-MousePixX), >(MouseMaxX-MousePixX) ;lda MouseMaxX-MousePixX,x
+	lda MouseMaxX-MousePixX,x
 	dec
 GS_Mouse_NoMaxClamp:
 	sta 0,x ;Store mouse pixel position
 	lsr ;TextPos = PixelPos / 8
 	lsr
 	lsr
+GS_Mouse_Exit:
 	rts
 
 GsDisableMouse:
