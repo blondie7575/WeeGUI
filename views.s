@@ -670,7 +670,7 @@ paintWindowTitle_compute:
 	and #VIEW_STYLE_RAWTITLE
 	asl
 	eor	#$80						; becomes #$80 for Apple format, 0 for raw
-	sta paintWindowTitle_mask
+	sta paintWindowTitle_mask+1
 
 	ldy #0
 paintWindowTitleLoop:
