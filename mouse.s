@@ -75,6 +75,10 @@ WGEnableMouse:
 
 	SETSWITCH PAGE2OFF
 
+	sec
+	.byte $C2, $01 ;REP #$01	; clear carry flag on 65816
+	bcc WGEnableMouse_IIGS
+
 	; Find slot number and calculate the various indirections needed
 	jsr WGFindMouse
 	bcs WGEnableMouse_Error
@@ -137,6 +141,12 @@ WGEnableMouse_IIe:
 	CALLMOUSE CLAMPMOUSE
 	bra WGEnableMouse_Activate
 
+WGEnableMouse_IIGS:
+	lda #$20			; JSR
+	sta WGEnableGSMouse
+	sta WGDisableGSMouse
+	bra WGEnableMouse_Activate
+
 WGEnableMouse_Error:
 	stz WG_MOUSEACTIVE
 
@@ -179,6 +189,9 @@ WGDisableMouse:
 
 	lda WG_MOUSEACTIVE			; Never activated the mouse
 	beq WGDisableMouse_done
+
+WGDisableGSMouse:
+	bit GsDisableMouse			; self-modified to JSR when appropriate
 
 	lda MOUSEMODE_OFF
 	CALLMOUSE SETMOUSE
@@ -603,10 +616,6 @@ renderPointerMode:
 WG_MOUSEACTIVE:
 .byte 0
 
-WG_MOUSEPOS_X:
-.byte 39
-WG_MOUSEPOS_Y:
-.byte 11
 WG_MOUSE_STAT:
 .byte 0
 WG_MOUSEBG:
@@ -614,20 +623,35 @@ WG_MOUSEBG:
 WG_APPLEIIC:
 .byte 0
 WG_MOUSE_JUMPL:
+MousePixX: ;(GS-overload) Mouse pixel position 0-639 (word)
 .byte 0
 WG_MOUSE_JUMPH:
 .byte 0
 WG_MOUSE_SLOT:
+MousePixY: ;(GS-overload) Mouse pixel position 0-191 (word)
 .byte 0
 WG_MOUSE_SLOTSHIFTED:
 .byte 0
 
+WG_MOUSE_BUTTON_DOWN:
+MouseBtn0: ;(GS-overload) Previous btn0 state used for edge detect
+.byte 0
+WG_MOUSEPOS_X:
+MouseTxtX: ;(GS-overload) Mouse text position 0-79
+.byte 39
+WG_MOUSEPOS_Y:
+MouseTxtY: ;(GS-overload) Mouse text position 0-23
+.byte 11
 WG_MOUSECLICK_X:
+MouseDownX: ;(GS-overload) Mouse click pos 0-79
 .byte $ff
 WG_MOUSECLICK_Y:
+MouseDownY: ;(GS-overload) Mouse click pos 0-23
 .byte 0
-WG_MOUSE_BUTTON_DOWN:
-.byte 0
+MouseMaxX:
+.word 80*8 ;(GS-extension) Mouse max X = 640
+MouseMaxY:
+.word 24*8 ;(GS-extension) Mouse max Y = 192
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
