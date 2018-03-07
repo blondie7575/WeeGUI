@@ -100,10 +100,10 @@ WGStrLen:
 
 	ldy #0
 WGStrLen_loop:
-	lda	(PARAM0),y
-	beq	WGStrLen_done
+	lda (PARAM0),y
+	beq WGStrLen_done
 	iny
-	bra	WGStrLen_loop
+	bra WGStrLen_loop
 
 WGStrLen_done:
 	tya
@@ -164,7 +164,7 @@ WGStoreStr:
 	phx			; Remember the start of our string
 
 WGStoreStr_copyLoop:
-	lda	(PARAM0),y
+	lda (PARAM0),y
 	cmp WG_SCRATCHA
 	beq WGStoreStr_terminate
 	sta WG_STRINGS,x
@@ -214,7 +214,7 @@ WGStorePascalStr:
 WGStorePascalStr_copyLoop:
 	cpy WG_SCRATCHA
 	beq WGStorePascalStr_terminate
-	lda	(PARAM0),y
+	lda (PARAM0),y
 	sta WG_STRINGS,x
 	inx
 	iny

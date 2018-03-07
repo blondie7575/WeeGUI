@@ -478,7 +478,7 @@ WGAmpersand_CHKBX:
 	jsr WGAmpersandNextArgument
 
 	jsr WGAmpersandStrArgument
-	stx	WGAmpersandCommandBuffer+3
+	stx WGAmpersandCommandBuffer+3
 	sty WGAmpersandCommandBuffer+4
 
 	jsr WGAmpersandEndArguments
@@ -640,12 +640,12 @@ WGAmpersand_BUTTN:
 	jsr WGAmpersandNextArgument
 
 	jsr WGAmpersandAddrArgument
-	stx	WGAmpersandCommandBuffer+4
+	stx WGAmpersandCommandBuffer+4
 	sty WGAmpersandCommandBuffer+5
 	jsr WGAmpersandNextArgument
 
 	jsr WGAmpersandStrArgument
-	stx	WGAmpersandCommandBuffer+6
+	stx WGAmpersandCommandBuffer+6
 	sty WGAmpersandCommandBuffer+7
 
 	jsr WGAmpersandEndArguments
@@ -736,7 +736,7 @@ WGAmpersand_STACT:
 	jsr WGAmpersandBeginArguments
 
 	jsr WGAmpersandAddrArgument
-	stx	PARAM0
+	stx PARAM0
 	sty PARAM1
 
 	jsr WGAmpersandEndArguments
@@ -753,7 +753,7 @@ WGAmpersand_TITLE:
 	jsr WGAmpersandBeginArguments
 
 	jsr WGAmpersandStrArgument
-	stx	PARAM0
+	stx PARAM0
 	sty PARAM1
 
 	jsr WGAmpersandEndArguments
@@ -798,7 +798,7 @@ WGAmpersand_PRINT:
 	bne WGAmpersand_NotLiteral
 
 	jsr WGAmpersandTempStrArgument
-	stx	PARAM0
+	stx PARAM0
 	sty PARAM1
 	pha
 
