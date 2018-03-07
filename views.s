@@ -48,33 +48,33 @@ WGCreateView:
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+0,x	; Screen X
+	sta WG_VIEWRECORDS+0,x	; Screen X
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+1,x	; Screen Y
+	sta WG_VIEWRECORDS+1,x	; Screen Y
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+2,x	; Screen Width
+	sta WG_VIEWRECORDS+2,x	; Screen Width
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+3,x	; Screen Height
+	sta WG_VIEWRECORDS+3,x	; Screen Height
 
 	pla
-	sta	WG_VIEWRECORDS+4,x	; Style
+	sta WG_VIEWRECORDS+4,x	; Style
 
-	stz	WG_VIEWRECORDS+5,x	; Initialize scrolling
-	stz	WG_VIEWRECORDS+6,x
-
-	iny
-	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+7,x	; View Width
+	stz WG_VIEWRECORDS+5,x	; Initialize scrolling
+	stz WG_VIEWRECORDS+6,x
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+8,x	; View Height
+	sta WG_VIEWRECORDS+7,x	; View Width
+
+	iny
+	lda (PARAM0),y
+	sta WG_VIEWRECORDS+8,x	; View Height
 
 	stz WG_VIEWRECORDS+9,x	; Initialize state
 	stz WG_VIEWRECORDS+10,x	; Initialize callback
@@ -106,8 +106,8 @@ WGCreateView_done:
 ;
 WGCreateCheckbox:
 	pha
-	lda	#VIEW_STYLE_CHECK
-	bra	WGCreate1x1_common
+	lda #VIEW_STYLE_CHECK
+	bra WGCreate1x1_common
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGCreateRadio
@@ -124,13 +124,13 @@ WGCreateCheckbox:
 ;
 WGCreateRadio:
 	pha
-	lda	#VIEW_STYLE_RADIO
+	lda #VIEW_STYLE_RADIO
 WGCreate1x1_common:
-	sta	WGCreate1x1_style+1
+	sta WGCreate1x1_style+1
 	SAVE_XY
 
-	ldy	#0
-	lda	(PARAM0),y	; Find our new view record
+	ldy #0
+	lda (PARAM0),y	; Find our new view record
 	pha				; Cache view ID so we can select when we're done
 
 	asl
@@ -140,39 +140,39 @@ WGCreate1x1_common:
 	tax
 
 	iny
-	lda	(PARAM0),y
-	sta	WG_VIEWRECORDS+0,x	; Screen X
+	lda (PARAM0),y
+	sta WG_VIEWRECORDS+0,x	; Screen X
 
 	iny
-	lda	(PARAM0),y
-	sta	WG_VIEWRECORDS+1,x	; Screen Y
+	lda (PARAM0),y
+	sta WG_VIEWRECORDS+1,x	; Screen Y
 
-	lda	#1
-	sta	WG_VIEWRECORDS+2,x	; Initialize screen width
-	sta	WG_VIEWRECORDS+3,x	; Initialize screen height
-	sta	WG_VIEWRECORDS+7,x	; Initialize view width
-	sta	WG_VIEWRECORDS+8,x	; Initialize view height
+	lda #1
+	sta WG_VIEWRECORDS+2,x	; Initialize screen width
+	sta WG_VIEWRECORDS+3,x	; Initialize screen height
+	sta WG_VIEWRECORDS+7,x	; Initialize view width
+	sta WG_VIEWRECORDS+8,x	; Initialize view height
 
 WGCreate1x1_style:
-	lda	#$FF				; Self-modifying code!
-	sta	WG_VIEWRECORDS+4,x	; Style
+	lda #$FF				; Self-modifying code!
+	sta WG_VIEWRECORDS+4,x	; Style
 
-	stz	WG_VIEWRECORDS+5,x	; Initialize scrolling
-	stz	WG_VIEWRECORDS+6,x
+	stz WG_VIEWRECORDS+5,x	; Initialize scrolling
+	stz WG_VIEWRECORDS+6,x
 
-	stz	WG_VIEWRECORDS+9,x	; Initialize state
-	stz	WG_VIEWRECORDS+10,x	; Initialize callback
-	stz	WG_VIEWRECORDS+11,x
+	stz WG_VIEWRECORDS+9,x	; Initialize state
+	stz WG_VIEWRECORDS+10,x	; Initialize callback
+	stz WG_VIEWRECORDS+11,x
 
 	iny
-	lda	(PARAM0),y
-	sta	WG_VIEWRECORDS+12,x	; Title
+	lda (PARAM0),y
+	sta WG_VIEWRECORDS+12,x	; Title
 	iny
-	lda	(PARAM0),y
-	sta	WG_VIEWRECORDS+13,x
+	lda (PARAM0),y
+	sta WG_VIEWRECORDS+13,x
 
 	pla
-	jsr	WGSelectView		; Leave this as the active view
+	jsr WGSelectView		; Leave this as the active view
 
 	RESTORE_XY
 	pla
@@ -207,26 +207,26 @@ WGCreateProgress:
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+0,x	; Screen X
+	sta WG_VIEWRECORDS+0,x	; Screen X
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+1,x	; Screen Y
+	sta WG_VIEWRECORDS+1,x	; Screen Y
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+2,x	; Screen width
-	sta	WG_VIEWRECORDS+7,x	; View width
+	sta WG_VIEWRECORDS+2,x	; Screen width
+	sta WG_VIEWRECORDS+7,x	; View width
 
-	lda	#1
-	sta	WG_VIEWRECORDS+3,x	; Screen height
-	sta	WG_VIEWRECORDS+8,x	; View height
+	lda #1
+	sta WG_VIEWRECORDS+3,x	; Screen height
+	sta WG_VIEWRECORDS+8,x	; View height
 
 	lda #VIEW_STYLE_PROGRESS
-	sta	WG_VIEWRECORDS+4,x	; Style
+	sta WG_VIEWRECORDS+4,x	; Style
 
-	stz	WG_VIEWRECORDS+5,x	; Initialize scrolling
-	stz	WG_VIEWRECORDS+6,x
+	stz WG_VIEWRECORDS+5,x	; Initialize scrolling
+	stz WG_VIEWRECORDS+6,x
 
 	stz WG_VIEWRECORDS+9,x	; Initialize state
 	stz WG_VIEWRECORDS+10,x	; Initialize callback
@@ -234,10 +234,10 @@ WGCreateProgress:
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+12,x	; Title
+	sta WG_VIEWRECORDS+12,x	; Title
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+13,x
+	sta WG_VIEWRECORDS+13,x
 
 	pla
 	jsr WGSelectView		; Leave this as the active view
@@ -263,8 +263,8 @@ WGSetState:
 	sta SCRATCH0
 	lda PARAM0
 	and #$7F
-	ora	SCRATCH0
-	sta	WG_VIEWRECORDS+9,y	; State (preserving bit 7)
+	ora SCRATCH0
+	sta WG_VIEWRECORDS+9,y	; State (preserving bit 7)
 
 WGSetState_done:
 	RESTORE_AXY
@@ -302,41 +302,41 @@ WGCreateButton:
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+0,x	; Screen X
+	sta WG_VIEWRECORDS+0,x	; Screen X
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+1,x	; Screen Y
+	sta WG_VIEWRECORDS+1,x	; Screen Y
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+2,x	; Screen width
-	sta	WG_VIEWRECORDS+7,x	; View width
+	sta WG_VIEWRECORDS+2,x	; Screen width
+	sta WG_VIEWRECORDS+7,x	; View width
 
 	lda #1
-	sta	WG_VIEWRECORDS+3,x	; Initialize screen height
-	sta	WG_VIEWRECORDS+8,x	; Initialize view height
+	sta WG_VIEWRECORDS+3,x	; Initialize screen height
+	sta WG_VIEWRECORDS+8,x	; Initialize view height
 
 	lda #VIEW_STYLE_BUTTON
-	sta	WG_VIEWRECORDS+4,x	; Style
+	sta WG_VIEWRECORDS+4,x	; Style
 
-	stz	WG_VIEWRECORDS+5,x	; Initialize scrolling
-	stz	WG_VIEWRECORDS+6,x
+	stz WG_VIEWRECORDS+5,x	; Initialize scrolling
+	stz WG_VIEWRECORDS+6,x
 	stz WG_VIEWRECORDS+9,x	; Initialize state
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+10,x	; Callback
+	sta WG_VIEWRECORDS+10,x	; Callback
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+11,x
+	sta WG_VIEWRECORDS+11,x
 
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+12,x	; Title
+	sta WG_VIEWRECORDS+12,x	; Title
 	iny
 	lda (PARAM0),y
-	sta	WG_VIEWRECORDS+13,x
+	sta WG_VIEWRECORDS+13,x
 
 	pla
 	jsr WGSelectView		; Leave this as the active view
@@ -385,13 +385,13 @@ WGPaintView:
 	beq WGPaintView_done	; If it's a stealth view, we're done
 	pha
 
-	lda	WG_VIEWRECORDS+0,y	; Fetch the geometry
+	lda WG_VIEWRECORDS+0,y	; Fetch the geometry
 	sta PARAM0
-	lda	WG_VIEWRECORDS+1,y
+	lda WG_VIEWRECORDS+1,y
 	sta PARAM1
-	lda	WG_VIEWRECORDS+2,y
+	lda WG_VIEWRECORDS+2,y
 	sta PARAM2
-	lda	WG_VIEWRECORDS+3,y
+	lda WG_VIEWRECORDS+3,y
 	sta PARAM3
 
 	pla						; Draw outline
@@ -405,7 +405,7 @@ WGPaintView:
 	cmp #VIEW_STYLE_CHECK
 	beq WGPaintView_check
 	cmp #VIEW_STYLE_BUTTON
-	beq	WGPaintView_button
+	beq WGPaintView_button
 	cmp #VIEW_STYLE_PROGRESS
 	beq WGPaintView_progress
 	bra WGPaintView_done
@@ -427,7 +427,7 @@ WGPaintView_progress:
 	bra WGPaintView_done
 
 WGPaintView_button:
-	jsr	paintButton
+	jsr paintButton
 
 WGPaintView_done:
 	jsr WGPointerDirty		; The pointer BG may now be stale
@@ -444,15 +444,15 @@ WGPaintView_done:
 ; Side effects: Clobbers all registers,P0,P1
 paintCheck:
 	lda WG_VIEWRECORDS+0,y		; Position cursor
-	sta	WG_CURSORX
+	sta WG_CURSORX
 	lda WG_VIEWRECORDS+1,y
-	sta	WG_CURSORY
+	sta WG_CURSORY
 
-	lda	WG_VIEWRECORDS+9,y		; Determine our visual state
+	lda WG_VIEWRECORDS+9,y		; Determine our visual state
 	and #$80
 	bne paintCheck_selected
 
-	lda	WG_VIEWRECORDS+9,y
+	lda WG_VIEWRECORDS+9,y
 	ror
 	bcc paintCheck_unselectedUnchecked
 
@@ -464,7 +464,7 @@ paintCheck_unselectedUnchecked:
 	bra paintCheck_plot
 
 paintCheck_selected:
-	lda	WG_VIEWRECORDS+9,y
+	lda WG_VIEWRECORDS+9,y
 	ror
 	bcc paintCheck_selectedUnchecked
 
@@ -490,7 +490,7 @@ paintCheck_plot:				; Paint our state
 	lda WG_VIEWRECORDS+4,y		; Raw or Apple format title?
 	and #VIEW_STYLE_RAWTITLE
 	asl
-	eor	#$80					; becomes #$80 for Apple format, 0 for raw
+	eor #$80					; becomes #$80 for Apple format, 0 for raw
 	sta paintCheck_mask+1
 
 	ldy #0
@@ -515,12 +515,12 @@ paintCheck_done:
 ; Side effects: Clobbers all registers,P0,P1
 paintProgress:
 	lda WG_VIEWRECORDS+1,y		; Top edge
-	sta	PARAM1
+	sta PARAM1
 
 	lda #1
 	sta PARAM3
 
-	lda	WG_VIEWRECORDS+9,y		; Progress value as width
+	lda WG_VIEWRECORDS+9,y		; Progress value as width
 	sta PARAM2
 	beq paintProgress_noFill	; skip if nothing to draw
 
@@ -574,9 +574,9 @@ paintButton:
 	sta SCRATCH1			; Cache this for left margin rendering
 
 	lda #0					; Position and print title
-	sta	WG_LOCALCURSORX
+	sta WG_LOCALCURSORX
 	lda #0
-	sta	WG_LOCALCURSORY
+	sta WG_LOCALCURSORY
 	jsr WGSyncGlobalCursor
 
 	lda WG_VIEWRECORDS+9,y	; Is button highlighted?
@@ -596,7 +596,7 @@ paintButton_titleMarginLeft:
 	ldx #0
 
 paintButton_titleMarginLeftLoop:
-	cpx	SCRATCH1
+	cpx SCRATCH1
 	bcs paintButton_title	; Left margin finished
 	jsr WGPlot
 	inc WG_CURSORX
@@ -619,7 +619,7 @@ paintButton_titleApple:
 	ldx WG_LOCALCURSORX
 
 paintButton_titleMarginRightLoop:
-	cpx	SCRATCH1
+	cpx SCRATCH1
 	bcs paintButton_done	; Right margin finished
 	jsr WGPlot
 	inc WG_CURSORX
@@ -661,7 +661,7 @@ paintWindowTitle_compute:
 	sbc SCRATCH1
 	clc
 	adc WG_VIEWRECORDS+0,y
-	sta	WG_CURSORX		; Position cursor
+	sta WG_CURSORX		; Position cursor
 	lda WG_VIEWRECORDS+1,y
 	dec
 	sta WG_CURSORY
@@ -669,7 +669,7 @@ paintWindowTitle_compute:
 	lda WG_VIEWRECORDS+4,y			; Raw or Apple format title?
 	and #VIEW_STYLE_RAWTITLE
 	asl
-	eor	#$80						; becomes #$80 for Apple format, 0 for raw
+	eor #$80						; becomes #$80 for Apple format, 0 for raw
 	sta paintWindowTitle_mask+1
 
 	ldy #0
@@ -678,7 +678,7 @@ paintWindowTitleLoop:
 	beq paintWindowTitle_done
 paintWindowTitle_mask:
 	ora #$FF				; Self-modifying code!
-	jsr	WGPlot				; Draw the character
+	jsr WGPlot				; Draw the character
 	iny
 	inc WG_CURSORX			; Advance cursors
 	bra paintWindowTitleLoop
@@ -697,25 +697,25 @@ WGEraseView:
 
 	LDY_ACTIVEVIEW
 
-	lda	WG_VIEWRECORDS+0,y
+	lda WG_VIEWRECORDS+0,y
 	dec
 	sta PARAM0
 
-	lda	WG_VIEWRECORDS+1,y
+	lda WG_VIEWRECORDS+1,y
 	dec
 	sta PARAM1
 
-	lda	WG_VIEWRECORDS+2,y
+	lda WG_VIEWRECORDS+2,y
 	inc
 	inc
 	sta PARAM2
 
-	lda	WG_VIEWRECORDS+3,y
+	lda WG_VIEWRECORDS+3,y
 	inc
 	inc
 	sta PARAM3
 
-	ldy	#' '+$80
+	ldy #' '+$80
 	jsr WGFillRect
 
 WGEraseView_done:
@@ -734,19 +734,19 @@ WGEraseViewContents:
 
 	LDY_ACTIVEVIEW
 
-	lda	WG_VIEWRECORDS,y	; Fetch the record
+	lda WG_VIEWRECORDS,y	; Fetch the record
 	sta PARAM0
 	iny
-	lda	WG_VIEWRECORDS,y
+	lda WG_VIEWRECORDS,y
 	sta PARAM1
 	iny
-	lda	WG_VIEWRECORDS,y
+	lda WG_VIEWRECORDS,y
 	sta PARAM2
 	iny
-	lda	WG_VIEWRECORDS,y
+	lda WG_VIEWRECORDS,y
 	sta PARAM3
 
-	ldy	#' '+$80
+	ldy #' '+$80
 	jsr WGFillRect
 
 WGEraseViewContents_done:
@@ -762,13 +762,13 @@ WGEraseViewContents_done:
 ; A: ID
 ;
 WGSelectView:
-	sta	WG_ACTIVEVIEW
+	sta WG_ACTIVEVIEW
 
 	; Initialize cursor to local origin
 	stz WG_LOCALCURSORX
 	stz WG_LOCALCURSORY
 
-	jsr	cacheClipPlanes		; View changed, so clipping cache is stale
+	jsr cacheClipPlanes		; View changed, so clipping cache is stale
 
 WGSelectView_done:
 	rts
@@ -839,7 +839,7 @@ WGViewFocusNext:
 	jsr unfocusCurrent
 
 WGViewFocusNext_loop:
-	lda	WG_FOCUSVIEW			; Increment and wrap
+	lda WG_FOCUSVIEW			; Increment and wrap
 	inc
 	cmp #16
 	beq WGViewFocusNext_wrap
@@ -863,7 +863,7 @@ WGViewFocusNext_focus:
 	rts
 
 WGViewFocusNext_wrap:
-	stz	WG_FOCUSVIEW
+	stz WG_FOCUSVIEW
 	bra WGViewFocusNext_loop
 
 
@@ -878,7 +878,7 @@ WGViewFocusPrev:
 	jsr unfocusCurrent
 
 WGViewFocusPrev_loop:
-	ldx	WG_FOCUSVIEW			; Decrement and wrap
+	ldx WG_FOCUSVIEW			; Decrement and wrap
 	dex
 	bmi WGViewFocusPrev_wrap
 
@@ -934,7 +934,7 @@ unfocusCurrentDone:
 ; Sets focus to desired view, and repaints
 ; Side effects: Clobbers A
 focusCurrent:
-	lda	WG_FOCUSVIEW
+	lda WG_FOCUSVIEW
 	jsr WGSelectView
 
 	LDY_ACTIVEVIEW
@@ -964,7 +964,7 @@ WGViewFocusAction:
 	SAVE_AXY
 
 	lda WG_FOCUSVIEW
-	bpl	WGViewFocusAction_do
+	bpl WGViewFocusAction_do
 	jmp WGViewFocusAction_done
 
 WGViewFocusAction_do:
@@ -974,7 +974,7 @@ WGViewFocusAction_do:
 
 	cmp #VIEW_STYLE_CHECK
 	beq WGViewFocusAction_toggleCheckbox
-    cmp #VIEW_STYLE_RADIO
+	cmp #VIEW_STYLE_RADIO
 	beq WGViewFocusAction_toggleRadio
 	bra WGViewFocusAction_buttonClick	; Everything else treated like a button
 
@@ -982,21 +982,21 @@ WGViewFocusAction_toggleRadio:
 	lda #15
 WGViewFocusAction_toggleRadioLoop:
 	pha
-	cmp	WG_FOCUSVIEW
+	cmp WG_FOCUSVIEW
 	beq WGViewFocusAction_toggleRadioLoopNext
 	LDY_AVIEW
-	lda	WG_VIEWRECORDS+4,y
-	and	#$f
-	cmp	#VIEW_STYLE_RADIO
-	bne	WGViewFocusAction_toggleRadioLoopNext
-	lda	WG_VIEWRECORDS+9,y		; check if this radio button is selected
+	lda WG_VIEWRECORDS+4,y
+	and #$f
+	cmp #VIEW_STYLE_RADIO
+	bne WGViewFocusAction_toggleRadioLoopNext
+	lda WG_VIEWRECORDS+9,y		; check if this radio button is selected
 	beq WGViewFocusAction_toggleRadioLoopNext
-	lda	#0
-	sta	WG_VIEWRECORDS+9,y		; if so, deselect it and repaint
+	lda #0
+	sta WG_VIEWRECORDS+9,y		; if so, deselect it and repaint
 	pla
 	pha
-	jsr	WGSelectView
-	jsr	WGPaintView
+	jsr WGSelectView
+	jsr WGPaintView
 WGViewFocusAction_toggleRadioLoopNext:
 	pla
 	dec
@@ -1250,13 +1250,13 @@ WGSetCursor:
 	lda #0					; Prevent negatives
 
 WGSetCursor_StoreX:
-	sta	WG_LOCALCURSORX
+	sta WG_LOCALCURSORX
 	lda PARAM1
 	bpl WGSetCursor_StoreY
 	lda #0					; Prevent negatives
 
 WGSetCursor_StoreY:
-	sta	WG_LOCALCURSORY
+	sta WG_LOCALCURSORY
 
 	pla
 	rts
@@ -1272,9 +1272,9 @@ WGSetGlobalCursor:
 	pha
 
 	lda PARAM0
-	sta	WG_CURSORX
+	sta WG_CURSORX
 	lda PARAM1
-	sta	WG_CURSORY
+	sta WG_CURSORY
 
 	pla
 	rts
@@ -1294,19 +1294,19 @@ WGSyncGlobalCursor:
 	; Sync X
 	clc						; Transform to viewspace
 	lda WG_LOCALCURSORX
-	adc	WG_VIEWRECORDS+0,y
+	adc WG_VIEWRECORDS+0,y
 
 	clc
-	adc	WG_VIEWRECORDS+5,y	; Transform to scrollspace
+	adc WG_VIEWRECORDS+5,y	; Transform to scrollspace
 	sta WG_CURSORX
 
 	; Sync Y
 	clc						; Transform to viewspace
 	lda WG_LOCALCURSORY
-	adc	WG_VIEWRECORDS+1,y
+	adc WG_VIEWRECORDS+1,y
 
 	clc
-	adc	WG_VIEWRECORDS+6,y	; Transform to scrollspace
+	adc WG_VIEWRECORDS+6,y	; Transform to scrollspace
 	sta WG_CURSORY
 
 WGSyncGlobalCursor_done:
@@ -1331,8 +1331,8 @@ WGScrollX:
 	lda #0					; Prevent positive scroll values
 
 WGScrollX_Store:
-	sta	WG_VIEWRECORDS+5,y
-	jsr	cacheClipPlanes		; Scroll offset changed, so clipping cache is stale
+	sta WG_VIEWRECORDS+5,y
+	jsr cacheClipPlanes		; Scroll offset changed, so clipping cache is stale
 
 WGScrollX_done:
 	ply
@@ -1405,8 +1405,8 @@ WGScrollY:
 	lda #0					; Prevent positive scroll values
 
 WGScrollY_Store:
-	sta	WG_VIEWRECORDS+6,y
-	jsr	cacheClipPlanes		; Scroll offset changed, so clipping cache is stale
+	sta WG_VIEWRECORDS+6,y
+	jsr cacheClipPlanes		; Scroll offset changed, so clipping cache is stale
 
 WGScrollY_done:
 	ply
@@ -1476,8 +1476,8 @@ WGSetContentWidth:
 	LDY_ACTIVEVIEW
 	pla
 
-	sta	WG_VIEWRECORDS+7,y
-	jsr	cacheClipPlanes		; Content width changed, so clipping cache is stale
+	sta WG_VIEWRECORDS+7,y
+	jsr cacheClipPlanes		; Content width changed, so clipping cache is stale
 
 	ply
 	rts
@@ -1495,8 +1495,8 @@ WGSetContentHeight:
 	LDY_ACTIVEVIEW
 	pla
 
-	sta	WG_VIEWRECORDS+8,y
-	jsr	cacheClipPlanes		; Content height changed, so clipping cache is stale
+	sta WG_VIEWRECORDS+8,y
+	jsr cacheClipPlanes		; Content height changed, so clipping cache is stale
 
 	ply
 	rts
@@ -1692,28 +1692,28 @@ cacheClipPlanes:
 	; Compute clip planes in view space
 	LDY_ACTIVEVIEW
 
-	lda	WG_VIEWRECORDS+5,y	; Left edge
+	lda WG_VIEWRECORDS+5,y	; Left edge
 	eor #$ff
 	inc
-	sta	WG_VIEWCLIP+0
+	sta WG_VIEWCLIP+0
 
 	clc
-	adc	WG_VIEWRECORDS+2,y	; Right edge
-	sta	WG_VIEWCLIP+2
+	adc WG_VIEWRECORDS+2,y	; Right edge
+	sta WG_VIEWCLIP+2
 
-	lda	WG_VIEWRECORDS+7,y	; Right span (distance from window edge to view edge, in viewspace
+	lda WG_VIEWRECORDS+7,y	; Right span (distance from window edge to view edge, in viewspace
 	sec
-	sbc	WG_VIEWCLIP+2
-	sta	WG_VIEWCLIP+4
+	sbc WG_VIEWCLIP+2
+	sta WG_VIEWCLIP+4
 	
-	lda	WG_VIEWRECORDS+6,y	; Top edge
+	lda WG_VIEWRECORDS+6,y	; Top edge
 	eor #$ff
 	inc
-	sta	WG_VIEWCLIP+1
+	sta WG_VIEWCLIP+1
 
 	clc
-	adc	WG_VIEWRECORDS+3,y	; Bottom edge
-	sta	WG_VIEWCLIP+3
+	adc WG_VIEWRECORDS+3,y	; Bottom edge
+	sta WG_VIEWCLIP+3
 
 	RESTORE_AY
 	rts
