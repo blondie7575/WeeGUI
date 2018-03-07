@@ -98,12 +98,11 @@ scanHex8:
 WGStrLen:
 	phy
 
-	ldy #0
+	ldy #$ff
 WGStrLen_loop:
-	lda (PARAM0),y
-	beq WGStrLen_done
 	iny
-	bra WGStrLen_loop
+	lda	(PARAM0),y
+	bne	WGStrLen_loop
 
 WGStrLen_done:
 	tya
@@ -174,8 +173,7 @@ WGStoreStr_copyLoop:
 	bne WGStoreStr_copyLoop
 
 WGStoreStr_terminate:
-	lda #0				; Terminate the stored string
-	sta WG_STRINGS,x
+	stz WG_STRINGS,x		; Terminate the stored string
 
 	pla					; Return pointer to the start of the block
 	clc
@@ -222,8 +220,7 @@ WGStorePascalStr_copyLoop:
 	bne WGStorePascalStr_copyLoop
 
 WGStorePascalStr_terminate:
-	lda #0				; Terminate the stored string
-	sta WG_STRINGS,x
+	stz WG_STRINGS,x		; Terminate the stored string
 
 	pla					; Return pointer to the start of the block
 	clc

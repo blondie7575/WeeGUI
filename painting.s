@@ -82,9 +82,9 @@ WGPlot:
 	clc
 	adc BASL
 	sta BASL
-	lda #$0
-	adc BASH
-	sta BASH
+	bcc WGPlot_SkipInc
+	inc BASH
+WGPlot_SkipInc:
 
 	lda WG_CURSORX			; X even?
 	ror
@@ -252,8 +252,7 @@ WGPrint_nextLine:
 	lda (PARAM0),y				; Check for end string landing exactly at line end
 	beq WGPrint_done
 	
-	lda #0						; Wrap to next line
-	sta WG_LOCALCURSORX
+	stz WG_LOCALCURSORX
 	bra WGPrint_lineLoop
 
 WGPrint_charLoopInverse:

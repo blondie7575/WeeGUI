@@ -40,10 +40,10 @@ WGFillRect_vertLoop:
 	clc
 	adc BASL
 	sta BASL
-	lda #$0
-	adc BASH
-	sta BASH
+	bcc WGFillRect_SkipInc
+	inc BASH
 
+WGFillRect_SkipInc:
 	lda PARAM0			; Left edge even?
 	ror
 	bcs WGFillRect_horzLoopOdd
@@ -51,7 +51,6 @@ WGFillRect_vertLoop:
 	lda PARAM2
 	cmp #1			; Width==1 is a special case
 	bne WGFillRect_horzLoopEvenAlignedNormalWidth
-	jmp WGFillRect_horzLoopEvenAlignedOneWidth
 
 WGFillRect_horzLoopEvenAlignedOneWidth:
 	SETSWITCH PAGE2ON
@@ -230,10 +229,10 @@ WGStrokeRect_horzEdge:
 	clc
 	adc BASL
 	sta BASL
-	lda #$0
-	adc BASH
-	sta BASH
+	bcc WGStrokeRect_SkipInc1
+	inc BASH
 
+WGStrokeRect_SkipInc1:
 	lda PARAM0			; Left edge even?
 	ror
 	bcc WGStrokeRect_horzEdgeEven
@@ -242,8 +241,7 @@ WGStrokeRect_horzEdge:
 WGStrokeRect_horzEdgeEven:
 	lda PARAM2
 	cmp #1				; Width==1 is a special case
-	bne WGStrokeRect_horzLoopEvenAlignedNormalWidth
-	jmp WGStrokeRect_horzLoopEvenAlignedOneWidth
+	beq WGStrokeRect_horzLoopEvenAlignedOneWidth
 
 WGStrokeRect_horzLoopEvenAlignedNormalWidth:
 	; CASE 1: Left edge even-aligned, even width
@@ -377,10 +375,10 @@ WGStrokeRect_vertLoop:
 	clc
 	adc BASL
 	sta BASL
-	lda #$0
-	adc BASH
-	sta BASH
+	bcc WGStrokeRect_SkipInc2
+	inc BASH
 
+WGStrokeRect_SkipInc2:
 	lda PARAM0			; Left edge even?
 	dec
 	ror
@@ -388,9 +386,8 @@ WGStrokeRect_vertLoop:
 
 	; CASE 1: Left edge even-aligned, even width
 	SETSWITCH PAGE2ON
-	ldy #$0
 	lda SCRATCH1					; Plot the left edge
-	sta (BASL),y
+	sta (BASL)
 
 	lda PARAM2						; Is width even?
 	inc
@@ -431,9 +428,8 @@ WGStrokeRect_vertLoopEvenAlignedNextRow:
 WGStrokeRect_vertLoopOdd:
 	; CASE 2: Left edge odd-aligned, even width
 	SETSWITCH PAGE2OFF
-	ldy #$0
 	lda SCRATCH1					; Plot the left edge
-	sta (BASL),y
+	sta (BASL)
 
 	lda PARAM2						; Is width even?
 	inc
@@ -466,8 +462,7 @@ WGStrokeRect_vertLoopOddAlignedNextRow:
 	plx								; Prepare for next row
 	inx
 	cpx SCRATCH0
-	bne WGStrokeRect_vertLoopJmp
-	jmp WGStrokeRect_done
+	beq WGStrokeRect_done
 WGStrokeRect_vertLoopJmp:
 	jmp WGStrokeRect_vertLoop
 	
@@ -522,10 +517,10 @@ WGFancyRect_horzEdge:
 	clc
 	adc BASL
 	sta BASL
-	lda #$0
-	adc BASH
-	sta BASH
+	bcc WGFancyRect_SkipInc1
+	inc BASH
 
+WGFancyRect_SkipInc1:
 	lda PARAM0			; Left edge even?
 	ror
 	bcs WGFancyRect_horzLoopOdd
@@ -652,10 +647,10 @@ WGFancyRect_vertLoop:
 	clc
 	adc BASL
 	sta BASL
-	lda #$0
-	adc BASH
-	sta BASH
+	bcc WGFancyRect_SkipInc2
+	inc BASH
 
+WGFancyRect_SkipInc2:
 	lda PARAM0			; Left edge even?
 	dec
 	ror
@@ -663,9 +658,8 @@ WGFancyRect_vertLoop:
 
 	; CASE 1: Left edge even-aligned, even width
 	SETSWITCH PAGE2ON
-	ldy #$0
 	lda #FR_LEFT					; Plot the left edge
-	sta (BASL),y
+	sta (BASL)
 
 	lda PARAM2						; Is width even?
 	inc
@@ -706,9 +700,8 @@ WGFancyRect_vertLoopEvenAlignedNextRow:
 WGFancyRect_vertLoopOdd:
 	; CASE 2: Left edge odd-aligned, even width
 	SETSWITCH PAGE2OFF
-	ldy #$0
 	lda #FR_LEFT					; Plot the left edge
-	sta (BASL),y
+	sta (BASL)
 
 	lda PARAM2						; Is width even?
 	inc
@@ -741,8 +734,7 @@ WGFancyRect_vertLoopOddAlignedNextRow:
 	plx								; Prepare for next row
 	inx
 	cpx SCRATCH0
-	bne WGFancyRect_vertLoopJmp
-	jmp WGFancyRect_corners
+	beq WGFancyRect_corners
 WGFancyRect_vertLoopJmp:
 	jmp WGFancyRect_vertLoop
 

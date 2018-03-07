@@ -32,8 +32,7 @@ WG_FEATURE_RT = %01000000
 WGCreateView:
 	SAVE_AXY
 
-	ldy #0
-	lda (PARAM0),y	; Find our new view record
+	lda (PARAM0)	; Find our new view record
 	pha				; Cache view ID so we can select when we're done
 
 	asl
@@ -42,7 +41,7 @@ WGCreateView:
 	asl				; Records are 8 bytes wide
 	tax
 
-	iny
+	ldy #1
 	lda (PARAM0),y
 	pha				; Cache style byte for later
 
@@ -129,8 +128,7 @@ WGCreate1x1_common:
 	sta WGCreate1x1_style+1
 	SAVE_XY
 
-	ldy #0
-	lda (PARAM0),y	; Find our new view record
+	lda (PARAM0)	; Find our new view record
 	pha				; Cache view ID so we can select when we're done
 
 	asl
@@ -139,7 +137,7 @@ WGCreate1x1_common:
 	asl				; Records are 16 bytes wide
 	tax
 
-	iny
+	ldy #1
 	lda (PARAM0),y
 	sta WG_VIEWRECORDS+0,x	; Screen X
 
@@ -195,8 +193,7 @@ WGCreate1x1_style:
 WGCreateProgress:
 	SAVE_AXY
 
-	ldy #0
-	lda (PARAM0),y	; Find our new view record
+	lda (PARAM0)	; Find our new view record
 	pha				; Cache view ID so we can select when we're done
 
 	asl
@@ -205,7 +202,7 @@ WGCreateProgress:
 	asl				; Records are 16 bytes wide
 	tax
 
-	iny
+	ldy #1
 	lda (PARAM0),y
 	sta WG_VIEWRECORDS+0,x	; Screen X
 
@@ -254,20 +251,21 @@ WGCreateProgress_done:
 ; PARAM0: Value
 ;
 WGSetState:
-	SAVE_AXY
+	SAVE_AY
 
 	LDY_ACTIVEVIEW
 
 	lda WG_VIEWRECORDS+9,y
-	and #$80
-	sta SCRATCH0
+	asl
+	php
 	lda PARAM0
-	and #$7F
-	ora SCRATCH0
+	asl
+	plp
+	ror
 	sta WG_VIEWRECORDS+9,y	; State (preserving bit 7)
 
 WGSetState_done:
-	RESTORE_AXY
+	RESTORE_AY
 	rts
 
 
@@ -290,8 +288,7 @@ WGSetState_done:
 WGCreateButton:
 	SAVE_AXY
 
-	ldy #0
-	lda (PARAM0),y	; Find our new view record
+	lda (PARAM0)	; Find our new view record
 	pha				; Cache view ID so we can select when we're done
 
 	asl
@@ -300,7 +297,7 @@ WGCreateButton:
 	asl				; Records are 16 bytes wide
 	tax
 
-	iny
+	ldy #1
 	lda (PARAM0),y
 	sta WG_VIEWRECORDS+0,x	; Screen X
 
@@ -449,10 +446,8 @@ paintCheck:
 	sta WG_CURSORY
 
 	lda WG_VIEWRECORDS+9,y		; Determine our visual state
-	and #$80
-	bne paintCheck_selected
+	bmi paintCheck_selected
 
-	lda WG_VIEWRECORDS+9,y
 	ror
 	bcc paintCheck_unselectedUnchecked
 
@@ -464,7 +459,6 @@ paintCheck_unselectedUnchecked:
 	bra paintCheck_plot
 
 paintCheck_selected:
-	lda WG_VIEWRECORDS+9,y
 	ror
 	bcc paintCheck_selectedUnchecked
 
@@ -573,10 +567,8 @@ paintButton:
 	sbc SCRATCH1
 	sta SCRATCH1			; Cache this for left margin rendering
 
-	lda #0					; Position and print title
-	sta WG_LOCALCURSORX
-	lda #0
-	sta WG_LOCALCURSORY
+	stz WG_LOCALCURSORX		; Position and print title
+	stz WG_LOCALCURSORY
 	jsr WGSyncGlobalCursor
 
 	lda WG_VIEWRECORDS+9,y	; Is button highlighted?
@@ -843,8 +835,9 @@ WGViewFocusNext_loop:
 	inc
 	cmp #16
 	beq WGViewFocusNext_wrap
-	sta WG_FOCUSVIEW
 
+WGViewFocusNext_findLoop:
+	sta WG_FOCUSVIEW
 	LDY_FOCUSVIEW
 	lda WG_VIEWRECORDS+2,y
 	beq WGViewFocusNext_loop
@@ -863,8 +856,8 @@ WGViewFocusNext_focus:
 	rts
 
 WGViewFocusNext_wrap:
-	stz WG_FOCUSVIEW
-	bra WGViewFocusNext_loop
+	lda #1
+	bra WGViewFocusNext_findLoop
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -873,17 +866,17 @@ WGViewFocusNext_wrap:
 ; Side effects: Changes selected view, repaints some views
 ;
 WGViewFocusPrev:
-	SAVE_AXY
+	SAVE_AY
 
 	jsr unfocusCurrent
 
 WGViewFocusPrev_loop:
-	ldx WG_FOCUSVIEW			; Decrement and wrap
-	dex
+	lda WG_FOCUSVIEW			; Decrement and wrap
+	dec
 	bmi WGViewFocusPrev_wrap
 
 WGViewFocusPrev_findLoop:
-	stx WG_FOCUSVIEW
+	sta WG_FOCUSVIEW
 	LDY_FOCUSVIEW
 	lda WG_VIEWRECORDS+2,y
 	beq WGViewFocusPrev_loop
@@ -898,11 +891,11 @@ WGViewFocusPrev_wantFocus:		; Does this view accept focus?
 WGViewFocusPrev_focus:
 	jsr focusCurrent
 
-	RESTORE_AXY
+	RESTORE_AY
 	rts
 
 WGViewFocusPrev_wrap:
-	ldx #$f
+	lda #$f
 	bra WGViewFocusPrev_findLoop
 
 
@@ -1021,17 +1014,16 @@ WGViewFocusAction_buttonClick:
 
 	lda WG_VIEWRECORDS+11,y				; Do we have a callback?
 	beq WGViewFocusAction_done
-	sta WGViewFocusAction_userJSR+2		; Modify code below so we can JSR to user's code
-	lda WG_VIEWRECORDS+10,y
-	sta WGViewFocusAction_userJSR+1
-
-WGViewFocusAction_userJSR:
-	jsr WGViewFocusAction_done			; Overwritten with user's function pointer
+	tya
+	tax
+	jsr WGViewFocusAction_userJMP
 	bra WGViewFocusAction_done
 
+WGViewFocusAction_userJMP:
+	jmp (WG_VIEWRECORDS+10,x)
+
 WGViewFocusAction_buttonClickApplesoft:
-	lda #0
-	sta WG_GOSUB
+	stz WG_GOSUB
 	lda WG_VIEWRECORDS+10,y				; Do we have a callback?
 	beq WGViewFocusAction_mightBeZero
 

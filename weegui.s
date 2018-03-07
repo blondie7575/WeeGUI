@@ -117,9 +117,8 @@ WGInit_clearMemLoop:
 	asl
 	asl
 	tax
-	lda #0
-	sta WG_VIEWRECORDS+2,x
-	sta WG_STRINGS,x
+	stz WG_VIEWRECORDS+2,x
+	stz WG_STRINGS,x
 	dey
 	bpl WGInit_clearMemLoop
 
