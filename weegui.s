@@ -182,6 +182,7 @@ WG80:
 .include "rects.s"
 .include "views.s"
 .include "mouse.s"
+.include "mouse_gs.s"
 .include "applesoft.s"
 .include "memory.s"
 
@@ -193,4 +194,4 @@ WG80:
 .SEGMENT "STARTUP"
 .SEGMENT "INIT"
 .SEGMENT "LOWCODE"
-
+.SEGMENT "ONCE"

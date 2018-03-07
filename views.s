@@ -1067,6 +1067,8 @@ WGViewFocusAction_knownRTS:
 WGPendingViewAction:
 	SAVE_AY
 
+WGEnableGSMouse:
+	bit GsPollMouse				; self-modified to JSR when appropriate
 	lda WG_MOUSECLICK_X
 	bmi WGPendingViewAction_done
 
