@@ -13,6 +13,8 @@
 ;  2) extensions for WeeGUI
 ;===============================
 
+.setcpu "65816"
+
 IoMouseStatus = $C027
 IoMouseData = $C024
 
@@ -36,18 +38,21 @@ GS_Mouse_OnlyY:
 	jsr WGUndrawPointer			; Erase the old mouse pointer
 	ldy IoMouseData ;Read deltaY
 	clc
-	.byte $FB ;xce ;65816 native mode
+	xce ;65816 native mode
 GS_Mouse_CheckX:
-	.byte $C2, $30 ;rep #$30 ;16-bit A,X,Y
-	.byte $A2, <MousePixX, >MousePixX ;ldx #MousePixX
+	rep #$30 ;16-bit A,X,Y
+	.a16
+	.i16
+	ldx #MousePixX
 	jsr GS_Mouse_AddDelta ;Cvt to signed word, add to pixPos & range clamp
-	.byte $95, MouseTxtX-MousePixX ;sta MouseTxtX-MousePixX,x ;16-bit store overwrites Y
+	sta MouseTxtX-MousePixX,x ;16-bit store overwrites Y
 GS_Mouse_CheckY:
 	tya ;a=DeltaY
 	inx
 	inx ;x=MousePixY ptr
 	jsr GS_Mouse_AddDelta ;Cvt to signed word, add to pixPos & range clamp
-	.byte $E2, $21 ;sep #$21 ;8-bit acc, set carry
+	sep #$21 ;8-bit acc, set carry
+	.a8
 	sta MouseTxtY-MousePixY,x
 
 	tya
@@ -59,22 +64,24 @@ GS_Mouse_CheckY:
 	ldy MouseTxtX-MousePixY,x
 	sty MouseDownX ;Set WG_MOUSECLICK_X & WG_MOUSECLICK_Y
 GS_Mouse_NoDownEdge:
-	.byte $FB ;xce ;65816 emulation mode: 8-bit A,X,Y
+	xce ;65816 emulation mode: 8-bit A,X,Y
 	jmp WGDrawPointer				; Redraw the pointer
 
 ;-------------------------------
 
 GS_Mouse_AddDelta:
-	.byte $09, $80, $FF ;ora #$ff80 ;Extend neg 6-bit delta in anticipation of delta
-	.byte $89, $40, $00 ;bit #$0040 ;Check sign of delta
+	.a16
+	.i16
+	ora #$ff80 ;Extend neg 6-bit delta in anticipation of delta
+	bit #$0040 ;Check sign of delta
 	bne GS_Mouse_GotDelta
 GS_Mouse_Pos:
-	.byte $29, $3F, $00 ;and #$003f ;Strip b7 button state from positive 6-bit delta
+	and #$003f ;Strip b7 button state from positive 6-bit delta
 GS_Mouse_GotDelta:
 	clc
 	adc 0,x ;Apply delta to X or Y pixel position
 	bpl GS_Mouse_NoMinClamp
-	.byte $7B ;tdc ;Clamp neg position to zero
+	tdc ;Clamp neg position to zero
 GS_Mouse_NoMinClamp:
 	cmp MouseMaxX-MousePixX,x
 	bcc GS_Mouse_NoMaxClamp
@@ -87,6 +94,8 @@ GS_Mouse_NoMaxClamp:
 	lsr
 GS_Mouse_Exit:
 	rts
+	.a8
+	.i8
 
 GsDisableMouse:
 	pla
