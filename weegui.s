@@ -92,12 +92,12 @@ WGInit:
 ;	sta LINNUML
 ;	jsr SETHI
 
-	jsr	WG80				; Enter 80-col text mode
-	jsr	WGInitApplesoft		; Set up Applesoft API
+	jsr WG80				; Enter 80-col text mode
+	jsr WGInitApplesoft		; Set up Applesoft API
 
 	RESTORE_AXY
 
-	jmp	WGReset
+	jmp WGReset
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -109,7 +109,7 @@ WGInit:
 WGReset:
 	SAVE_AXY
 
-	ldy	#15			; Clear our block allocators
+	ldy #15			; Clear our block allocators
 WGInit_clearMemLoop:
 	tya
 	asl
@@ -117,15 +117,14 @@ WGInit_clearMemLoop:
 	asl
 	asl
 	tax
-	lda #0
-	sta	WG_VIEWRECORDS+2,x
-	sta	WG_STRINGS,x
+	stz WG_VIEWRECORDS+2,x
+	stz WG_STRINGS,x
 	dey
 	bpl WGInit_clearMemLoop
 
-	lda	#$ff
-	sta	WG_PENDINGACTIONVIEW
-	sta	WG_FOCUSVIEW
+	lda #$ff
+	sta WG_PENDINGACTIONVIEW
+	sta WG_FOCUSVIEW
 
 	RESTORE_AXY
 	rts
@@ -147,12 +146,12 @@ WGExit:
 
 	; Remove ourselves from ProDOS memory map
 ;	lda #%00001111
-;	trb	MEMBITMAP + $0f
+;	trb MEMBITMAP + $0f
 ;	lda #$ff
-;	trb	MEMBITMAP + $10
-;	trb	MEMBITMAP + $11
+;	trb MEMBITMAP + $10
+;	trb MEMBITMAP + $11
 ;	lda #%11111100
-;	trb	MEMBITMAP + $12
+;	trb MEMBITMAP + $12
 
 	pla
 	rts
@@ -164,13 +163,13 @@ WGExit:
 WG80:
 	pha
 
-	lda	#$a0
-	jsr	$c300
+	lda #$a0
+	jsr $c300
 	
-	SETSWITCH	TEXTON
-	SETSWITCH	PAGE2OFF
-	SETSWITCH	COL80ON
-	SETSWITCH	STORE80ON
+	SETSWITCH TEXTON
+	SETSWITCH PAGE2OFF
+	SETSWITCH COL80ON
+	SETSWITCH STORE80ON
 
 	pla
 	rts

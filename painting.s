@@ -13,10 +13,10 @@
 ;
 WGDesktop:
 	pha
-	lda	#'W'
-	sta	WGClearScreen_charPage1+1
-	lda	#'V'
-	bra	WGClearScreen_common
+	lda #'W'
+	sta WGClearScreen_charPage1+1
+	lda #'V'
+	bra WGClearScreen_common
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGClearScreen
@@ -24,38 +24,38 @@ WGDesktop:
 ;
 WGClearScreen:
 	pha
-	lda	#' ' + $80
-	sta	WGClearScreen_charPage1+1
+	lda #' ' + $80
+	sta WGClearScreen_charPage1+1
 WGClearScreen_common:
-	sta	WGClearScreen_charPage2+1
+	sta WGClearScreen_charPage2+1
 	SAVE_XY
 	SETSWITCH PAGE2OFF
-	ldx	#23
+	ldx #23
 WGClearScreen_lineLoop:
-	lda	TEXTLINES_L,x	; Compute video memory address of line
-	sta	WGClearScreen_charLoop1+1
-	sta	WGClearScreen_charLoop2+1
-	lda	TEXTLINES_H,x
-	sta	WGClearScreen_charLoop1+2
-	sta	WGClearScreen_charLoop2+2
-	ldy	#39
+	lda TEXTLINES_L,x	; Compute video memory address of line
+	sta WGClearScreen_charLoop1+1
+	sta WGClearScreen_charLoop2+1
+	lda TEXTLINES_H,x
+	sta WGClearScreen_charLoop1+2
+	sta WGClearScreen_charLoop2+2
+	ldy #39
 WGClearScreen_charPage1:
-	lda	#$FF			; Self-modifying code!
+	lda #$FF			; Self-modifying code!
 WGClearScreen_charLoop1:
-	sta	$FFFF,y			; Self-modifying code!
+	sta $FFFF,y			; Self-modifying code!
 	dey
-	bpl	WGClearScreen_charLoop1
+	bpl WGClearScreen_charLoop1
 	SETSWITCH PAGE2ON
-	ldy	#39
+	ldy #39
 WGClearScreen_charPage2:
-	lda	#$FF			; Self-modifying code!
+	lda #$FF			; Self-modifying code!
 WGClearScreen_charLoop2:
-	sta	$FFFF,y			; Self-modifying code!
+	sta $FFFF,y			; Self-modifying code!
 	dey
-	bpl	WGClearScreen_charLoop2
+	bpl WGClearScreen_charLoop2
 	SETSWITCH PAGE2OFF
 	dex
-	bpl	WGClearScreen_lineLoop
+	bpl WGClearScreen_lineLoop
 	RESTORE_XY
 	pla
 	rts
@@ -71,37 +71,37 @@ WGPlot:
 	SAVE_XY
 	pha
 
-	ldx	WG_CURSORY
+	ldx WG_CURSORY
 	lda TEXTLINES_L,x	; Compute video memory address of point
 	sta BASL
 	lda TEXTLINES_H,x
 	sta BASH
 
-	lda	WG_CURSORX
+	lda WG_CURSORX
 	lsr
 	clc
-	adc	BASL
+	adc BASL
 	sta BASL
-	lda	#$0
-	adc BASH
-	sta BASH
+	bcc WGPlot_SkipInc
+	inc BASH
+WGPlot_SkipInc:
 
-	lda	WG_CURSORX			; X even?
+	lda WG_CURSORX			; X even?
 	ror
-	bcs	WGPlot_xOdd
+	bcs WGPlot_xOdd
 
-	SETSWITCH	PAGE2ON		; Plot the character
+	SETSWITCH PAGE2ON		; Plot the character
 	pla
-	sta	(BASL)
+	sta (BASL)
 	jmp WGPlot_done
 
 WGPlot_xOdd:
-	SETSWITCH	PAGE2OFF	; Plot the character
+	SETSWITCH PAGE2OFF	; Plot the character
 	pla
-	sta	(BASL)
+	sta (BASL)
 
 WGPlot_done:
-	SETSWITCH	PAGE2OFF
+	SETSWITCH PAGE2OFF
 	RESTORE_XY
 	rts
 
@@ -132,11 +132,11 @@ WGPrint_setupMask:
 
 	; Start checking clipping boundaries
 	lda WG_LOCALCURSORY
-	cmp	WG_VIEWCLIP+3
-	bcs	WGPrint_leapDone	; Entire string is below the clip box
+	cmp WG_VIEWCLIP+3
+	bcs WGPrint_leapDone	; Entire string is below the clip box
 
-	jsr	WGStrLen			; We'll need the length of the string
-	sta	SCRATCH1
+	jsr WGStrLen			; We'll need the length of the string
+	sta SCRATCH1
 
 	LDX_ACTIVEVIEW			; Cache view width for later
 	lda WG_VIEWRECORDS+7,x
@@ -145,20 +145,20 @@ WGPrint_setupMask:
 	ldy #0
 
 WGPrint_lineLoopFirst:		; Calculating start of first line is slightly different
-	lda	WG_LOCALCURSORY
-	cmp	WG_VIEWCLIP+1
-	bcc	WGPrint_skipToEndFirst	; This line is above the clip box
+	lda WG_LOCALCURSORY
+	cmp WG_VIEWCLIP+1
+	bcc WGPrint_skipToEndFirst	; This line is above the clip box
 
-	lda	WG_LOCALCURSORX		; Find start of line within clip box
+	lda WG_LOCALCURSORX		; Find start of line within clip box
 	cmp WG_VIEWCLIP+0
 	bcs WGPrint_visibleChars
 
-	lda	WG_VIEWCLIP+0		; Line begins before left clip plane
+	lda WG_VIEWCLIP+0		; Line begins before left clip plane
 	sec						; Advance string index and advance cursor into clip box
 	sbc WG_LOCALCURSORX
 	tay
 	lda WG_VIEWCLIP+0
-	sta	WG_LOCALCURSORX
+	sta WG_LOCALCURSORX
 	bra WGPrint_visibleChars
 
 WGPrint_leapDone:
@@ -168,11 +168,11 @@ WGPrint_skipToEndFirst:
 	lda WG_SCRATCHA			; Skip string index ahead by distance to EOL
 	sec
 	sbc WG_LOCALCURSORX
-	cmp	SCRATCH1
-	bcs	WGPrint_done		; EOL is past the end of the string, so we're done
+	cmp SCRATCH1
+	bcs WGPrint_done		; EOL is past the end of the string, so we're done
 	tay
 
-	lda	WG_SCRATCHA			; Skip cursor ahead to EOL
+	lda WG_SCRATCHA			; Skip cursor ahead to EOL
 	sta WG_LOCALCURSORX
 	bra WGPrint_nextLine
 
@@ -184,49 +184,49 @@ WGPrint_skipToEnd:
 	bcs WGPrint_done		; EOL is past the end of the string, so we're done
 	tay
 
-	lda	WG_SCRATCHA			; Skip cursor ahead to EOL
+	lda WG_SCRATCHA			; Skip cursor ahead to EOL
 	sta WG_LOCALCURSORX
 	bra WGPrint_nextLine
 
 WGPrint_lineLoop:
-	lda	WG_LOCALCURSORY
-	cmp	WG_VIEWCLIP+1
-	bcc	WGPrint_skipToEnd	; This line is above the clip box
+	lda WG_LOCALCURSORY
+	cmp WG_VIEWCLIP+1
+	bcc WGPrint_skipToEnd	; This line is above the clip box
 
-	lda	WG_LOCALCURSORX		; Find start of line within clip box
+	lda WG_LOCALCURSORX		; Find start of line within clip box
 	cmp WG_VIEWCLIP+0
 	bcs WGPrint_visibleChars
 
 	tya
 	clc
-	adc	WG_VIEWCLIP+0		; Jump ahead by left span
+	adc WG_VIEWCLIP+0		; Jump ahead by left span
 	tay
 
 	lda WG_VIEWCLIP+0		; Set cursor to left edge of visible area
-	sta	WG_LOCALCURSORX
+	sta WG_LOCALCURSORX
 
 WGPrint_visibleChars:
-	jsr	WGSyncGlobalCursor
+	jsr WGSyncGlobalCursor
 
 	lda INVERSE
 	cmp #CHAR_INVERSE
 	beq WGPrint_charLoopInverse
 	
 WGPrint_charLoopNormal:
-	lda	(PARAM0),y			; Draw current character
+	lda (PARAM0),y			; Draw current character
 	beq WGPrint_done
 	ora WGPrint_specialMask
-	jsr	WGPlot
+	jsr WGPlot
 	iny
 
 	inc WG_CURSORX			; Advance cursors
 	inc WG_LOCALCURSORX
 
 	lda WG_LOCALCURSORX
-	cmp	WG_SCRATCHA			; Check for wrap boundary
-	beq	WGPrint_nextLine
-	cmp	WG_VIEWCLIP+2		; Check for right clip plane
-	beq	WGPrint_endVisible
+	cmp WG_SCRATCHA			; Check for wrap boundary
+	beq WGPrint_nextLine
+	cmp WG_VIEWCLIP+2		; Check for right clip plane
+	beq WGPrint_endVisible
 	bra WGPrint_charLoopNormal
 
 WGPrint_done:				; This is in the middle here to keep local branches in range
@@ -237,27 +237,26 @@ WGPrint_done:				; This is in the middle here to keep local branches in range
 WGPrint_endVisible:
 	tya
 	clc
-	adc	WG_VIEWCLIP+4		; Advance string index by right span
-	cmp	SCRATCH1
-	bcs	WGPrint_done
+	adc WG_VIEWCLIP+4		; Advance string index by right span
+	cmp SCRATCH1
+	bcs WGPrint_done
 	tay
 
 WGPrint_nextLine:
-	inc	WG_LOCALCURSORY			; Advance cursor
-	lda	WG_LOCALCURSORY
-	cmp	WG_VIEWCLIP+3			; Check for bottom clip plane
-	beq	WGPrint_done
-	cmp	WG_VIEWRECORDS+8,x		; Check for bottom of view
-	beq	WGPrint_done
-	lda	(PARAM0),y				; Check for end string landing exactly at line end
-	beq	WGPrint_done
+	inc WG_LOCALCURSORY			; Advance cursor
+	lda WG_LOCALCURSORY
+	cmp WG_VIEWCLIP+3			; Check for bottom clip plane
+	beq WGPrint_done
+	cmp WG_VIEWRECORDS+8,x		; Check for bottom of view
+	beq WGPrint_done
+	lda (PARAM0),y				; Check for end string landing exactly at line end
+	beq WGPrint_done
 	
-	lda #0						; Wrap to next line
-	sta	WG_LOCALCURSORX
+	stz WG_LOCALCURSORX
 	bra WGPrint_lineLoop
 
 WGPrint_charLoopInverse:
-	lda	(PARAM0),y			; Draw current character
+	lda (PARAM0),y			; Draw current character
 	beq WGPrint_done
 	cmp #$60
 	bcc WGPrint_charLoopInverseLow
@@ -268,17 +267,17 @@ WGPrint_charLoopInverseLow:
 	and WGPrint_setupMaskInverse	; Normal inverse
 
 WGPrint_charLoopInversePlot:
-	jsr	WGPlot
+	jsr WGPlot
 	iny
 
 	inc WG_CURSORX			; Advance cursors
 	inc WG_LOCALCURSORX
 
 	lda WG_LOCALCURSORX
-	cmp	WG_SCRATCHA			; Check for wrap boundary
-	beq	WGPrint_nextLine
-	cmp	WG_VIEWCLIP+2		; Check for right clip plane
-	beq	WGPrint_endVisible
+	cmp WG_SCRATCHA			; Check for wrap boundary
+	beq WGPrint_nextLine
+	cmp WG_VIEWCLIP+2		; Check for right clip plane
+	beq WGPrint_endVisible
 	bra WGPrint_charLoopInverse
 
 WGPrint_specialMask:

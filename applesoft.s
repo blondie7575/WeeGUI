@@ -84,24 +84,22 @@ WGAmpersand:
 
 	sta SCRATCH0
 
-	ldy #0
-	ldx SCRATCH0
+	ldx #0
 
 WGAmpersand_parseLoop:
-	txa
+	tay
 	beq WGAmpersand_matchStart	; Check for end-of-statement (CHRGET handles : and EOL)
 	cmp #'('
 	beq WGAmpersand_matchStart
 	cmp #':'
 	beq WGAmpersand_matchStart
 
-	sta WGAmpersandCommandBuffer,y
+	sta WGAmpersandCommandBuffer,x
 
 	jsr CHRGET
-	tax
 
-	iny
-	cpy #MAXCMDLEN+1
+	inx
+	cpx #MAXCMDLEN+1
 	bne WGAmpersand_parseLoop
 
 WGAmpersand_parseFail:
@@ -110,26 +108,24 @@ WGAmpersand_parseFail:
 	bra WGAmpersand_done
 
 WGAmpersand_matchStart:
-	lda #0
-	sta WGAmpersandCommandBuffer,y	; Null terminate the buffer for matching
+	stz WGAmpersandCommandBuffer,x	; Null terminate the buffer for matching
 
-	ldy #0
 	ldx #0						; Command buffer now contains our API call
 	phx							; We stash the current command number on the stack
 
+WGAmpersand_matchReset:
+	ldy #0
+
 WGAmpersand_matchLoop:
 	lda WGAmpersandCommandBuffer,y
-	beq WGAmpersand_matchPossible
 	cmp WGAmpersandCommandTable,x
 	bne WGAmpersand_matchNext	; Not this one
+	cmp #0
+	beq WGAmpersand_matchFound		; Got one!
 
 	iny
 	inx
 	bra WGAmpersand_matchLoop
-
-WGAmpersand_matchPossible:
-	lda WGAmpersandCommandTable,x
-	beq WGAmpersand_matchFound		; Got one!
 
 WGAmpersand_matchNext:
 	pla				; Advance index to next commmand in table
@@ -141,27 +137,7 @@ WGAmpersand_matchNext:
 	tax
 
 	cpx #WGAmpersandCommandTableEnd-WGAmpersandCommandTable
-	beq WGAmpersand_matchFail	; Hit the end of the table
-
-	ldy #0
-	bra WGAmpersand_matchLoop
-
-WGAmpersand_matchFound:
-	pla							; This is now the matching command number
-	inc
-	asl
-	asl
-	asl
-	tay
-	lda WGAmpersandCommandTable-2,y	; Prepare an indirect JSR to our command
-	sta WGAmpersand_commandJSR+1	; Self-modifying code!
-	lda WGAmpersandCommandTable-1,y
-	sta WGAmpersand_commandJSR+2
-
-	; Self-modifying code!
-WGAmpersand_commandJSR:
-	jsr WGAmpersand_done			; Address here overwritten with command
-	bra WGAmpersand_done
+	bne WGAmpersand_matchReset	; Continue until hit the end of the table
 
 WGAmpersand_matchFail:
 	pla					; We left command number on the stack while matching
@@ -170,6 +146,19 @@ WGAmpersand_matchFail:
 
 WGAmpersand_done:
 	rts
+
+WGAmpersand_matchFound:
+	pla							; This is now the matching command number
+	inc
+	asl
+	asl
+	asl
+	tax
+	jsr WGAmpersand_commandJMP
+	bra WGAmpersand_done
+
+WGAmpersand_commandJMP:
+	jmp (WGAmpersandCommandTable-2,x)
 
 
 
@@ -249,6 +238,14 @@ WGAmpersandAddrArgument:
 	rts
 
 
+WGIncTXTPTR:
+	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
+	bne WGIncTXTPTRRet
+	inc TXTPTRH
+
+WGIncTXTPTRRet:
+	rts
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGAmpersandStrArgument
 ; Reads a string argument for the current command in PARAM0/1.
@@ -257,16 +254,12 @@ WGAmpersandAddrArgument:
 ; OUT Y : Pointer to a stored copy of the string (MSB)
 ; Side effects: Clobbers P0/P1 and all registers
 WGAmpersandStrArgument:
-	ldy #0
 	lda #'"'			; Expect opening quote
-	cmp (TXTPTRL),y		; Can't use SYNERR here because it skips whitespace
+	cmp (TXTPTRL)		; Can't use SYNERR here because it skips whitespace
 	bne WGAmpersandStr_NotLiteral
 
-	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
-	bne WGAmpersandStrArgument_loop_inc0
-	inc TXTPTRH
+	jsr WGIncTXTPTR
 
-WGAmpersandStrArgument_loop_inc0:
 	lda TXTPTRL			; Allocate for, and copy the string at TXTPTR
 	sta PARAM0
 	lda TXTPTRH
@@ -275,26 +268,21 @@ WGAmpersandStrArgument_loop_inc0:
 	jsr WGStoreStr
 
 WGAmpersandStrArgument_loop:
-	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
-	bne WGAmpersandStrArgument_loop_inc1
-	inc TXTPTRH
+	jsr WGIncTXTPTR
 
-WGAmpersandStrArgument_loop_inc1:
-	lda (TXTPTRL),y
+	lda (TXTPTRL)
 	beq WGAmpersandStrArgument_done
 	cmp #'"'								; Check for closing quote
 	bne WGAmpersandStrArgument_loop
 
 WGAmpersandStrArgument_done:
 	lda #'"'			; Expect closing quote
-	cmp (TXTPTRL),y		; Can't use SYNERR here because it skips whitespace
+	cmp (TXTPTRL)		; Can't use SYNERR here because it skips whitespace
 	bne WGAmpersandStrArgument_error
 
-	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
-	bne WGAmpersandStrArgument_loop_inc2
-	inc TXTPTRH
+	jsr WGIncTXTPTR
 
-WGAmpersandStrArgument_loop_inc2:
+WGAmpersandStrArgument_load:
 	ldx PARAM0
 	ldy PARAM1
 	rts
@@ -304,17 +292,16 @@ WGAmpersandStrArgument_error:
 
 WGAmpersandStr_NotLiteral:
 	jsr PTRGET			; Assume string variable
-	ldy #0
-	lda (VARPNT),y		; Grab length
+	lda (VARPNT)		; Grab length
 	tax
-	iny
+	ldy #1
 	lda (VARPNT),y		; Get string pointer out of Applesoft record
 	sta PARAM0			; Allocate for, and copy the string
 	iny
 	lda (VARPNT),y
 	sta PARAM1
 	jsr WGStorePascalStr
-	bra WGAmpersandStrArgument_loop_inc2
+	bra WGAmpersandStrArgument_load
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -326,15 +313,11 @@ WGAmpersandStr_NotLiteral:
 ; OUT A : String length
 ; Side effects: Clobbers P0/P1 and all registers
 WGAmpersandTempStrArgument:
-	ldy #0
 	lda #'"'			; Expect opening quote
-	cmp (TXTPTRL),y		; Can't use SYNERR here because it skips whitespace
+	cmp (TXTPTRL)		; Can't use SYNERR here because it skips whitespace
 	bne WGAmpersandTempStrArgument_error
 
-	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
-	bne WGAmpersandTempStrArgument_loop_inc0
-	inc TXTPTRH
-WGAmpersandTempStrArgument_loop_inc0:
+	jsr WGIncTXTPTR
 
 	lda TXTPTRL			; Grab current TXTPTR
 	sta PARAM0
@@ -342,24 +325,18 @@ WGAmpersandTempStrArgument_loop_inc0:
 	sta PARAM1
 
 WGAmpersandTempStrArgument_loop:
-	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
-	bne WGAmpersandTempStrArgument_loop_inc1
-	inc TXTPTRH
-WGAmpersandTempStrArgument_loop_inc1:
-	lda (TXTPTRL),y
+	jsr WGIncTXTPTR
+	lda (TXTPTRL)
 	beq WGAmpersandTempStrArgument_done
 	cmp #'"'								; Check for closing quote
 	bne WGAmpersandTempStrArgument_loop
 
 WGAmpersandTempStrArgument_done:
 	lda #'"'			; Expect closing quote
-	cmp (TXTPTRL),y		; Can't use SYNERR here because it skips whitespace
+	cmp (TXTPTRL)		; Can't use SYNERR here because it skips whitespace
 	bne WGAmpersandTempStrArgument_error
 
-	inc TXTPTRL			; Can't use CHRGET here, because it skips leading whitespace (among other issues)
-	bne WGAmpersandTempStrArgument_loop_inc2
-	inc TXTPTRH
-WGAmpersandTempStrArgument_loop_inc2:
+	jsr WGIncTXTPTR
 
 	; Compute the 8-bit distance TXTPTR moved. Note that we can't simply
 	; count in the above loop, because CHRGET will skip ahead unpredictable
@@ -478,13 +455,14 @@ WGAmpersand_CHKBX:
 	jsr WGAmpersandNextArgument
 
 	jsr WGAmpersandStrArgument
-	stx	WGAmpersandCommandBuffer+3
+	stx WGAmpersandCommandBuffer+3
 	sty WGAmpersandCommandBuffer+4
 
 	jsr WGAmpersandEndArguments
 
 	CALL16 WGCreateCheckbox,WGAmpersandCommandBuffer
 
+WGFlagView:
 	LDY_ACTIVEVIEW				; Flag this as an Applesoft-created view
 	lda #VIEW_STYLE_APPLESOFT
 	ora WG_VIEWRECORDS+4,y
@@ -523,16 +501,7 @@ WGAmpersand_RADIO:
 
 	CALL16 WGCreateRadio,WGAmpersandCommandBuffer
 
-	LDY_ACTIVEVIEW                ; Flag this as an Applesoft-created view
-	lda #VIEW_STYLE_APPLESOFT
-	ora WG_VIEWRECORDS+4,y
-	sta WG_VIEWRECORDS+4,y
-
-	jsr WGPaintView
-	jsr WGBottomCursor
-
-	rts
-
+	jmp WGFlagView
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -561,15 +530,7 @@ WGAmpersand_PROG:
 
 	CALL16 WGCreateProgress,WGAmpersandCommandBuffer
 
-	LDY_ACTIVEVIEW				; Flag this as an Applesoft-created view
-	lda #VIEW_STYLE_APPLESOFT
-	ora WG_VIEWRECORDS+4,y
-	sta WG_VIEWRECORDS+4,y
-
-	jsr WGPaintView
-	jsr WGBottomCursor
-
-	rts
+	jmp WGFlagView
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -640,27 +601,19 @@ WGAmpersand_BUTTN:
 	jsr WGAmpersandNextArgument
 
 	jsr WGAmpersandAddrArgument
-	stx	WGAmpersandCommandBuffer+4
+	stx WGAmpersandCommandBuffer+4
 	sty WGAmpersandCommandBuffer+5
 	jsr WGAmpersandNextArgument
 
 	jsr WGAmpersandStrArgument
-	stx	WGAmpersandCommandBuffer+6
+	stx WGAmpersandCommandBuffer+6
 	sty WGAmpersandCommandBuffer+7
 
 	jsr WGAmpersandEndArguments
 
 	CALL16 WGCreateButton,WGAmpersandCommandBuffer
 
-	LDY_ACTIVEVIEW				; Flag this as an Applesoft-created view
-	lda #VIEW_STYLE_APPLESOFT
-	ora WG_VIEWRECORDS+4,y
-	sta WG_VIEWRECORDS+4,y
-
-	jsr WGPaintView
-	jsr WGBottomCursor
-
-	rts
+	jmp WGFlagView
 
 
 
@@ -736,7 +689,7 @@ WGAmpersand_STACT:
 	jsr WGAmpersandBeginArguments
 
 	jsr WGAmpersandAddrArgument
-	stx	PARAM0
+	stx PARAM0
 	sty PARAM1
 
 	jsr WGAmpersandEndArguments
@@ -753,7 +706,7 @@ WGAmpersand_TITLE:
 	jsr WGAmpersandBeginArguments
 
 	jsr WGAmpersandStrArgument
-	stx	PARAM0
+	stx PARAM0
 	sty PARAM1
 
 	jsr WGAmpersandEndArguments
@@ -798,7 +751,7 @@ WGAmpersand_PRINT:
 	bne WGAmpersand_NotLiteral
 
 	jsr WGAmpersandTempStrArgument
-	stx	PARAM0
+	stx PARAM0
 	sty PARAM1
 	pha
 
@@ -809,8 +762,7 @@ WGAmpersand_PrintStrPtrAndLen:
 	; source, so we need to NULL-terminate it for printing. In
 	; order to avoid copying the whole thing, we'll do something
 	; kinda dirty here.
-	pla
-	tay
+	ply
 	lda (PARAM0),y		; Cache the byte at the end of the string
 	pha
 
@@ -829,10 +781,9 @@ WGAmpersand_NotLiteral:
 	bmi WGAmpersand_PRINTint
 
 	jsr PTRGET			; Non-numeric, so assume string variable
-	ldy #0
-	lda (VARPNT),y
+	lda (VARPNT)
 	pha					; Length goes on stack
-	iny
+	ldy #1
 	lda (VARPNT),y		; Get string pointer out of Applesoft record
 	sta PARAM0
 	iny
@@ -1107,25 +1058,19 @@ WGAmpersand_GET:
 	jsr WGAmpersandBeginArguments
 
 	jsr PTRGET
+	lda #0
+	sta (VARPNT)
 	lda KBD
 	bpl WGAmpersand_GETnone		; No key pending
 
 	sta KBDSTRB					; Clear strobe and high bit
 	and #%01111111
-	pha
-	bra WGAmpersand_GETstore
-
+	.byte $2C			; Mask LDA
 WGAmpersand_GETnone:
 	lda #0
-	pha
 
 WGAmpersand_GETstore:
-	ldy #0
-
-	lda #0
-	sta (VARPNT),y
-	iny
-	pla
+	ldy #1
 	sta (VARPNT),y
 
 ; String version:
@@ -1168,11 +1113,10 @@ WGAmpersand_EXIT:
 ; Leave the cursor state in a place that Applesoft is happy with
 ;
 WGBottomCursor:
-	SAVE_AY
+	pha
 
-	lda #0
-	sta CH
-	sta OURCH
+	stz CH
+	stz OURCH
 	lda #23
 	sta CV
 	sta OURCV
@@ -1182,7 +1126,7 @@ WGBottomCursor:
 	lda TEXTLINES_L+23
 	sta BASL
 
-	RESTORE_AY
+	pla
 	rts
 
 
@@ -1197,14 +1141,11 @@ WGAmpersand_GTSEL:
 
 	jsr PTRGET
 
-	lda WG_ACTIVEVIEW
-	pha
-
-	ldy #0
 	lda #0
-	sta (VARPNT),y
-	iny
-	pla
+	sta (VARPNT)
+	lda WG_ACTIVEVIEW
+
+	ldy #1
 	sta (VARPNT),y
 
 	jsr WGAmpersandEndArguments
@@ -1218,8 +1159,7 @@ WGAmpersand_GTSEL:
 ; WG_GOSUBLINE+1: Line number (MSB)
 ;
 WGGosub:
-	lda #0
-	sta WG_GOSUB		; Clear the flag
+	stz WG_GOSUB		; Clear the flag
 
 	; Can't come back from what we're about to do, so cleanup from the
 	; original Ampersand entry point now!  This is some seriously voodoo
