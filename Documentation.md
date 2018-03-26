@@ -732,9 +732,22 @@ Sets the currently selected view's value. For progress bar views, this is the pr
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGSetState
-A: 		new value
+PARAM0: new value
 </td><td>
 &SETV(value)
+</td></tr>
+</table>
+
+
+####WGGetState
+Gets the currently selected view's value. For progress bar views, this is the progress value. For checkboxes and radio buttons, 1 is checked and 0 is unchecked.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGGetState
+On exit, the value is in PARAM0
+</td><td>
+Not available
 </td></tr>
 </table>
 

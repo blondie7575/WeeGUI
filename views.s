@@ -271,6 +271,27 @@ WGSetState_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGGetState
+; Gets state field in view record
+; on exit, PARAM0 contains the state value, stripped of the high
+; bit
+;
+WGGetState:
+	SAVE_AY
+
+	LDY_ACTIVEVIEW
+
+	lda WG_VIEWRECORDS+9,y
+	and #%01111111
+	sta PARAM0
+
+WGGetState_done:
+	RESTORE_AY
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGCreateButton
 ; Creates a new button
 ; PARAM0: Pointer to configuration struct (LSB)
