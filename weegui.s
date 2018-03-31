@@ -78,7 +78,8 @@ WGEntryPointTable:
 .addr WGCreateRadio
 .addr WGReset
 .addr WGGetState
-
+.addr WGPendingClick
+.addr WGClearPendingClick
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

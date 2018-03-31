@@ -1186,6 +1186,16 @@ WGPendingClick_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGClearPendingClick
+; clear mouse coordinates
+;
+WGClearPendingClick:
+	stz WG_MOUSECLICK_X
+	dec WG_MOUSECLICK_X
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGViewSetTitle
 ; Sets the title of the active view
 ; PARAM0: Null-terminated string pointer (LSB)
