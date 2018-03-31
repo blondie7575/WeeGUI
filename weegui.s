@@ -79,6 +79,7 @@ WGEntryPointTable:
 .addr WGReset
 .addr WGGetState
 .addr WGPendingClick
+.addr WGClearPendingClick
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

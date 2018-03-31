@@ -565,6 +565,18 @@ Not available
 </table>
 
 
+####WGClearPendingClick
+Clear the currently pending click, if any. Most programs shouldn't need this, but you can use it to do your own low-level click handling if you wish.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGClearPendingClick
+</td><td>
+Not available
+</td></tr>
+</table>
+
+
 ####WGViewFocus
 Focus is shifted to the currently selected view. This will highlight the view visually, as needed, and any affected views are redrawn as needed.
 
