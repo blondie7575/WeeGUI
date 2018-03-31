@@ -1,7 +1,7 @@
 WeeGUI
 ======
 
-WeeGUI is a lightweight library for creating graphical user interfaces in 80 column text mode on the Apple IIe Enhanced and Apple IIc family of computers. It supports both keyboard and mouse controls for your interface. It is designed to take minimal RAM (less than 6k), and can be used from assembly language or Applesoft BASIC programs under ProDOS. WeeGUI installs itself at the top of memory, using an area normally vacant in most BASIC and assembly programs.
+WeeGUI is a lightweight library for creating graphical user interfaces in 80 column text mode on the Apple IIe Enhanced, Apple IIc, and Apple IIgs families of computers. It supports both keyboard and mouse controls for your interface. It is designed to take minimal RAM (less than 7k), and can be used from assembly language or Applesoft BASIC programs under ProDOS. WeeGUI installs itself on the secondary hi-res page, using an area normally vacant in most text-based BASIC and assembly programs.
 
 You can use WeeGUI as a full-blown user interface system, or as a simple drawing library for ASCII art. Use as much or as little of its features as you wish. WeeGUI tries not to enforce any particular structure or use-case on your program. It is intended to be so easy to use that you'll choose it over rolling your own menuing system for whatever application you're building. Whether you're building the next ProTERM, or just a quick-and-dirty interface for your Arduino project, WeeGUI can be your go-to library.
 
@@ -16,7 +16,7 @@ For a quick demo of what WeeGUI can do, install the disk image *weegui.dsk* in y
 	]-basicdemo
 	
 	
-You'll be presented with a sample GUI for a fictional home automation system. This entire interface, including mouse and keyboard control, is just a handful of lines of Applesoft. You can navigate this demo using Tab and Return, or using your mouse. Mouse support works in the Virtual II emulator as well (assuming you have a mouse card assigned to one of the slots). If you have a physical Apple II, you can use either a standard Apple IIc mouse, or an Apple IIe mouse with a mouse card in any slot. The Apple IIgs mouse is not officially supported at the moment.
+You'll be presented with a sample GUI for a fictional home automation system. This entire interface, including mouse and keyboard control, is just a handful of lines of Applesoft. You can navigate this demo using Tab and Return, or using your mouse. Mouse support works in the Virtual II emulator as well (assuming you have a mouse card assigned to one of the slots). If you have a physical Apple II, you can use either a standard Apple IIc mouse, an Apple IIe mouse with a mouse card in any slot, or the standard ADB mouse on your Apple IIgs.
 
 
 <center><img src="docart/screenshot.jpg"></center>
@@ -70,8 +70,6 @@ If you load the library some other way, make sure you load it at the base addres
 You also need to include the file *WeeGUI_MLI.s* in your program. This is the WeeGUI Machine Language Interface, and it provides all the constants, entry points, etc that you'll need for WeeGUI.
 
 
-With either language, WeeGUI protects itself using ProDOS's memory page reservation scheme, and Applesoft's HIMEM. This prevents it from being overwritten by ProDOS file operations, or Applesoft code/variables.
-
 
 ####Memory Map
 
@@ -81,9 +79,9 @@ WeeGUI is about 7k in size, and lives on top of the second hires page. The assum
 <tr><td>$FFFF</td><td></td></tr>
 <tr><td></td><td>...</td></tr>
 <tr><td>$9600-$BFFF</td><td>ProDOS</td></tr>
-<tr><td>$5B0F-$95FF</td><td>Applesoft</td></tr>
-<tr><td>$4000-$5B0E</td><td>WeeGUI</td></tr>
-<tr><td>$3FFF</td><td>Hi-Res 1</td></tr>
+<tr><td>$5BC5-$95FF</td><td>Applesoft Program Space</td></tr>
+<tr><td>$4000-$5BC4</td><td>WeeGUI</td></tr>
+<tr><td>$3FFF</td><td>End of Hi-Res Page 1</td></tr>
 <tr><td></td><td>...</td></tr>
 <tr><td>$0000</td><td></td></tr>
 </table>
