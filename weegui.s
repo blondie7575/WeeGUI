@@ -76,11 +76,11 @@ WGEntryPointTable:
 .addr WGSetContentHeight
 .addr WGStrokeRoundRect
 .addr WGCreateRadio
-.addr WGReset
+.addr WGResetAll
 .addr WGGetState
 .addr WGPendingClick
 .addr WGClearPendingClick
-
+.addr WGResetView
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGInit
@@ -100,16 +100,16 @@ WGInit:
 
 	RESTORE_AXY
 
-	jmp WGReset
+	jmp WGResetAll
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WGReset
-; Reset views and strings. Called from WGInit during app startup.
+; WGResetAll
+; Reset all views and strings. Called from WGInit during app startup.
 ; Can also be called at any time to "start over" with no views.
 ; (Does not clear screen or repaint.)
 ;
-WGReset:
+WGResetAll:
 	SAVE_AXY
 
 	ldy #15			; Clear our block allocators
