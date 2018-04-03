@@ -1158,6 +1158,18 @@ Not available
 </table>
 
 
+####WGResetView
+Deletes the selected view but does not erase or repaint anything. The ID is now available for use by a new view.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGResetView
+</pre></td><td><pre>
+Not available
+</pre></td></tr>
+</table>
+
+
 <br><br>
 
 - - -

@@ -389,6 +389,18 @@ WGDeleteView_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGResetView
+; Deletes the current view but does not erase or repaint anything
+;
+WGResetView:
+	SAVE_AX
+	LDX_ACTIVEVIEW
+	stz WG_VIEWRECORDS+2,x
+
+	RESTORE_AX
+	rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGPaintView
 ; Paints the current view
 ;
