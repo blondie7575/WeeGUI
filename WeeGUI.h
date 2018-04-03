@@ -22,10 +22,13 @@
 ' View Routines
 #define WGCreateView &WINDW
 #define WGCreateCheckbox &CHKBX
+#define WGCreateRadio &RADIO
+#define WGCreateProgress &PROG
 '#define WGCreateButton &BUTTN
 #define WGCreateButton(p1,p2,p3,p4,p5,p6) &BUTTN(p1,p2,p3,p4,gosub p5,p6)
 #define WGDeleteView &KILL
 #define WGSelectView &SEL
+#define WGGetSel &GTSEL
 #define WGPendingViewAction &PDACT
 #define WGViewFocus &FOC
 #define WGViewFocusNext &FOCN
@@ -33,13 +36,13 @@
 #define WGViewFocusAction &ACT
 #define WGPaintView &PNT
 #define WGViewPaintAll &PNTA
-#define WGEraseViewContents &ERASE
-#define WGEraseView &WIPE
+#define WGEraseViewContents &ERASE(0)
+#define WGEraseView &ERASE(1)
 #define WGViewSetTitle &TITLE
 '#define WGViewSetAction &STACT
 #define WGViewSetAction(p1) &STACT(gosub p1)
-#define WGCreateProgress &PROG
-#define WGSetValue &SETV
+#define WGSetState &SETV
+#define WGViewSetRawTitle &STRW
 
 ' Cursor Routines
 #define WGSetCursor &CURSR
@@ -47,12 +50,13 @@
 ' Scrolling Routines
 #define WGScroll &SCR
 #define WGScrollBy &SCRBY
-#define WGScrollByX(x) WGScrollBy(x, 0)
-#define WGScrollByY(y) WGScrollBy(0, y)
+#define WGScrollXBy(x) WGScrollBy(x, 0)
+#define WGScrollYBy(y) WGScrollBy(0, y)
+
 
 ' Drawing Routines
-#define WGClearScreen &HOME
-#define WGDesktop &DESK
+#define WGClearScreen &HOME(0)
+#define WGDesktop &HOME(1)
 #define WGPlot &PLOT
 #define WGPrint &PRINT
 #define WGStrokeRect &DRAW
