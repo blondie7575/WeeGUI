@@ -436,9 +436,9 @@ PARAM1:    Pointer to configuration block (MSB)
 
 Configuration block consists of five bytes:
 0:    View ID (0-15)
-1:    X position of checkbox
-2:    Y position of checkbox
-3:     Pointer to null-terminated string label (LSB)
+1:    X position of radio button
+2:    Y position of radio button
+3:    Pointer to null-terminated string label (LSB)
 4:    Pointer to null-terminated string label (MSB)
 </pre></td><td><pre>
 &RADIO(    View ID,
