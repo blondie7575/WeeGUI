@@ -1028,11 +1028,14 @@ WGViewFocusAction_toggleRadioLoopNext:
 	dec
 	bpl WGViewFocusAction_toggleRadioLoop
 	LDY_FOCUSVIEW
-	; execution falls through here
+	lda WG_VIEWRECORDS+9,y		; Set the radio button's state and redraw
+	ora #%00000001
+	bra WGViewFocusAction_setStateAndRedraw
 
 WGViewFocusAction_toggleCheckbox:
-	lda WG_VIEWRECORDS+9,y		; Change the checkbox's state and redraw
+	lda WG_VIEWRECORDS+9,y		; Toggle the checkbox's state and redraw
 	eor #%00000001
+WGViewFocusAction_setStateAndRedraw:
 	sta WG_VIEWRECORDS+9,y
 	lda WG_FOCUSVIEW
 	jsr WGSelectView
