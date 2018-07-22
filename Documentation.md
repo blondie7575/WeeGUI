@@ -436,9 +436,9 @@ PARAM1:    Pointer to configuration block (MSB)
 
 Configuration block consists of five bytes:
 0:    View ID (0-15)
-1:    X position of checkbox
-2:    Y position of checkbox
-3:     Pointer to null-terminated string label (LSB)
+1:    X position of radio button
+2:    Y position of radio button
+3:    Pointer to null-terminated string label (LSB)
 4:    Pointer to null-terminated string label (MSB)
 </pre></td><td><pre>
 &RADIO(    View ID,
@@ -559,6 +559,18 @@ X:		WGPendingClick
 
 Returns in X:		X coordinate of click, or $FF if none
 Returns in Y:		Y coordinate of click, if any
+</td><td>
+Not available
+</td></tr>
+</table>
+
+
+####WGClearPendingClick
+Clear the currently pending click, if any. Most programs shouldn't need this, but you can use it to do your own low-level click handling if you wish.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGClearPendingClick
 </td><td>
 Not available
 </td></tr>
@@ -732,9 +744,22 @@ Sets the currently selected view's value. For progress bar views, this is the pr
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGSetState
-A: 		new value
+PARAM0: new value
 </td><td>
 &SETV(value)
+</td></tr>
+</table>
+
+
+####WGGetState
+Gets the currently selected view's value. For progress bar views, this is the progress value. For checkboxes and radio buttons, 1 is checked and 0 is unchecked.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGGetState
+On exit, the value is in PARAM0
+</td><td>
+Not available
 </td></tr>
 </table>
 
@@ -1127,6 +1152,18 @@ Deallocate all WeeGUI views and strings. This is called automatically during Wee
 <table width="100%">
 <tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
 X:		WGReset
+</pre></td><td><pre>
+Not available
+</pre></td></tr>
+</table>
+
+
+####WGResetView
+Deletes the selected view but does not erase or repaint anything. The ID is now available for use by a new view.
+
+<table width="100%">
+<tr><th>Assembly</th><th>Applesoft</th></tr><tr><td><pre>
+X:		WGResetView
 </pre></td><td><pre>
 Not available
 </pre></td></tr>

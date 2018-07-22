@@ -271,6 +271,27 @@ WGSetState_done:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGGetState
+; Gets state field in view record
+; on exit, PARAM0 contains the state value, stripped of the high
+; bit
+;
+WGGetState:
+	SAVE_AY
+
+	LDY_ACTIVEVIEW
+
+	lda WG_VIEWRECORDS+9,y
+	and #%01111111
+	sta PARAM0
+
+WGGetState_done:
+	RESTORE_AY
+	rts
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGCreateButton
 ; Creates a new button
 ; PARAM0: Pointer to configuration struct (LSB)
@@ -366,6 +387,18 @@ WGDeleteView_done:
 	rts
 
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGResetView
+; Deletes the current view but does not erase or repaint anything
+;
+WGResetView:
+	SAVE_AX
+	LDX_ACTIVEVIEW
+	stz WG_VIEWRECORDS+2,x
+
+	RESTORE_AX
+	rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WGPaintView
@@ -995,11 +1028,14 @@ WGViewFocusAction_toggleRadioLoopNext:
 	dec
 	bpl WGViewFocusAction_toggleRadioLoop
 	LDY_FOCUSVIEW
-	; execution falls through here
+	lda WG_VIEWRECORDS+9,y		; Set the radio button's state and redraw
+	ora #%00000001
+	bra WGViewFocusAction_setStateAndRedraw
 
 WGViewFocusAction_toggleCheckbox:
-	lda WG_VIEWRECORDS+9,y		; Change the checkbox's state and redraw
+	lda WG_VIEWRECORDS+9,y		; Toggle the checkbox's state and redraw
 	eor #%00000001
+WGViewFocusAction_setStateAndRedraw:
 	sta WG_VIEWRECORDS+9,y
 	lda WG_FOCUSVIEW
 	jsr WGSelectView
@@ -1161,6 +1197,16 @@ WGPendingClick:
 	ldy WG_MOUSECLICK_Y
 
 WGPendingClick_done:
+	rts
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WGClearPendingClick
+; clear mouse coordinates
+;
+WGClearPendingClick:
+	stz WG_MOUSECLICK_X
+	dec WG_MOUSECLICK_X
 	rts
 
 
