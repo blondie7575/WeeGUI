@@ -47,7 +47,7 @@ Place the WeeGUI library in the same ProDOS folder as your program. Then, at the
 That's it! WeeGUI will load itself into memory and it's ready for use.
 
 
-####Assembly Language
+#### Assembly Language
 
 When using assembly language, you can install WeeGUI by loading the *WEEGUI* library into memory from your program. The simplest way to do this is to invoke BRUN using the Applesoft input buffer, like this:
 
@@ -71,7 +71,7 @@ You also need to include the file *WeeGUI_MLI.s* in your program. This is the We
 
 
 
-####Memory Map
+#### Memory Map
 
 WeeGUI is about 7k in size, and lives on top of the second hires page. The assumption is that, if you're making an 80-column-text-based GUI program, you don't _also_ need fancy hi-res page flipping animations. For an experimental version that lives primarily in the auxiliary memory bank, see Appendix A.
 
@@ -93,7 +93,7 @@ WeeGUI is about 7k in size, and lives on top of the second hires page. The assum
 Calling WeeGUI
 --------------
 
-###Applesoft
+### Applesoft
 
 WeeGUI is accessed from Applesoft through ampersand extensions. For example, the HOME command clears the screen and can optionally draw a desktop background:
 
@@ -109,7 +109,7 @@ Also note that you can call WeeGUI interactively from the Applesoft prompt. No l
 
 
 
-###Assembly Language
+### Assembly Language
 
 *Note:* All assembly language samples are written in the style of the **ca65** assembler (which is also what WeeGUI is written in). However, the code is easily adaptable to your assembler of choice.
 
@@ -121,7 +121,7 @@ From assembly, a Machine Language Interface is provided, similar to ProDOS. WeeG
 
 The constant *WGDesktop* is provided to your program by the *WeeGUI_MLI.s* file (part of the WeeGUI package). Be sure to include this file in your assembly language project. If a call requires parameters, these will be passed in a couple of ways, as shown below.
 
-#####Register Passing:
+##### Register Passing:
 
 Simple calls may use a register or two for parameters. For example, the call to select a view uses the accumulator (as specified in the API documentation):
 
@@ -132,7 +132,7 @@ Simple calls may use a register or two for parameters. For example, the call to 
 Registers that you use to pass a parameter to WeeGUI may contain different values upon return.
 
 
-#####Zero Page Passing:
+##### Zero Page Passing:
 
 For more complex calls, there are 4 reserved parameter-passing locations in the zeropage. These are named PARAM0-PARAM3, and are specified in *WeeGUI_MLI.s*. These locations are unused by Applesoft or ProDOS. You can use them in your own programs, so long as they aren't disrupted while inside a WeeGUI call.
 
@@ -157,7 +157,7 @@ Program Structure for WeeGUI
 Graphical user interfaces generally have a concept of a *run loop*. This is important because the program flow is driven asynchronously by the user's actions. Compare this to command-line programs, which enforce flow with specific moments of being blocked waiting for input. Most GUI libraries impose this run loop structure on your program. WeeGUI does not. Rather, it provides tools for you to set up a run loop if you wish, or you may simply call into WeeGUI in whatever way is most useful for your program. However, for a properly structured GUI program, you should build a run loop using the techniques described below.
 
 
-###Assembly Language
+### Assembly Language
 
 A typical assembly language run loop simply waits for keypresses and responds to them.
 
@@ -191,7 +191,7 @@ WeeGUI calls are relatively free of side effects. Most calls will clobber the BA
 The API documentation below indicates which registers and/or PARAM locations are used for parameter passing in each call, and what the value of the X register should be (in terms of constants supplied by *WeeGUI_MLI.s*)
 
 
-###Applesoft
+### Applesoft
 
 Normally, Applesoft is not intended to be used in a run-loop style of programming. To use a run-loop, there needs to be a non-blocking form of user-input. WeeGUI provides this for you with the &GET function. Calling &GET will retrieve keyboard input if any is pending, and store it in the variable you provide. If no keypresses are pending, execution proceeds to the next line.
 
@@ -231,7 +231,7 @@ As explained earlier, these callbacks are performed (if needed) when you invoke 
 Here's sample code for setting up a button that can be clicked, and providing the callback for that button, in both languages.
 
 
-####Assembly Language
+#### Assembly Language
 
 		; Create the button. This is done by passing a pointer to a parameter block
 		lda #<MyButton
@@ -259,7 +259,7 @@ Here's sample code for setting up a button that can be clicked, and providing th
 		.byte "Okay",0
 
 
-####Applesoft
+#### Applesoft
 
 	10 REM Create Button with given position and size.
 	20 REM Note line-number (1000) provided for callback
@@ -322,7 +322,7 @@ Views in WeeGUI can be drawn frameless, or with two different kinds of frame. Be
 
 Because view frames are rendered with Mousetext characters, views have limits on how close they can be placed together, and overlapping views may not always look perfect. WeeGUI views are drawn with a modern display-list rendering strategy, which means it combines information about all views to make the result look as good as possible within the constraints of the Apple II character set. For example, you *can* have Plain views that are separated by only one row, because there is a "double-horizontal-line" character in Mousetext that WeeGUI can use to render horizontal borders close together. However, no such character exists for verticals, thus adjacent views must be separated by at least two columns. You'll need to experiment a bit to get a sense of what will render well and what won't.
 
-###Decorated Views
+### Decorated Views
 
 Decorated views have some special properties associated with them. First of all, the scroll arrows that you see are automatically detected for mouse clicking, and WeeGUI will scroll the view for you. Naturally, this requires your application to redraw the view in response. To facilitate this, the View Action (normally used by things like buttons) will be called for the decorated view when scrolling has taken place. You can use this callback to redraw the contents of your view. If you are also including your own scrolling method via keyboard, it is convenient to share this same subroutine for redrawing in response to keyboard scrolling. See the BASICDEMO sample code in Appendix C for an example of this, and see the Callbacks section above for information on view action callbacks.
 
@@ -366,7 +366,7 @@ View Routines
 These routines are used for creating, modifying, and working with views.
 
 
-####WGCreateView
+#### WGCreateView
 Creates a new WeeGUI view. Up to 16 are allowed in one program. If a view is created with the same ID as a previous view, the previous view is destroyed and replaced with the new one. Views are not shown when created. Call *WGPaintView* to display it.
 
 
@@ -399,7 +399,7 @@ Configuration block consists of eight bytes:
 
 
 
-####WGCreateCheckbox
+#### WGCreateCheckbox
 Creates a new WeeGUI checkbox view. This is a specialized version of WGCreateView, and its parameters are similar.
 
 <table width="100%">
@@ -423,7 +423,7 @@ Configuration block consists of five bytes:
 </table>
 
 
-####WGCreateRadio
+#### WGCreateRadio
 Creates a new WeeGUI radio button view. This is a specialized version of WGCreateView, and its parameters are similar.
 
 Radio buttons act as a group; selecting one radio button deselects all other radio buttons. In WeeGUI, all radio buttons function as a single group. If you need multiple radio groups, rethink your design until you realize you don't need that.
@@ -449,7 +449,7 @@ Configuration block consists of five bytes:
 </table>
 
 
-####WGCreateProgress
+#### WGCreateProgress
 Creates a new WeeGUI progress bar view. This is a specialized version of WGCreateView, and its parameters are similar.
 
 <table width="100%">
@@ -472,7 +472,7 @@ Configuration block consists of five bytes:
 </table>
 
 
-####WGCreateButton
+#### WGCreateButton
 Creates a new WeeGUI button view. This is a specialized version of WGCreateView, and its parameters are similar.
 
 <table width="100%">
@@ -501,7 +501,7 @@ Configuration block consists of eight bytes:
 </table>
 
 
-####WGDeleteView
+#### WGDeleteView
 Deletes the selected view. The view is erased from the screen, and the ID is now available for use by a new view.
 
 <table width="100%">
@@ -513,7 +513,7 @@ X:		WGDeleteView
 </table>
 
 
-####WGSelectView
+#### WGSelectView
 Selects a view. Subsequent view-related operations will apply to this view. Does not affect visual appearance of view.
 
 <table width="100%">
@@ -526,7 +526,7 @@ A:		View ID
 </table>
 
 
-####WGGetSel
+#### WGGetSel
 Returns the ID of the currently selected view in the Applesoft integer variable you specify. Assembly programs can access the global variable WG_SELECTVIEW directly.
 
 <table width="100%">
@@ -538,7 +538,7 @@ Not available
 </table>
 
 
-####WGPendingViewAction
+#### WGPendingViewAction
 Processes any pending view actions that the user has initiated with the mouse. This should be called once each time through your run loop. If no mouse actions are pending, this call will do nothing, and quietly return to your program. If you do not wish to support the mouse, you do not need to call this.
 
 <table width="100%">
@@ -550,7 +550,7 @@ X:		WGPendingViewAction
 </table>
 
 
-####WGPendingClick
+#### WGPendingClick
 Returns the currently pending click, if any. This is a way to peek into the state of the mouse event system, to see if the user is trying to do something with the pointer. Most programs shouldn't need this, but you can use it to do your own low-level click handling if you wish.
 
 <table width="100%">
@@ -565,7 +565,7 @@ Not available
 </table>
 
 
-####WGClearPendingClick
+#### WGClearPendingClick
 Clear the currently pending click, if any. Most programs shouldn't need this, but you can use it to do your own low-level click handling if you wish.
 
 <table width="100%">
@@ -577,7 +577,7 @@ Not available
 </table>
 
 
-####WGViewFocus
+#### WGViewFocus
 Focus is shifted to the currently selected view. This will highlight the view visually, as needed, and any affected views are redrawn as needed.
 
 <table width="100%">
@@ -589,7 +589,7 @@ X:		WGViewFocus
 </table>
 
 
-####WGViewUnfocus
+#### WGViewUnfocus
 The currently focused view becomes unfocused. Views are redrawn as needed.
 
 <table width="100%">
@@ -601,7 +601,7 @@ Not available
 </table>
 
 
-####WGViewFocusNext
+#### WGViewFocusNext
 Focus is shifted to the next view in the focus chain, wrapping around to the first one if needed.
 
 <table width="100%">
@@ -613,7 +613,7 @@ X:		WGViewFocusNext
 </table>
 
 
-####WGViewFocusPrev
+#### WGViewFocusPrev
 Focus is shifted to the previous view in the focus chain, wrapping around to the last one if needed.
 
 <table width="100%">
@@ -625,7 +625,7 @@ X:		WGViewFocusPrev
 </table>
 
 
-####WGViewFocusAction
+#### WGViewFocusAction
 Action is taken on the currently focused view. If the view is a checkbox, that checkbox will be toggled. If the view is a button, the button will be clicked. Any callback attached to the view will be invoked.
 
 <table width="100%">
@@ -637,7 +637,7 @@ X:		WGViewFocusAction
 </table>
 
 
-####WGPaintView
+#### WGPaintView
 Draws (or redraws) the currently selected view.
 
 <table width="100%">
@@ -649,7 +649,7 @@ X:		WGPaintView
 </table>
 
 
-####WGViewPaintAll
+#### WGViewPaintAll
 Redraws all views. This is useful if the screen becomes corrupted, or you need to erase it for any reason.
 
 <table width="100%">
@@ -661,7 +661,7 @@ X:		WGViewPaintAll
 </table>
 
 
-####WGEraseViewContents
+#### WGEraseViewContents
 Erases the content area of the selected view. The frame is not touched.
 
 <table width="100%">
@@ -673,7 +673,7 @@ X:		WGEraseViewContents
 </table>
 
 
-####WGEraseView
+#### WGEraseView
 Erases the content area and frame of the selected view.
 
 <table width="100%">
@@ -685,7 +685,7 @@ X:		WGEraseView
 </table>
 
 
-####WGViewSetTitle
+#### WGViewSetTitle
 Changes the title of the selected view. Titles are only visible in the "decorated" style of view border. In Applesoft, the view is automatically redrawn to reflect the change. In assembly, you must call WGPaintView manually to see the change.
 
 <table width="100%">
@@ -699,7 +699,7 @@ PARAM1:	Pointer to null-terminated string (MSB)
 </table>
 
 
-####WGViewSetAction
+#### WGViewSetAction
 Changes the action callback of the selected view.
 
 <table width="100%">
@@ -713,7 +713,7 @@ PARAM1:	Function pointer (MSB)
 </table>
 
 
-####WGViewFromPoint
+#### WGViewFromPoint
 Returns the innermost view that contains the given point (in the lower nybble). For fancy views, the upper nybble of the result indicates which window feature was found:
 
 <table width="100%">
@@ -738,7 +738,7 @@ Not available
 </table>
 
 
-####WGSetState
+#### WGSetState
 Sets the currently selected view's value. For progress bar views, this is the progress value. For checkboxes and radio buttons, 1 is checked and 0 is unchecked.
 
 <table width="100%">
@@ -751,7 +751,7 @@ PARAM0: new value
 </table>
 
 
-####WGGetState
+#### WGGetState
 Gets the currently selected view's value. For progress bar views, this is the progress value. For checkboxes and radio buttons, 1 is checked and 0 is unchecked.
 
 <table width="100%">
@@ -764,7 +764,7 @@ Not available
 </table>
 
 
-####WGViewSetRawTitle
+#### WGViewSetRawTitle
 Sets the currently selected view's title to be rendered in raw bytes (or not). This allows some advanced tricks with using Mousetext and mixed inversion in view titles.
 
 <table width="100%">
@@ -785,7 +785,7 @@ Cursor Routines
 These routines are used for manipulating the various cursors in WeeGUI. As explained above, each view has its own local cursor, which is what you will normally interact with. The system global cursor is generally reserved for use by WeeGUI.
 
 
-####WGSetCursor
+#### WGSetCursor
 Changes the position of the local cursor in the currently selected view.
 
 <table width="100%">
@@ -799,7 +799,7 @@ PARAM1:	New Y position
 </table>
 
 
-####WGSetGlobalCursor
+#### WGSetGlobalCursor
 Changes the position of the global system cursor. Most programs should not normally need to do this, and it may have unpredictable effects on WeeGUI or Applesoft's visual appearance.
 
 <table width="100%">
@@ -813,7 +813,7 @@ Not available
 </table>
 
 
-####WGSyncGlobalCursor
+#### WGSyncGlobalCursor
 Synchronizes the global system cursor to the currently selected view's local cursor. If you modify the global cursor, you can call this to reset it to where WeeGUI expects it to be. Most programs should not need to use this, and results may be unpredictable.
 
 <table width="100%">
@@ -832,7 +832,7 @@ Scrolling Routines
 These routines are used for scrolling view contents and working with scrollable views.
 
 
-####WGScrollX
+#### WGScrollX
 Scrolls the currently selected view's contents to the specified horizontal position.
 
 <table width="100%">
@@ -845,7 +845,7 @@ Not available (see WGScroll)
 </table>
 
 
-####WGScrollY
+#### WGScrollY
 Scrolls the currently selected view's contents to the specified vertical position.
 
 <table width="100%">
@@ -858,7 +858,7 @@ Not available (see WGScroll)
 </table>
 
 
-####WGScroll
+#### WGScroll
 Scrolls the currently selected view's contents to the specified vertical and horizontal position.
 
 <table width="100%">
@@ -870,7 +870,7 @@ Not available
 </table>
 
 
-####WGScrollXBy
+#### WGScrollXBy
 Scrolls the currently selected view's contents by a specified delta horizontally (positive or negative).
 
 <table width="100%">
@@ -883,7 +883,7 @@ Not available (see WGScrollBy)
 </table>
 
 
-####WGScrollYBy
+#### WGScrollYBy
 Scrolls the currently selected view's contents by a specified delta vertically (positive or negative).
 
 <table width="100%">
@@ -896,7 +896,7 @@ Not available
 </table>
 
 
-####WGScrollBy
+#### WGScrollBy
 Scrolls the currently selected view's contents by a specified delta (positive or negative).
 
 <table width="100%">
@@ -908,7 +908,7 @@ Not available
 </table>
 
 
-####WGViewWidth
+#### WGViewWidth
 Changes the content width of the currently selected view.
 
 <table width="100%">
@@ -920,7 +920,7 @@ Not available
 </table>
 
 
-####WGViewHeight
+#### WGViewHeight
 Changes the content width of the currently selected view.
 
 <table width="100%">
@@ -941,7 +941,7 @@ Drawing Routines
 All drawing routines (except *WGPrint*) operate in the global coordinate space (not in local view space). You can use these drawing routines by themselves for pseudo-graphical rendering effects in your programs, or in conjunction with higher level calls for creating and using GUI elements.
 
 
-####WGClearScreen
+#### WGClearScreen
 Clears the screen to black. Unlike Applesoft HOME, this version always clears to black, regardless of the INVERSE setting, and the global cursor is left at the bottom instead of the top.
 
 <table width="100%">
@@ -953,7 +953,7 @@ X:		WGClearScreen
 </table>
 
 
-####WGDesktop
+#### WGDesktop
 Paints a desktop background on the screen.
 
 <table width="100%">
@@ -965,7 +965,7 @@ X:		WGDesktop
 </table>
 
 
-####WGPlot
+#### WGPlot
 Plots a single character. For Applesoft, you supply the Apple ROM value of the character, and **all** character sets are supported with no mode changing required. This means you can directly plot inverse lowercase, or MouseText characters, for example. For a complete list of the values of every character in the Apple IIe Enchanced set, see Appendix B.
 
 <table width="100%">
@@ -982,7 +982,7 @@ Note: Character is plotted at the current global cursor position.
 </table>
 
 
-####WGPrint
+#### WGPrint
 Prints a string into the current view, at the *local* cursor position. The text is wrapped to the view's content width, and clipped to the visible view boundaries.
 
 <table width="100%">
@@ -1005,7 +1005,7 @@ or
 </table>
 
 
-####WGStrokeRect
+#### WGStrokeRect
 Draws the outline of a rectangle. The rectangle is drawn one pixel outside the region you specify. So, *do not* attempt to stroke a rectangle in row 0, row 23, column 0, or column 79. You may overwrite screen holes and cause system malfunctions.
 
 <table width="100%">
@@ -1021,7 +1021,7 @@ PARAM3: Height
 </table>
 
 
-####WGStrokeRoundRect
+#### WGStrokeRoundRect
 Draws the outline of a "round" rectangle, with left and right edges curved instead of straight. The rectangle is drawn one pixel outside the region you specify. So, *do not* attempt to stroke a rectangle in row 0, row 23, column 0, or column 79. You may overwrite screen holes and cause system malfunctions.
 
 <table width="100%">
@@ -1037,7 +1037,7 @@ PARAM3: Height
 </table>
 
 
-####WGFillRect
+#### WGFillRect
 Fills a rectangle with a given character
 
 <table width="100%">
@@ -1054,7 +1054,7 @@ Y: 		Character to fill with (Apple format)
 </table>
 
 
-####WGFancyRect
+#### WGFancyRect
 Draws the outline of a decorated GUI-style window, with scrollbars and title bar. Similar to *WGStrokeRect*, the drawing occurs *outside* the rectangle you specify, so do not attempt to draw a decorated rect in row 0, row 23, column 0, or column 79.
 
 <table width="100%">
@@ -1077,7 +1077,7 @@ Mouse & Keyboard Routines
 Various useful routines for working with the mouse and keyboard.
 
 
-####WGEnableMouse
+#### WGEnableMouse
 Enables the mouse. Call this once at the start of your program to begin using the mouse. Calling this sets up the interrupt mechanisms needed to manage the mouse. If you start the mouse with this call, it's very important to call *WGDisableMouse* (below) when your program quits.
 
 <table width="100%">
@@ -1089,7 +1089,7 @@ Not available (see WGMouse)
 </table>
 
 
-####WGDisableMouse
+#### WGDisableMouse
 Disables the mouse. Call this when quitting your program, if you called WGEnableMouse. This is very important, as the interrupt mechanisms created for the mouse must be dismantled, otherwise the Apple II will be left in an unsafe state.
 
 <table width="100%">
@@ -1101,7 +1101,7 @@ Not available (see WGMouse)
 </table>
 
 
-####WGMouse
+#### WGMouse
 Enables or disables the mouse. Passing a '1' is equivalent to calling WGEnableMouse (above). Passing a '0' is equivalent to calling WGDisableMouse (above). The same caveats and warnings apply.
 
 <table width="100%">
@@ -1113,7 +1113,7 @@ Not available
 </table>
 
 
-####WGGet
+#### WGGet
 A non-blocking version of Applesoft's GET. This allows you to easily create run-loops for GUI programming in Applesoft. The key read is returned in the Applesoft integer variable you specify. If no keypress is pending, the value will be zero.
 
 <table width="100%">
@@ -1132,7 +1132,7 @@ Miscellaneous Routines
 
 Other stuff you might need.
 
-####WGExit
+#### WGExit
 Cleans up and shuts down WeeGUI. If you want your application to return cleanly to Applesoft when it's done, you must call this. Otherwise you may get ProDOS complaining it is out of buffers, or other strange behaviour.
 
 <table width="100%">
@@ -1146,7 +1146,7 @@ X:		WGExit
 
 <br><br>
 
-####WGReset
+#### WGReset
 Deallocate all WeeGUI views and strings. This is called automatically during WeeGUI startup, but you can call it yourself at any time if you want to "start over" with no views. This does not clear the screen or repaint anything.
 
 <table width="100%">
@@ -1158,7 +1158,7 @@ Not available
 </table>
 
 
-####WGResetView
+#### WGResetView
 Deletes the selected view but does not erase or repaint anything. The ID is now available for use by a new view.
 
 <table width="100%">
