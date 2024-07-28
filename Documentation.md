@@ -38,7 +38,7 @@ Installation
 ------------
 
 
-####Applesoft
+#### Applesoft
 
 Place the WeeGUI library in the same ProDOS folder as your program. Then, at the top of your program, simply load it into memory as follows:
 
